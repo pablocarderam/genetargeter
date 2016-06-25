@@ -1,0 +1,39 @@
+ **** Message log for PF3D7_0302600 (ABC Transporter)-targeting construct based on plasmid pSN054_V5 **** 
+
+gRNA for gene PF3D7_0302600 (ABC Transporter) selected.
+
+Recoded region for gene PF3D7_0302600 (ABC Transporter) selected.
+
+
+Warning: No LHR found for gene PF3D7_0302600_(ABCB4) 
+with more than 59 C melting temperature in the last 40 bp of LHR, 
+with a max distance of 0 bp between end of LHR and gRNA. 
+Defaulted to ending right before start of gRNA most upstream.
+LHR for gene PF3D7_0302600 (ABC Transporter) selected.
+
+
+Warning: No RHR found for gene PF3D7_0302600_(ABCB4) 
+with more than 59 C melting temperature in the first 40 bp of RHR, 
+with a max distance of 500 bp between end of gene and start of RHR. 
+Defaulted to starting right after end of gene.
+RHR for gene PF3D7_0302600 (ABC Transporter) selected.
+
+gBlock for part PF3D7_0302600 (ABC Transporter) Recoded Region selected.
+
+
+Warning: Best fwd primer for sequence PF3D7_0302600 (ABC Transporter) Recoded Region gBlock under given constraints has a Tm of 51.7105943797
+Primers for part PF3D7_0302600 (ABC Transporter) Recoded Region gBlock selected.
+
+
+Warning: Best Gibson rev primer for sequence PF3D7_0302600 (ABC Transporter) LHR under given constraints has a Tm of 61.8195687386, below the given threshold of 68
+Gibson primers for part PF3D7_0302600 (ABC Transporter) LHR selected.
+
+
+Warning: Best Gibson rev primer for sequence PF3D7_0302600 (ABC Transporter) RHR under given constraints has a Tm of 67.2862354053, below the given threshold of 68
+Gibson primers for part PF3D7_0302600 (ABC Transporter) RHR selected.
+
+Klenow oligos for part PF3D7_0302600 (ABC Transporter) gRNA selected.
+
+
+
+Vector constructed and written to file. End of process.

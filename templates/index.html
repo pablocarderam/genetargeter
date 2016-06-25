@@ -1,0 +1,137 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>GeneTargeter</title>
+		<!--link rel="apple-touch-icon" sizes="57x57" href="static/assets/favicon/apple-icon-57x57.png">
+		<link rel="apple-touch-icon" sizes="60x60" href="static/assets/favicon/apple-icon-60x60.png">
+		<link rel="apple-touch-icon" sizes="72x72" href="static/assets/favicon/apple-icon-72x72.png">
+		<link rel="apple-touch-icon" sizes="76x76" href="static/assets/favicon/apple-icon-76x76.png">
+		<link rel="apple-touch-icon" sizes="114x114" href="static/assets/favicon/apple-icon-114x114.png">
+		<link rel="apple-touch-icon" sizes="120x120" href="static/assets/favicon/apple-icon-120x120.png">
+		<link rel="apple-touch-icon" sizes="144x144" href="static/assets/favicon/apple-icon-144x144.png">
+		<link rel="apple-touch-icon" sizes="152x152" href="static/assets/favicon/apple-icon-152x152.png">
+		<link rel="apple-touch-icon" sizes="180x180" href="static/assets/favicon/apple-icon-180x180.png">
+		<link rel="icon" type="image/png" sizes="192x192"  href="static/assets/favicon/android-icon-192x192.png">
+		<link rel="icon" type="image/png" sizes="32x32" href="static/assets/favicon/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="96x96" href="static/assets/favicon/favicon-96x96.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="static/assets/favicon/favicon-16x16.png">
+		<link rel="manifest" href="static/assets/favicon/manifest.json">
+		<meta name="msapplication-TileColor" content="#ffffff">
+		<meta name="msapplication-TileImage" content="static/favicon/ms-icon-144x144.png">
+		<meta name="theme-color" content="#ffffff"-->
+		<link rel="shortcut icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
+
+		<link rel="stylesheet" href="static/css/style.css">
+		<script src="static/js/main.js"></script>
+		<script src="static/js/EPPZScroll.js"></script>
+	</head>
+
+	<body onload="init()" onscroll="scrollEvt()">
+		<label class="roundBtn hidden" id="backToTopBtn" onclick="EPPZScrollTo.scrollVerticalToElementById('Title', 0)">
+			<span>^</span></label>
+
+		<div class="headTitle" id="Title" onclick="EPPZScrollTo.scrollVerticalToElementById('App', 50)">
+			<span id="titLeft">Gene</span><span id="titRight">Targeter</span>
+		</div>
+
+		<div class="mainText">
+			<p>
+	            Creates a construct based on the pSN054 (updated) V5 tagged plasmid
+	            developed by the
+	            <a href="http://web.mit.edu/nileslab/" target="_blank">Niles Lab at MIT</a>,
+	            designed to deliver a 3' UTR post-transcriptional regulatory element
+	            payload to a specific given gene in <a href="http://www.who.int/mediacentre/factsheets/fs094/en/" target="_blank"><i>Plasmodium falciparum</i></a>.
+	        </p>
+	        <p>
+	            Future plans include custom plasmids, automatic gRNA selection, and
+	            generalization to inserting elements into any chromosomal DNA
+	            sequence of any sequenced eukaryote.
+			</p>
+		</div>
+
+		<div id="App" class="app" onload="init()">
+			<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
+			<!--FALLBACK SOCKET.IO LOCAL <script type="text/javascript" src="static/js/socket.io.min.js"></script> -->
+			<script src="static/js/socketHandler.js"></script>
+			<!--script src="static/js/app.js"></script-->
+			<p>
+				Upload a
+				<a href="https://benchling.com" class="tooltip" target="_blank"
+					tipTxt="A GenBank file (.gb) can
+					be downloaded from Benchling clicking on the Information
+					icon on the righthand tool menu and scrolling to the
+					'Download' section.">
+					GenBank file</a>
+				annotated with the gene's sequence
+				<a href="https://benchling.com" class="tooltip" target="_blank"
+					tipTxt="Benchling displays 5'->3'
+					annotations from left to right on the top strand. If your
+					gene appears from right to left on the bottom strand, you
+					can select the whole sequence -> right click -> Copy Special
+					-> Reverse Complement -> paste in new file.">
+					in 5'->3' sense</a>
+				and all
+				<a href="https://benchling.com" class="tooltip" target="_blank"
+					tipTxt="You can use Benchling's CRISPR tool, but you must
+					create annotations on the sequence for all the gRNAs to be
+					considered by GeneTargeter.">
+					CRISPR guide RNAs</a>
+				to be included in targeting. The
+				guide RNAs should contain "gRNA" in the label and
+				<a href="https://benchling.com" class="tooltip" target="_blank"
+					tipTxt="i.e., your best-ranked gRNA should be labeled
+					'MyGene gRNA 1', your second best should be 'MyGene gRNA
+					2, etc.'" class="tooltip">
+					a number</a>
+				indicating their preferred order. Additionally you may annotate
+				hand-picked left and right homologous regions on your file, if
+				you do not want GeneTargeter to choose them automatically for you.
+			</p>
+			<p>
+				<label class="btn" ><input type="file" id="geneFileForm" multiple size="50" onchange="uploadFile()">
+					<span> Upload File </span></label>
+			</p>
+			<p>
+				<div class="small" id="selectedFiles"></div>
+			</p>
+			<p>
+				<label class="runBtn" id="run" onclick="run()">
+					<span> Target gene! </span></label>
+			</p>
+
+		</div>
+
+		<div class="bottom">
+			<a href="http://web.mit.edu/nileslab/" target="_blank">
+				<p>
+					<img src="static/assets/WhiteLogoNilesLab.png" width="400px">
+				</p>
+				<p>
+					<img src="static/assets/roundLogoNilesLab.png" width="400px">
+				</p>
+			</a>
+			<p>
+	            Background Image:
+	            <a href="https://commons.wikimedia.org/wiki/File:Plasmodium_falciparum_in_a_patient_presenting_with_pyrexia_and_headache.jpg" target="_blank">
+	                <i>Plasmodium falciparum in a patient presenting with pyrexia and
+	                headache.</i> O. Erhabor (2013)</a>
+	            <br>
+	            <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.en" target="_blank">
+	                CC BY-SA 3.0</a>
+	        </p>
+	        <p>
+	            Code: <a href="http://opensource.org/licenses/MIT" target="_blank">
+					MIT License</a>, appropriately.
+				<br>
+				<a href="https://github.com/pablocarderam/GeneTargeter" target="_blank">
+					GitHub src here.</a>
+	            <br>
+	            Developed by Pablo Cárdenas Ramírez
+	            <br>
+	            <a href="mailto:pablocarderam@gmail.com?Subject=Hi%20there" target="_top" class="pcr">
+					pablocarderam@gmail.com</a>
+			</p>
+		</div>
+	</body>
+</html>

@@ -1,0 +1,44 @@
+ **** Message log for PF3D7_0813700 (ABCF1)-targeting construct based on plasmid pSN054_V5 **** 
+
+gRNA for gene PF3D7_0813700 (ABCF1) selected.
+
+Recoded region for gene PF3D7_0813700 (ABCF1) selected.
+
+
+Warning: No LHR found for gene PF3D7_0813700_(ABCF1) 
+with more than 59 C melting temperature in the last 40 bp of LHR, 
+with a max distance of 0 bp between end of LHR and gRNA. 
+Defaulted to ending right before start of gRNA most upstream.
+
+Warning: No LHR found for gene PF3D7_0813700_(ABCF1) 
+with more than 59 C melting temperature in the first 40 bp of LHR, 
+with a max distance of 0 bp between end of LHR and gRNA. 
+Defaulted to starting so that the LHR size is equal to preferred size of 500
+LHR for gene PF3D7_0813700 (ABCF1) selected.
+
+RHR for gene PF3D7_0813700 (ABCF1) selected.
+
+
+Warning: I suspect IDT might reject the gBlock created: 
+agaagaaatttttcaaaaaaaaaaaattaataaaaaaaatTTTGGCGGGAAGGGAACCTCGGGCAAGATAAAGATTAAAAACTGGAAGCGGTGGAAAAAGgcgatcgcgGGTAAGCCTATCCCTAACCCTCTCCTCGGTC
+gBlock for part PF3D7_0813700 (ABCF1) Recoded Region selected.
+
+
+Warning: Best fwd primer for sequence PF3D7_0813700 (ABCF1) Recoded Region gBlock under given constraints has a Tm of 45.402902072
+Primers for part PF3D7_0813700 (ABCF1) Recoded Region gBlock selected.
+
+
+Warning: Best Gibson fwd primer for sequence PF3D7_0813700 (ABCF1) LHR under given constraints has a Tm of 65.9195687386, below the given threshold of 68
+
+Warning: Best Gibson rev primer for sequence PF3D7_0813700 (ABCF1) LHR under given constraints has a Tm of 63.8695687386, below the given threshold of 68
+Gibson primers for part PF3D7_0813700 (ABCF1) LHR selected.
+
+
+Warning: Best Gibson rev primer for sequence PF3D7_0813700 (ABCF1) RHR under given constraints has a Tm of 65.2362354053, below the given threshold of 68
+Gibson primers for part PF3D7_0813700 (ABCF1) RHR selected.
+
+Klenow oligos for part PF3D7_0813700 (ABCF1) gRNA selected.
+
+
+
+Vector constructed and written to file. End of process.
