@@ -19,6 +19,7 @@ socket.on('connect',function() {
 // Add a connect listener
 socket.on('message',function(data) {
   console.log('Received a message from the server!',data);
+  document.alert('Received a message from the server!',data)
 });
 // Add a disconnect listener
 socket.on('disconnect',function() {
