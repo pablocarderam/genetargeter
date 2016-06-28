@@ -4,8 +4,9 @@ arguments from the client. Websockets implementation from
 https://github.com/BruceEckel/hello-flask-websockets
 """
 
-from GeneTargeterMethods import *;
+from py.GeneTargeterMethods import *; # main python library in py folder
 
+# Imports from Websockets tutorial:
 import os
 from gevent import monkey
 monkey.patch_all()
@@ -19,33 +20,41 @@ app.debug = True
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
+#fileSep = "|:||||:|"; # separates file strings
+sep = ":::"; # separates files
+
 @app.route('/')
 def index():
     return render_template("index.html")
 
 
 @socketio.on('sendGeneFile', namespace='/link')
-def test_message(message):
+def gene_message(message):
     # process input message into geneName, geneFileStr, HRann and other params
-    #output = pSN054TargetGene_StrMeth(geneName, geneFileStr, HRannotated=HRann); # call result
-    sendMsg('Process complete');
+    msgList = message["data"].split(sep);
+    geneName = msgList[0];
+    HRann = (msgList[1]=="TRUE");
+    geneFileStr = msgList[2];
+    #TODO: other params
+    output = pSN054TargetGene(geneName, geneFileStr, useFileStrs=True, HRannotated=HRann); # call result
+    outMsg = output["geneName"] + sep + output["geneFileStr"] + sep + output["plasmidFileStr"] + sep + output["oligoFileStr"] + sep + output["logFileStr"];
+    sendMsg('Process complete',"misc");
+    sendMsg(outMsg, "geneOutput");
+
+
+@socketio.on('misc', namespace='/link')
+def misc_message(message):
     print message['data'] + " :: received"
-    """sendMsg(output[0]);
-    sendOligos(output[1]);
-    sendGene(output[2]);
-    sendPlasmid(output[3]);"""
 
 
-def sendMsg(msg):
-    socketio.emit('message',
-                  {'data': msg},
-                  namespace='/link');
+def sendMsg(msg,pType):
+    socketio.emit(pType, {'data': msg}, namespace='/link');
+    print pType + " :: sent"
 
 
 @socketio.on('disconnect request', namespace='/link')
 def disconnect_request():
-    emit('my response',
-         {'data': 'Disconnected!', 'count': session['receive_count']})
+    emit('my response', {'data': 'Disconnected!', 'count': session['receive_count']} )
     disconnect()
 
 

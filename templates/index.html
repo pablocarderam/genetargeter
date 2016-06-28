@@ -88,12 +88,15 @@
 				hand-picked left and right homologous regions on your file, if
 				you do not want GeneTargeter to choose them automatically for you.
 			</p>
-			<p>
-				<label class="btn" ><input type="file" id="geneFileForm" multiple size="50" onchange="uploadFile()">
-					<span> Upload File </span></label>
+			<p class="small">
+				Automatically pick homologous regions? <input class="chkBox" type="checkbox" checked id="HRannChkBox">
 			</p>
 			<p>
-				<div class="small" id="selectedFiles"></div>
+				<label class="btn" ><input type="file" id="geneFileForm" accept=".gb" multiple size="50" onchange="uploadFile()">
+					<span> Upload .gb files </span></label>
+			</p>
+			<p>
+				<div class="fileList" id="selectedFiles"></div>
 			</p>
 			<p>
 				<label class="runBtn" id="run" onclick="run()">

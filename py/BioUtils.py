@@ -45,14 +45,18 @@ def loadSeqs(pFile):
     d = txt.read(); # Read file
 
     d = d.split("\n"); # Split each sequence into its lines. Keeps only sequences. D is now a list containing strings (sequences).
+    txt.close(); # close file
     return d; # returns dictionary
 
 
 """
 Output data to fileName.
 """
-def output(out, fileName):
-    fOut = open(fileName,"a"); # create or open file in appending mode
+def output(out, fileName, wipe=False):
+    mode = "a"; # default mode is to append
+    if wipe:
+        mode = "w+"; # change to overwrite file if wiping
+    fOut = open(fileName,mode); # create or open file in appending mode
     fOut.write(out); # write output to file
     fOut.close(); # close file
 

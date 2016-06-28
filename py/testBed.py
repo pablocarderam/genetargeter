@@ -27,4 +27,9 @@ p = pSN054TargetGene("PF3D7_1145500 (ABCB3)", "pf3d7_1145500-abcb3.gb");
 p = pSN054TargetGene("PF3D7_1145500 (ABCB3)", "pf3d7_1145500_abcb3.gb");
 p = pSN054TargetGene("PF3D7_0106900 (IspD)", "pf3d7_0106900-ispd.gb", HRannotated=True);
 
+from py.GeneTargeterMethods import *;
+txt = open("input/genes/pf3d7_0106900-ispd.gb"); # Access given file
+d = txt.read(); # Read file
+p = pSN054TargetGene("PF3D7_0106900 (IspD)", d, HRannotated=True, useFileStrs=True);
+
 pSN054BuildfFromFile()

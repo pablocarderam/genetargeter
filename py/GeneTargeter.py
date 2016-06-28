@@ -16,5 +16,5 @@ pSN054TargetGene(geneName, geneFile, HRannotated=HRann); # call result
 print geneName + " targeted. Results in output folder."
 
 # Usage:
-# python src/GeneTargeter.py "PF3D7_0106900 (IspD)" "pf3d7_0106900-ispd.gb"
-# python src/GeneTargeter.py "PF3D7_0106900 (IspD)" "pf3d7_0106900-ispd.gb" True
+# python py/GeneTargeter.py "PF3D7_0106900 (IspD)" "pf3d7_0106900-ispd.gb"
+# python py/GeneTargeter.py "PF3D7_0106900 (IspD)" "pf3d7_0106900-ispd.gb" True

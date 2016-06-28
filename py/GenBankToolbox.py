@@ -6,6 +6,7 @@ Classes useful in rosalind bioinformatic algorithms
 """
 
 from BioUtils import *; # Imports utils
+from copy import deepcopy; # Import object copying methods for deep copies, used in creating revComp of GenBank objects
 
 class GenBankAnn(object):
     """Stores some GenBank format information for an annotation."""
@@ -28,7 +29,7 @@ class GenBank(object):
     features: a list with objects with the following attributes:
         label = annotation labels
         type = type of annotation
-        seq = sequence of annotation.
+        seq = sequence of annotation on the strand it actually is in
         comp = false if on positive strand, true if on complementary strand
         index = list with region start and end indexes IN PYTHON INDEXING (starting on 0)
 
@@ -56,12 +57,18 @@ class GenBank(object):
 
 
     """
-    Loads from GenBank file a GenBank class object.
+    Loads a GenBank-class object from raw file contents passed as a string in
+    pFile or from a .gb file saved in the filepath pFile (set loadFromFile =
+    True for this option).
     """
-    def load(self, pFile):
+    def load(self, pFile, loadFromFile=False):
         self.reset(); # resets attributes
-        txt = open(pFile); # Access given file
-        d = txt.read(); # Read file.
+        if loadFromFile: # if a file path has been passed in pFile,
+            txt = open(pFile); # Access given file
+            d = txt.read(); # Read file.
+        else: # if a file string has been passed in pFile,
+            d = pFile; # save the read file string as raw data in d
+
         d = d.split("\n"); # Split into lines. d is now a list of strings corresponding to the lines of the file.
 
         i = 0; # indexes through lines
@@ -142,19 +149,20 @@ class GenBank(object):
 
 
     """
-    Makes GenBank format file with annotations based on GenBank object. Saves it
-    to file path pFile. Only encodes locus, definition, features, origin
-    information.
+    Makes GenBank format file with annotations based on GenBank object. Returns
+    a string containing the raw file string for a .gb file, or saves it to file
+    path pFile (if saveToFile = True). Only encodes locus, definition, features,
+    origin information.
     """
-    def save(self, pFile):
-        fOut = open(pFile,"w+"); # create or open file in writing mode
+    def save(self, pFile, saveToFile=False):
+        outStr = ""; # variable contains output string
 
-        fOut.write("LOCUS       " + self.name + " " + str(len(self.origin)) + " bp " + self.additionalInfo + "     " + todayDateStr() + "\n"); # writes LOCUS line
+        outStr = outStr + "LOCUS       " + self.name + " " + str(len(self.origin)) + " bp " + self.additionalInfo + "     " + todayDateStr() + "\n"; # writes LOCUS line
 
         d = "DEFINITION  " + self.definition; # Stores string with definition and start string
         defOut = "\n".join([d[i:i+80] for i in range(0, len(d), 80)]); # introduces line separators into string
 
-        fOut.write(defOut + "\nFEATURES             Location/Qualifiers\n"); # write locus and definition information to file, writes a new line to start features list
+        outStr = outStr + defOut + "\nFEATURES             Location/Qualifiers\n"; # write locus and definition information to file, writes a new line to start features list
 
         for ann in self.features:
             annSeq = ann.seq; # default case: positive strand sequence
@@ -169,15 +177,15 @@ class GenBank(object):
                     indexStr = "complement(" + indexStr + ")"; # if on complementary strand, rewrite indexStr with this information
 
                 spacing = "".join([" " for i in range(16-len(ann.type))]); # creates enough spacing to complete 16 characters between tab and indexes
-                fOut.write("     " + ann.type + spacing + indexStr + "\n"); # write first line of annotation format
-                fOut.write('                     /label="' + ann.label + '"\n'); # write label line
+                outStr = outStr + "     " + ann.type + spacing + indexStr + "\n"; # write first line of annotation format
+                outStr = outStr + '                     /label="' + ann.label + '"\n'; # write label line
                 col = randHex(); # generates a random color for annotation
-                fOut.write('                     /ApEinfo_revcolor=' + col + '\n'); # write reverse color line
-                fOut.write('                     /ApEinfo_fwdcolor=' + col + '\n'); # write forward color line
+                outStr = outStr + '                     /ApEinfo_revcolor=' + col + '\n'; # write reverse color line
+                outStr = outStr + '                     /ApEinfo_fwdcolor=' + col + '\n'; # write forward color line
             else: # if it wasn't found where it should be,
                 print "ERROR: Annotation sequence " + ann.label + " not found in main sequence."; # warn of error.
 
-        fOut.write("ORIGIN\n"); # starts origin lines
+        outStr = outStr + "ORIGIN\n"; # starts origin lines
         orSpaced = " ".join([self.origin[i:i+10] for i in range(0, len(self.origin), 10)]); # introduces spaces into string
         orOut = ""; # will store final sequence string to be saved in file
         for i in range(0, len(orSpaced), 66): # every 66 characters,
@@ -186,8 +194,11 @@ class GenBank(object):
             orOut = orOut + spacing + indexStr + " " + orSpaced[i:i+66] + "\n"; # introduces line separators and index numbers into string
 
         orOut = orOut + "//\n"; # adds file ending
-        fOut.write(orOut); # writes formatted sequence to file
-        fOut.close(); # close file
+        outStr = outStr + orOut; # writes formatted sequence to file
+        if saveToFile: # if user wants file saved,
+            output(outStr,pFile,wipe=True); # write to file
+        else: # if user wants file string,
+            return outStr; # give them file string.
 
 
     """
@@ -264,6 +275,23 @@ class GenBank(object):
 
             i = i + 1; # advances iterator
 
+
+        return r; # returns variable
+
+
+    """
+    Returns reverse complement of GenBank object. Main sequence is reverse
+    complement of original, sequences of annotations are the same as the
+    original ones, but indexes are reverse complemented complement(X..Y). Adds
+    "Reverse complement of " to sequence definition.
+    """
+    def revComp(self):
+        r = deepcopy(self); # initialize return variable
+        r.comp = not r.comp; # switch orientation
+        r.origin = revComp(r.origin); # revComps the main sequence
+        r.definition = "Reverse complement of " + r.definition; # Adds mark to sequence definition
+        for ann in r.features: # iterates over features list
+            ann.index = [len(r.origin)-r.index[0]-1, len(r.origin)-r.index[1]-1]; # adjusts annotation indexes according to new orientation
 
         return r; # returns variable
 

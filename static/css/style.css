@@ -119,7 +119,7 @@ label.btn input[type="file"] { /* this hides the original upload button. */
 }
 
 .mainText a {
-	text-shadow: 2px 2px 2px #C3DAC2;
+	text-shadow: 3px 3px 1.5px #C3DAC2;
 }
 
 .mainText a:hover {
@@ -139,7 +139,7 @@ label.btn input[type="file"] { /* this hides the original upload button. */
 }
 
 .app a {
-	text-shadow: 1px 1px 1px #E29F97;
+	text-shadow: 2px 2px 1px #E29F97;
 }
 
 .app a:hover {
@@ -155,7 +155,7 @@ label.btn input[type="file"] { /* this hides the original upload button. */
 }
 
 .bottom a {
-	text-shadow: 2px 2px 2px #E29F97;
+	text-shadow: 2px 2px 1.5px #E29F97;
 }
 
 .bottom a:hover {
@@ -205,6 +205,10 @@ a.pcr:hover {
 }
 
 .small {
+	font-size: 80%;
+}
+
+.fileList {
 	font-size: 80%;
 	text-align: left;
 	width: 400px;

@@ -19,7 +19,14 @@ socket.on('connect',function() {
 // Add a connect listener
 socket.on('message',function(data) {
   console.log('Received a message from the server!',data);
-  alert('Received a message from the server!',data)
+  alert('Received a message from the server!',data);
+});
+// Add a connect listener
+socket.on('geneOutput',function(data) {
+  console.log('Received gene output from the server!');
+  files = decodeFileMsg(data);
+  displayGeneOutput(files);
+  downloadOutput();
 });
 // Add a disconnect listener
 socket.on('disconnect',function() {
@@ -27,7 +34,7 @@ socket.on('disconnect',function() {
 });
 
 // Sends a message to the server via sockets
-function sendMessageToServer(message) {
-  socket.emit('sendGeneFile', {data: message});
-  console.log(message['data']+" :: sent");
+function sendMessageToServer(message,type) {
+  socket.emit(type, {data: message});
+  console.log(message + " :: sent");
 };
