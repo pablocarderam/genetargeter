@@ -47,6 +47,7 @@ function uploadFile(){
 
 // Makes back-to-top button appear if scrolled down and
 function scrollEvt() {
+    console.log([document.getElementById("Title").getBoundingClientRect().bottom,backToTopShown, document.getElementById("backToTopBtn").opacity]);
     if (document.getElementById("Title").getBoundingClientRect().bottom < 0 && !backToTopShown) {
         fadeIn(document.getElementById("backToTopBtn"));
         backToTopShown = true;
@@ -97,11 +98,16 @@ function run() {
                 var file = x.files[i];
                 if (file.name.substr(file.name.length-3,file.name.length) === ".gb") {
                     var fR = new FileReader();
+                    fR.fileName = file.name;
                     fR.readAsText(file, "UTF-8");
                     fR.onload = function (evt) {
                         if ('name' in file) {
-                            var geneName = file.name.substr(0,file.name.length-3);
-                            msg = createFileMsg(evt.target.result,geneName,document.getElementById("HRannChkBox").checked);
+                            var geneName = evt.target.fileName.substr(0,evt.target.fileName.length-3);
+                            var HRann = document.getElementById("HRannChkBox").checked;
+                            lengthLHR = [document.getElementById("LHRMin").value, document.getElementById("LHRPref").value, document.getElementById("LHRMax").value];
+                            lengthRHR = [document.getElementById("RHRMin").value, document.getElementById("RHRPref").value, document.getElementById("RHRMax").value];
+                            lengthGib = [document.getElementById("gibMin").value, document.getElementById("gibPref").value, document.getElementById("gibMax").value];
+                            msg = createFileMsg(evt.target.result, geneName, HRann, lengthLHR, lengthRHR, lengthGib);
                             sendMessageToServer(msg,'sendGeneFile');
                         }
                     }
@@ -148,13 +154,13 @@ function downloadOutput() {
 }
 
 
-function createFileMsg(content, name, HRann) {
+function createFileMsg(content, name, HRann, lengthLHR, lengthRHR, lengthGib) {
     var sep = ":::";
     var HRannStr = "FALSE";
     if (HRann) {
         HRannStr = "TRUE";
     }
-    return name + sep + HRannStr + sep + content;
+    return name + sep + content + sep + HRannStr + sep + lengthLHR.toString() + sep + lengthRHR.toString() + sep + lengthGib.toString();
 }
 
 

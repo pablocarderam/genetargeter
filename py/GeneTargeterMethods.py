@@ -63,7 +63,7 @@ HRannotated is true if the GenBank file given as input includes manual LHR and
 filterCutSites is a list of strings containing cut sequences to be filtered if
     user provides LHR and RHR.
 """
-def pSN054TargetGene(geneName, geneFileName, useFileStrs=False, gibsonHomRange=[30,40,50], minGBlockSize=125, HRannotated=False, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]):
+def pSN054TargetGene(geneName, geneFileName, useFileStrs=False, gibsonHomRange=[30,40,50], lengthLHR=[450,500,650], lengthRHR=[450,500,750], minGBlockSize=125, HRannotated=False, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]):
     outputDic = {"newGene":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":""}; # dictionary containing keys to all values being returned
 
     geneGB = GenBank(); # initializes variable to hold gene GenBank object
@@ -102,10 +102,10 @@ def pSN054TargetGene(geneName, geneFileName, useFileStrs=False, gibsonHomRange=[
                 outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: RHR sequence for gene " + gene.label + ": \n" + RHR + "\ncontains restriction site " + site + "\n"; # add warning to log
 
     else: # if not,
-        LHR = chooseLHR(geneGB, gene); # chooses an LHR
+        LHR = chooseLHR(geneGB, gene, lengthLHR=lengthLHR); # chooses an LHR
         outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"]; # add logs
         LHR = LHR["out"]; # saves actual data
-        RHR = chooseRHR(geneGB, gene); # chooses RHR
+        RHR = chooseRHR(geneGB, gene, lengthRHR=lengthRHR); # chooses RHR
         outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
         RHR = RHR["out"]; # saves actual data
 
@@ -395,7 +395,7 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
 Selects an appropriate RHR for the given gene. GenBank sequence object given as
 argument (geneGB) must have an annotation with label=gene, at least one
 annotation with "gRNA" in label (or some similar indicator), and at least
-lengthRHR[0] + maxDistanceFromGene - optimizeRange[0] + optimizeRange[1]
+lengthRHR[2] + maxDistanceFromGene - optimizeRange[0] + optimizeRange[1]
 bp of 3' UTR (about 1000 bp is fine). lengthRHR is [min, preferred, max]
 length in bp of RHR. minTmEnds is min melting temp in extremes of RHR.
 endsLength is length of extremes of the RHR contemplated in analysis.
@@ -406,7 +406,7 @@ gRNA. log es la dirección del log de mensajes.
 RHR: Right Homologous Region used for chromosomal integration by homologous
 recombination during repair.
 """
-def chooseRHR(geneGB, gene, lengthRHR=[750,500,450], minTmEnds=59, endsLength=40, optimizeRange=[-20,20], maxDistanceFromGene=500, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]):
+def chooseRHR(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40, optimizeRange=[-20,20], maxDistanceFromGene=500, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]):
     #TODO: debug cases in which RHR has to be shifted
     log = ""; # init log
     gRNAs = geneGB.findAnnsLabel("gRNA 1", True); # List of all gRNAs
@@ -445,14 +445,14 @@ def chooseRHR(geneGB, gene, lengthRHR=[750,500,450], minTmEnds=59, endsLength=40
         log = log + "\nWarning: No RHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the first " + str(endsLength) + " bp of RHR, \nwith a max distance of " + str(maxDistanceFromGene) + " bp between end of gene and start of RHR. \nDefaulted to starting right after end of gene." + "\n"; # give a warning
 
     # search for end downstream
-    while meltingTemp(geneGB.origin[(endRHR-40):endRHR]) < minTmEnds and endRHR-startRHR <= lengthRHR[0]: # while no suitable end region found and still within max length of RHR,
+    while meltingTemp(geneGB.origin[(endRHR-40):endRHR]) < minTmEnds and endRHR-startRHR <= lengthRHR[2]: # while no suitable end region found and still within max length of RHR,
         endRHR += 1; # shift endRHR downstream
 
     # if not found downstream
-    if meltingTemp(geneGB.origin[(endRHR-40):endRHR]) < minTmEnds and endRHR-startRHR > lengthRHR[0]: # if no end region found this way,
+    if meltingTemp(geneGB.origin[(endRHR-40):endRHR]) < minTmEnds and endRHR-startRHR > lengthRHR[2]: # if no end region found this way,
         endRHR = startRHR + lengthRHR[1]; # return to preferred position
         # search upstream
-        while meltingTemp(geneGB.origin[(endRHR-40):endRHR]) < minTmEnds and endRHR-startRHR >= lengthRHR[2]: # while no suitable start region found and still within min length of RHR,
+        while meltingTemp(geneGB.origin[(endRHR-40):endRHR]) < minTmEnds and endRHR-startRHR >= lengthRHR[0]: # while no suitable start region found and still within min length of RHR,
             endRHR -= 1; # shift endRHR downstream
 
 
@@ -466,14 +466,14 @@ def chooseRHR(geneGB, gene, lengthRHR=[750,500,450], minTmEnds=59, endsLength=40
                 startRHR += 1; # shift startRHR downstream
 
             # search for end downstream
-            while meltingTemp(geneGB.origin[(endRHR-40):endRHR]) < minTmEnds and endRHR-startRHR <= lengthRHR[0]: # while no suitable end region found and still within max length of RHR,
+            while meltingTemp(geneGB.origin[(endRHR-40):endRHR]) < minTmEnds and endRHR-startRHR <= lengthRHR[2]: # while no suitable end region found and still within max length of RHR,
                 endRHR += 1; # shift endRHR downstream
 
             # if not found downstream
-            if meltingTemp(geneGB.origin[(endRHR-40):endRHR]) < minTmEnds and endRHR-startRHR > lengthRHR[0]: # if no end region found this way,
+            if meltingTemp(geneGB.origin[(endRHR-40):endRHR]) < minTmEnds and endRHR-startRHR > lengthRHR[2]: # if no end region found this way,
                 endRHR = startRHR + lengthRHR[1]; # return to preferred position
                 # search upstream
-                while meltingTemp(geneGB.origin[(endRHR-40):endRHR]) < minTmEnds and endRHR-startRHR >= lengthRHR[2]: # while no suitable start region found and still within min length of RHR,
+                while meltingTemp(geneGB.origin[(endRHR-40):endRHR]) < minTmEnds and endRHR-startRHR >= lengthRHR[0]: # while no suitable start region found and still within min length of RHR,
                     endRHR -= 1; # shift endRHR downstream
 
 
@@ -489,13 +489,13 @@ def chooseRHR(geneGB, gene, lengthRHR=[750,500,450], minTmEnds=59, endsLength=40
     # Now we optimize the resulting RHR by adjusting start and stop sequences around the given range
     searchIndexesEnd = [int(endRHR+optimizeRange[0]), int(endRHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better end point.
     for i in range(searchIndexesEnd[1], searchIndexesEnd[0], -1): # iterates across optimization range in reverse
-        if meltingTemp(geneGB.origin[(i-40):i]) > meltingTemp(geneGB.origin[(endRHR-40):endRHR]) and lengthRHR[0] >= i-startRHR >= lengthRHR[2]: # if this end point has a better Tm and is still within bounds,
+        if meltingTemp(geneGB.origin[(i-40):i]) > meltingTemp(geneGB.origin[(endRHR-40):endRHR]) and lengthRHR[2] >= i-startRHR >= lengthRHR[0]: # if this end point has a better Tm and is still within bounds,
             endRHR = i; # make this the ending position
 
 
     searchIndexesStart = [int(startRHR+optimizeRange[0]), int(startRHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better start point.
     for i in range(searchIndexesStart[0], searchIndexesStart[1]): # iterates across optimization range
-        if meltingTemp(geneGB.origin[i:(i+40)]) > meltingTemp(geneGB.origin[startRHR:(startRHR+40)]) and lengthRHR[0] >= endRHR-i >= lengthRHR[2] and i > gRNADownstream.index[1]: # if this start point has a better Tm and is still within bounds and after gRNA,
+        if meltingTemp(geneGB.origin[i:(i+40)]) > meltingTemp(geneGB.origin[startRHR:(startRHR+40)]) and lengthRHR[2] >= endRHR-i >= lengthRHR[0] and i > gRNADownstream.index[1]: # if this start point has a better Tm and is still within bounds and after gRNA,
             startRHR = i; # make this the starting position
 
 

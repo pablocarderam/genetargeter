@@ -45,6 +45,24 @@ p {
 	padding: 10px;
 }
 
+ul {
+	width: 400px;
+	font-size: 80%;
+	margin: auto;
+	text-align: left;
+	padding: 10px;
+}
+
+input[type="number"] {
+	width:40px;
+	background:none;
+	border-style:solid;
+	border-color:#C3D8C1;
+	border-radius:4px;
+	color: inherit;
+	font-family: inherit;
+}
+
 label.btn input[type="file"] { /* this hides the original upload button. */
     position: fixed;
     top: -1000px;
@@ -72,7 +90,7 @@ label.btn input[type="file"] { /* this hides the original upload button. */
 }
 
 .runBtn {
-	border: 8px solid #EDB8BD;
+	border: 8px solid #CFA1A5;
     border-radius: 0px;
     padding: 6px 15px;
     margin: 2px;
@@ -206,6 +224,7 @@ a.pcr:hover {
 
 .small {
 	font-size: 80%;
+	color:#DFDADF;
 }
 
 .fileList {

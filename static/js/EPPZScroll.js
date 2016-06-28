@@ -45,7 +45,7 @@ var EPPZScrollTo =
      */
     scrollVerticalTickToPosition: function(currentPosition, targetPosition)
     {
-        var filter = 0.1;
+        var filter = 0.15; // edit here for speed
         var fps = 60;
         var difference = parseFloat(targetPosition) - parseFloat(currentPosition);
 

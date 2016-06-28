@@ -25,7 +25,7 @@ sep = ":::"; # separates files
 
 @app.route('/')
 def index():
-    return render_template("index.html")
+    return render_template("index.html");
 
 
 @socketio.on('sendGeneFile', namespace='/link')
@@ -33,10 +33,13 @@ def gene_message(message):
     # process input message into geneName, geneFileStr, HRann and other params
     msgList = message["data"].split(sep);
     geneName = msgList[0];
-    HRann = (msgList[1]=="TRUE");
-    geneFileStr = msgList[2];
+    geneFileStr = msgList[1];
+    HRann = (msgList[2] == "FALSE");
+    lengthLHR = [int(i) for i in msgList[3].split(",")];
+    lengthRHR = [int(i) for i in msgList[4].split(",")];
+    lengthGib = [int(i) for i in msgList[5].split(",")];
     #TODO: other params
-    output = pSN054TargetGene(geneName, geneFileStr, useFileStrs=True, HRannotated=HRann); # call result
+    output = pSN054TargetGene(geneName, geneFileStr, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib); # call result
     outMsg = output["geneName"] + sep + output["geneFileStr"] + sep + output["plasmidFileStr"] + sep + output["oligoFileStr"] + sep + output["logFileStr"];
     sendMsg('Process complete',"misc");
     sendMsg(outMsg, "geneOutput");
