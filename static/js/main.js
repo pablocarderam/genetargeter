@@ -1,7 +1,7 @@
 /* JS Document */
 /* Main js */
 
-var backToTopShown = false; // used to control back-to-top button appearance and disappearance
+var backToTopShown = true; // used to control back-to-top button appearance and disappearance
 var currentOutput = []; // saves current output array to download multiple times if desired
 
 function init() {
@@ -47,7 +47,6 @@ function uploadFile(){
 
 // Makes back-to-top button appear if scrolled down and
 function scrollEvt() {
-    console.log([document.getElementById("Title").getBoundingClientRect().bottom,backToTopShown, document.getElementById("backToTopBtn").opacity]);
     if (document.getElementById("Title").getBoundingClientRect().bottom < 0 && !backToTopShown) {
         fadeIn(document.getElementById("backToTopBtn"));
         backToTopShown = true;
