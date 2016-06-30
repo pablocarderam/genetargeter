@@ -45,6 +45,13 @@ function validCred() {
     }
 }
 
+function checkKey() {
+    console.log("keydown");
+    if (event.keyCode == 13) {
+        verifyCredentials();
+    }
+}
+
 // When the user clicks on <span> (x), close the modal
 function closeModal() {
     if (document.getElementById("modContent").classList.contains("modal-in")) {
