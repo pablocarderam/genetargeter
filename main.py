@@ -23,6 +23,8 @@ socketio = SocketIO(app)
 #fileSep = "|:||||:|"; # separates file strings
 sep = ":::"; # separates files
 
+passcode = "leakyBL2"; # passcode
+
 @app.route('/')
 def index():
     return render_template("index.html");
@@ -69,6 +71,14 @@ def test_connect():
 @socketio.on('disconnect', namespace='/link')
 def test_disconnect():
     print('Client disconnected')
+
+@socketio.on('cred', namespace='/link')
+def validate_credentials(message):
+    print('Received credentials');
+    if message["data"] == passcode:
+        emit('validCred',{'data':'You know it!'});
+    else:
+        emit('invalidCred',{'data':"You either have it or you don't"});
 
 
 if __name__ == "__main__":

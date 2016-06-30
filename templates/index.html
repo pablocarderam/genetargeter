@@ -121,9 +121,42 @@
 				<div class="fileList" id="selectedFiles"></div>
 			</p>
 			<p>
-				<label class="runBtn" id="run" onclick="run()">
+				<label class="runBtn" id="run" onclick="askCredentials()">
 					<span> Target gene! </span></label>
 			</p>
+
+			<div id="myModal" class="modal">
+
+			  <!-- Modal content -->
+			  <div class="modal-content" id="modContent">
+			    <div class="modal-header">
+			      <span class="close" onclick="closeModal()">×</span>
+			      <h2>Hold up though...</h2>
+			    </div>
+			    <div class="modal-body">
+					<p>
+					  GeneTargeter uses DNA sequences that are currently not
+					  available to the public. The full software will be
+					  publicly available in the near future.
+					</p>
+					<p>
+					  If you have the credentials to download the output, input
+					  your passcode here:
+					</p>
+					<p>
+						<input type="password" id="passcode" value="">
+					</p>
+					<p>
+						<label class="runBtn" id="submitPassword" onclick="verifyCredentials()">Submit</label>
+					</p>
+			    </div>
+			    <div class="modal-footer" id="modFooter">
+			      <h3>Type passcode</h3>
+			    </div>
+			  </div>
+
+			</div>
+
 			<p>
 				<div class="fileList" id="outputLog"></div>
 			</p>
@@ -174,7 +207,7 @@
 					MIT License</a>, appropriately.
 				<br>
 				<a href="https://github.com/pablocarderam/GeneTargeter" target="_blank">
-					GitHub src here.</a>
+					GitHub src here. Except it isn't because we can't publish it yet.</a>
 	            <br>
 	            Developed by Pablo Cárdenas Ramírez
 	            <br>

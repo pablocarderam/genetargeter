@@ -8,6 +8,65 @@ function init() {
     EPPZScrollTo.scrollVerticalToElementById('Title', 0); // scroll to start at init
 }
 
+function askCredentials() {
+    document.getElementById('myModal').style.display = "block";
+    document.getElementById("modFooter").innerHTML = "Type passcode";
+    document.getElementById("passcode").value = "";
+    if (document.getElementById("modContent").classList.contains("modal-out")) {
+        document.getElementById("modContent").classList.remove("modal-out");
+    }
+    if (!document.getElementById("modContent").classList.contains("modal-in")) {
+        document.getElementById("modContent").classList.add("modal-in");
+    }
+}
+
+function verifyCredentials() {
+    sendMessageToServer(document.getElementById("passcode").value,"cred");
+}
+
+function invalidCred() {
+    document.getElementById("modFooter").innerHTML = "Invalid passcode.";
+}
+
+function validCred() {
+    var x = document.getElementById("geneFileForm");
+    if ('files' in x) {
+        if (x.files.length == 0) {
+            document.getElementById("modFooter").innerHTML = "Valid passcode! Select some gene files though.";
+        }
+        else {
+            document.getElementById("modFooter").innerHTML = "Valid passcode!";
+            closeModal();
+            run();
+        }
+    }
+    else {
+        window.alert("Application error. Something went wrong because the gene file form is supposed to have a files property, but I can't find it. Sorry :P")
+    }
+}
+
+// When the user clicks on <span> (x), close the modal
+function closeModal() {
+    if (document.getElementById("modContent").classList.contains("modal-in")) {
+        document.getElementById("modContent").classList.remove("modal-in");
+    }
+    if (!document.getElementById("modContent").classList.contains("modal-out")) {
+        document.getElementById("modContent").classList.add("modal-out");
+    }
+    setTimeout(displayNone, 250);
+}
+
+function displayNone() {
+    document.getElementById('myModal').style.display = "none";
+}
+
+// When the user clicks anywhere outside of the modal, close it
+window.onclick = function(event) {
+    if (event.target == document.getElementById('myModal')) {
+        closeModal();
+    }
+}
+
 // Load file adapted from http://www.w3schools.com/jsref/prop_fileupload_files.asp
 function uploadFile(){
     var x = document.getElementById("geneFileForm");

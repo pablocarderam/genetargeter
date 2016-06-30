@@ -32,6 +32,16 @@ socket.on('geneOutput',function(data) {
 socket.on('disconnect',function() {
   console.log('The client has disconnected!');
 });
+// Add a validated listener
+socket.on('validCred',function() {
+  console.log('Credentials valid');
+  validCred();
+});
+// Add a validated listener
+socket.on('invalidCred',function() {
+  console.log('Credentials not valid');
+  invalidCred();
+});
 
 // Sends a message to the server via sockets
 function sendMessageToServer(message,type) {
