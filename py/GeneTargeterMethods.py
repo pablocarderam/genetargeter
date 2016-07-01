@@ -92,22 +92,36 @@ def pSN054TargetGene(geneName, geneFileName, useFileStrs=False, gibsonHomRange=[
 
     LHR = GenBankAnn(); # init LHR var
     RHR = GenBankAnn(); # init RHR var
+
+    # pick HRs first
+    LHR = chooseLHR(geneGB, gene, lengthLHR=lengthLHR); # chooses an LHR
+    outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"]; # add logs
+    LHR = LHR["out"]; # saves actual data
+    RHR = chooseRHR(geneGB, gene, lengthRHR=lengthRHR); # chooses RHR
+    outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
+    RHR = RHR["out"]; # saves actual data
+
     if HRannotated: # if LHR and RHR are already annotated,
-        LHR = geneGB.findAnnsLabel("LHR")[0]; # saves LHR annotation
-        RHR = geneGB.findAnnsLabel("RHR")[0]; # saves RHR annotation
+        LHRlist = geneGB.findAnnsLabel("LHR"); # overwrite LHR annotations
+        if len(LHRlist) > 0: # if LHR found,
+            LHR = LHRlist[0]; # save first LHR annotation as LHR
+            outputDic["logFileStr"] = outputDic["logFileStr"] + "\nFound user LHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
+        else: # if no LHR found,
+            outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user LHR annotation, used automatic annotation instead." + "\n"; # add warning to log
+
+        RHRlist = geneGB.findAnnsLabel("RHR"); # saves RHR annotation
+        if len(RHRlist) > 0: # if LHR found,
+            RHR = RHRlist[0]; # save first RHR annotation as RHR
+            outputDic["logFileStr"] = outputDic["logFileStr"] + "\nFound user RHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
+        else: # if no LHR found,
+            outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user RHR annotation, used automatic annotation instead." + "\n"; # add warning to log
+
         for site in filterCutSites: # for every cut site being filtered
             if findFirst(site,LHR.seq) > -1 or findFirst(revComp(site),LHR.seq) > -1: # if cut site found,
                 outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: LHR sequence for gene " + gene.label + ": \n" + LHR + "\ncontains restriction site " + site + "\n"; # add warning to log
             if findFirst(site,RHR.seq) > -1 or findFirst(revComp(site),RHR.seq) > -1: # if cut site found,
                 outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: RHR sequence for gene " + gene.label + ": \n" + RHR + "\ncontains restriction site " + site + "\n"; # add warning to log
 
-    else: # if not,
-        LHR = chooseLHR(geneGB, gene, lengthLHR=lengthLHR); # chooses an LHR
-        outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"]; # add logs
-        LHR = LHR["out"]; # saves actual data
-        RHR = chooseRHR(geneGB, gene, lengthRHR=lengthRHR); # chooses RHR
-        outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
-        RHR = RHR["out"]; # saves actual data
 
     geneGB.features.append(gRNA); # adds gRNA to gene annotations (at this point, redundant)
     geneGB.features.append(LHR); # adds LHR to gene annotations
@@ -558,9 +572,9 @@ def chooseRecodeRegion(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpo
         recodedSeq = geneGB.origin[LHR.index[1]:LHR.index[1]+frame] + recodedSeq; # adds initial bases from reading frame adjustment
         # creates var to store finished recodedSeq as annotation
         annRecoded = GenBankAnn(gene.label + " Recoded", "misc_feature", recodedSeq, False, [startRecode,endRecode]); # creates GenBankAnn object to hold RHR
-        log = log + "Recoded region for gene " + gene.label + " selected.\n\n"; # logs this process finished
+        log = log + "\nRecoded region for gene " + gene.label + " selected.\n\n"; # logs this process finished
     else: # if no recoded region necessary,
-        log = log + "Recoded region for gene " + gene.label + " not deemed necessary.\n\n"; # logs this process finished
+        log = log + "\nRecoded region for gene " + gene.label + " not deemed necessary.\n\n"; # logs this process finished
 
     return {"out":annRecoded, "log":log}; # returns recoded region GenBankAnn object
 
