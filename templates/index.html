@@ -37,8 +37,7 @@
 
 		<div class="mainText">
 			<p>
-	            Creates a construct based on the pSN054 (updated) V5 tagged plasmid
-	            developed by the
+	            Creates a construct developed by the
 	            <a href="http://web.mit.edu/nileslab/" target="_blank">Niles Lab at MIT</a>,
 	            designed to deliver a 3' UTR post-transcriptional regulatory element
 	            payload to a specific given gene in <a href="http://www.who.int/mediacentre/factsheets/fs094/en/" target="_blank"><i>Plasmodium falciparum</i></a>.
@@ -89,30 +88,37 @@
 				hand-picked left and right homologous regions on your file, if
 				you do not want GeneTargeter to choose them automatically for you.
 			</p>
-			<span class="small" id="controls">
+			<div class="small" id="controls">
 				<p>
-					Automatically pick homologous regions?
-					<input class="chkBox" type="checkbox" checked id="HRannChkBox">
-					<br><br>
-					Left chromosomal integration homologous region size:<br>
-					Minimum: <input class="txtInput" type="number" id="LHRMin" value="450"> bp &nbsp
-					Preferred: <input class="txtInput" type="number" id="LHRPref" value="500"> bp &nbsp
-					Maximum: <input class="txtInput" type="number" id="LHRMax" value="650"> bp &nbsp
-					<br>
-					Right chromosomal integration homologous region size:<br>
-					Minimum: <input class="txtInput" type="number" id="RHRMin" value="450"> bp &nbsp
-					Preferred: <input class="txtInput" type="number" id="RHRPref" value="500"> bp &nbsp
-					Maximum: <input class="txtInput" type="number" id="RHRMax" value="750"> bp &nbsp
-					<br>
-					Gibson Assembly homologous region size:<br>
-					Minimum: <input class="txtInput" type="number" id="gibMin" value="30"> bp &nbsp
-					Preferred: <input class="txtInput" type="number" id="gibPref" value="40"> bp &nbsp
-					Maximum: <input class="txtInput" type="number" id="gibMax" value="50"> bp &nbsp
-					<br>
-					Minimum gene fragment size:
-					<input class="txtInput" type="number" id="chromMin" value="250"> bp
+					Select homology regions manually:
+					<input class="chkBox" type="checkbox" unchecked id="HRannChkBox">
 				</p>
-			</span>
+				<div class="container">
+					<div class="column-center">
+						<p class="head">Right chromosomal integration homologous region size:</p>
+						&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="RHRMin" value="450"> bp <br>
+						&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="RHRPref" value="500"> bp <br>
+						&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="RHRMax" value="750"> bp <br>
+					</div>
+					<div class="column-left">
+						<p class="head">Left chromosomal integration homologous region size:</p>
+						&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="LHRMin" value="450"> bp <br>
+						&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="LHRPref" value="500"> bp <br>
+						&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="LHRMax" value="650"> bp <br>
+					</div>
+					<div class="column-right">
+						<p class="head">Gibson Assembly homologous region size:</p>
+						<br>
+						&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="gibMin" value="30"> bp <br>
+						&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="gibPref" value="40"> bp <br>
+						&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="gibMax" value="50"> bp <br>
+					</div>
+				</div>
+				<p>
+					Minimum gene fragment size:
+					<input class="txtInput" type="number" id="chromMin" value="125"> bp
+				</p>
+			</div>
 			<p>
 				<label class="btn" ><input type="file" id="geneFileForm" accept=".gb" multiple size="50" onchange="uploadFile()">
 					<span> Upload .gb files </span></label>

@@ -36,7 +36,7 @@ def gene_message(message):
     msgList = message["data"].split(sep);
     geneName = msgList[0];
     geneFileStr = msgList[1];
-    HRann = (msgList[2] == "FALSE");
+    HRann = (msgList[2] == "TRUE");
     lengthLHR = [int(i) for i in msgList[3].split(",")];
     lengthRHR = [int(i) for i in msgList[4].split(",")];
     lengthGib = [int(i) for i in msgList[5].split(",")];

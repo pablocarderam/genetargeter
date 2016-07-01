@@ -351,6 +351,32 @@ a.pcr:hover {
 	opacity: 0;
 }
 
+.column-left{
+	float: left;
+	width: 33%;
+	text-align: left;
+}
+.column-right{
+	float: right;
+	width: 33%;
+	text-align: left;
+}
+.column-center{
+	display: inline-block;
+	width: 33%;
+	text-align: left;
+}
+.head {
+	width: 150px;
+	text-align: center;
+	font-weight:bolder;
+}
+.container {
+	width: 600px;
+	margin: auto;
+	padding-bottom: 20px;
+}
+
 #titLeft {
 	color: #E6FCE5;
 }
