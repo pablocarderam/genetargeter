@@ -20,10 +20,11 @@ app.debug = True
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
-#fileSep = "|:||||:|"; # separates file strings
 sep = ":::"; # separates files
 
-passcode = "leakyBL2"; # passcode
+pk = open("pk"); # Access given file
+passcode = pk.read().split(sep)[1]; # passcode
+pk.close();
 
 @app.route('/')
 def index():
@@ -74,7 +75,7 @@ def test_disconnect():
 
 @socketio.on('cred', namespace='/link')
 def validate_credentials(message):
-    print('Received credentials');
+    print('Received credentials: ');
     if message["data"] == passcode:
         emit('validCred',{'data':'You know it!'});
     else:
