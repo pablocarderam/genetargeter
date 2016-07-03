@@ -29,7 +29,7 @@
 
 	<body onload="init()" onscroll="scrollEvt()">
 		<label class="roundBtn hidden" id="backToTopBtn" onclick="EPPZScrollTo.scrollVerticalToElementById('Title', 0)">
-			<span>^</span></label>
+			<span id="upBtn">^</span></label>
 
 		<div class="headTitle" id="Title" onclick="EPPZScrollTo.scrollVerticalToElementById('App', 50)">
 			<span id="titLeft">Gene</span><span id="titRight">Targeter</span>
@@ -123,12 +123,11 @@
 				<label class="btn" ><input type="file" id="geneFileForm" accept=".gb" multiple size="50" onchange="uploadFile()">
 					<span> Upload .gb files </span></label>
 			</p>
-			<p>
-				<div class="fileList" id="selectedFiles"></div>
-			</p>
+			<div class="fileList small" id="selectedFiles">
+			</div>
 			<p>
 				<label class="runBtn" id="run" onclick="askCredentials()">
-					<span> Target gene! </span></label>
+					<span> Select one or more GenBank gene files. </span></label>
 			</p>
 
 			<div id="myModal" class="modal">
@@ -177,10 +176,17 @@
 						<b>a GenBank file</b> containing the fully annotated plasmid
 						vector designed to target the given gene.
 					</li>
-					<li><b>a text file</b> containing primers,
+					<li><b>a CSV file</b> containing primers,
 						gene fragment sequences and Klenow reaction oligos designed to
 						assemble the new plasmid using
-						<a href="https://dx.doi.org/10.1038/nmeth.1318" target="_blank">Gibson Assembly</a>.
+						<a href="https://dx.doi.org/10.1038/nmeth.1318" target="_blank">
+							Gibson Assembly</a>.
+						This file can be
+						<a href="https://benchling.com" class="tooltip" target="_blank"
+							tipTxt="Open the '+' drop-down menu in the top-right corner of
+							Benchling's interface, select 'More', and select 'Import oligos'.
+							Copy and paste the CSV file contents onto Benchling's field.">
+							imported into Benchling</a>.
 					</li>
 					<li>
 						<b>a text file</b> containing a message log and warnings

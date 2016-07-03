@@ -3,6 +3,7 @@
 // Create SocketIO instance, connect
 
 namespace = '/link'; // change to an empty string to use the global namespace
+var sep = ":::"; // separator
 
 // the socket.io documentation recommends sending an explicit package upon connection
 // this is specially important when using the global namespace

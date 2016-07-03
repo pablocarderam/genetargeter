@@ -92,13 +92,13 @@ label.btn input[type="file"] { /* this hides the original upload button. */
 
 /* styles buttons */
 .btn {
-	border: 4px solid #C3D8C1;
-    border-radius: 4px;
-    padding: 4px 10px;
-    margin: 2px;
-    background: #73A46F;
-    display: inline-block;
-	cursor: pointer;
+		border: 4px solid #C3D8C1;
+	  border-radius: 4px;
+	  padding: 4px 10px;
+	  margin: 2px;
+	  background: #73A46F;
+	  display: inline-block;
+		cursor: pointer;
 }
 .btn:hover {
     border: 4px solid #EDF4ED;
@@ -132,9 +132,10 @@ label.btn input[type="file"] { /* this hides the original upload button. */
 	border: 6px solid #EDB8BD;
 	width: 50px;
 	height: 50px;
-	font-size: 40px;
-    border-radius: 100%;
-    background: #DA717A;
+	font-family: "Righteous", "righteous_local", sans-serif;
+	font-size: 80px;
+  border-radius: 100%;
+  background: #DA717A;
 	cursor: pointer;
 	position: fixed;
 	left: 85%;
@@ -342,7 +343,7 @@ a.pcr:hover {
 .fileList {
 	font-size: 80%;
 	text-align: left;
-	width: 400px;
+	width: 600px;
 	margin: auto;
 }
 
@@ -383,4 +384,10 @@ a.pcr:hover {
 
 #titRight {
 	color: #FCF0E5;
+}
+
+#upBtn {
+	position: absolute;
+	top: -7px;
+	left: 13px;
 }
