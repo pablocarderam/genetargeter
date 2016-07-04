@@ -250,7 +250,7 @@ function displayGeneOutput(files) {
 
 function downloadOutput() {
     var geneName = currentOutput[0];
-    var fileTypes = ["_Annotated_Gene.gb","_Annotated_Plasmid.gb","_Oligos.csv","_Message_File.txt"];
+    var fileTypes = ["_Locus_Pre-editing.gb","_Annotated_Plasmid.gb","_Locus_Post-editing.gb","_Oligos.csv","_Message_File.txt"];
     for (var j = 1; j < currentOutput.length; j++) {
         var file = currentOutput[j];
         var fileType = fileTypes[j-1];

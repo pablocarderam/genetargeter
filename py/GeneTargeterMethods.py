@@ -24,6 +24,8 @@ cut_ISceI = "attaccctgttatcccta"; # I-SceI cut site
 # Plasmids
 pSN054_V5 = GenBank();
 pSN054_V5.load("input/plasmids/psn054-updated_v5-tagged-jn_final.gb",loadFromFile=True); # load plasmid sequence from GenBank format
+# Genomes
+# Pf3D7_genome = loadFastas("input/genomes/PlasmoDB-28_Pfalciparum3D7_Genome.fasta"); # saves whole genome as dictionary (each key is a chromosome, including apicoplast and mitochondrial chromosomes)
 
 # Methods
 """
@@ -64,7 +66,7 @@ filterCutSites is a list of strings containing cut sequences to be filtered if
     user provides LHR and RHR.
 """
 def pSN054TargetGene(geneName, geneFileName, useFileStrs=False, gibsonHomRange=[30,40,50], lengthLHR=[450,500,650], lengthRHR=[450,500,750], minGBlockSize=125, HRannotated=False, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]):
-    outputDic = {"geneName":geneName, "newGene":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":""}; # dictionary containing keys to all values being returned
+    outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":""}; # dictionary containing keys to all values being returned
     outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid pSN054_V5 **** \n\n"; # starts message log to file
 
     geneGB = GenBank(); # initializes variable to hold gene GenBank object
@@ -125,9 +127,10 @@ def pSN054TargetGene(geneName, geneFileName, useFileStrs=False, gibsonHomRange=[
                     outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: RHR sequence for gene " + gene.label + ": \n" + RHR + "\ncontains restriction site " + site + "\n"; # add warning to log
 
 
-        geneGB.features.append(gRNA); # adds gRNA to gene annotations (at this point, redundant)
-        geneGB.features.append(LHR); # adds LHR to gene annotations
-        geneGB.features.append(RHR); # adds RHR to gene annotations
+        else: # if HRs not annotated,
+            geneGB.features.append(gRNA); # adds gRNA to gene annotations (at this point, redundant)
+            geneGB.features.append(LHR); # adds LHR to gene annotations
+            geneGB.features.append(RHR); # adds RHR to gene annotations
 
         recoded = chooseRecodeRegion(geneGB, gene); # defines region to be recoded, returns recoded sequence
         outputDic["logFileStr"] = outputDic["logFileStr"] + recoded["log"]; # add logs
@@ -187,12 +190,18 @@ def pSN054TargetGene(geneName, geneFileName, useFileStrs=False, gibsonHomRange=[
         pSN054_ARMED.features.append(klenow[1]); # add rev primer to plasmid annotations
         primerString = primerString + "\n" + geneName + " gRNA Klenow oligo (fwd)," + klenow[0].seq + "\n" + geneName + " gRNA Klenow oligo (rev)," + klenow[1].seq; # write oligos to output string
 
-        outputDic["geneFileStr"] = geneGB.save(path + "/" + geneName + "_Annotated_Gene.gb", saveToFile=(not useFileStrs)); # saves annotated gene
+        editedLocus = editLocus(geneName, geneGB, pSN054_ARMED); # inserts construct into genomic context
+        outputDic["logFileStr"] += editedLocus["log"]; # add logs
+        editedLocus = editedLocus["out"]; # saves actual data
+
+        outputDic["geneFileStr"] = geneGB.save(path + "/" + geneName + "_Locus_Pre-editing.gb", saveToFile=(not useFileStrs)); # saves annotated gene
         outputDic["plasmidFileStr"] = pSN054_ARMED.save(path + "/" + geneName+"_Construct.gb", saveToFile=(not useFileStrs)); # saves plasmid
+        outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + geneName+"_Locus_Post-editing.gb", saveToFile=(not useFileStrs)); # saves edited locus
         outputDic["oligoFileStr"] = primerString; # saves primers to file
         outputDic["logFileStr"] = outputDic["logFileStr"] + "\n\nVector constructed and written to file. End of process.\n"; # saves message log to file
         outputDic["newPlasmid"] = pSN054_ARMED; # saves new plasmid to output dictionary
         outputDic["newGene"] = geneGB; # saves new plasmid to output dictionary
+        outputDic["editedLocus"] = editedLocus; # saves edited locus to output dictionary
         outputDic["geneName"] = geneName; # saves gene name to output
 
         if not useFileStrs: # if saving to files,
@@ -225,8 +234,8 @@ Inserts RHR after I-SceI cut site, leaves the site intact with its recognition
 def insertTargetingElementsPSN054(plasmid, geneName, gRNA, LHR, recodedRegion, RHR):
     plas = deepcopy(plasmid); # makes a copy of the plasmid object to modify without altering the original
 
-    startLHR = plas.origin.find(cut_FseI) + len(cut_FseI); # index of LHR start site (at end of FseI cut sequence)
-    endLHR = plas.origin.find(cut_AsiSI); # index of LHR end site (at start of AsiSI cut sequence)
+    startLHR = findFirst(plas.origin, cut_FseI) + len(cut_FseI); # index of LHR start site (at end of FseI cut sequence)
+    endLHR = findFirst(plas.origin, cut_AsiSI); # index of LHR end site (at start of AsiSI cut sequence)
     plas.removeSeq([startLHR, endLHR]); # removes sequence that LHR will replace
     plas.insertSeq(LHR, startLHR); # inserts LHR sequence
     annLHR = GenBankAnn(geneName+" LHR", "misc_feature", LHR, False, [startLHR,startLHR+len(LHR)]); # annotation object
@@ -238,14 +247,14 @@ def insertTargetingElementsPSN054(plasmid, geneName, gRNA, LHR, recodedRegion, R
         annRecoded = GenBankAnn(geneName+" Recoded Region", "misc_feature", recodedRegion, False, [inRecode,inRecode+len(recodedRegion)]); # annotation object
         plas.features.append(annRecoded); # adds annotation
 
-    startGRNA = plas.origin.find(cut_IPpoI); # index of gRNA start site (at start of I-PpoI cut sequence)
+    startGRNA = findFirst(plas.origin, cut_IPpoI); # index of gRNA start site (at start of I-PpoI cut sequence)
     endGRNA = startGRNA + len(cut_IPpoI); # index of gRNA end site (at end of I-PpoI cut sequence)
     plas.removeSeq([startGRNA, endGRNA]); # removes sequence that gRNA will replace
     plas.insertSeq("gg" + gRNA, startGRNA); # inserts gRNA sequence with gg sequence used by T7 polymerase
     annGRNA = GenBankAnn(geneName+" gRNA", "misc_feature", gRNA, False, [startGRNA+2,startGRNA+2+len(gRNA)]); # annotation object. Note that gRNA starts after "gg" added for T7 polymerase
     plas.features.append(annGRNA); # adds annotation
 
-    inRHR = plas.origin.find(cut_ISceI)+len(cut_ISceI); # index of RHR insertion site (at end of I-SceI cut sequence)
+    inRHR = findFirst(plas.origin, cut_ISceI) + len(cut_ISceI); # index of RHR insertion site (at end of I-SceI cut sequence)
     plas.insertSeq(RHR, inRHR); # inserts RHR sequence
     annRHR = GenBankAnn(geneName+" RHR", "misc_feature", RHR, False, [inRHR,inRHR+len(RHR)]); # annotation object
     plas.features.append(annRHR); # adds annotation
@@ -308,6 +317,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
     else: # if gRNAs found,
         gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
 
+    gRNAUpstream = deepcopy(gRNAUpstream); # fixes referencing issue. We want this to be a genuinenly new annotation
     for site in filterCutSites: # for every cut site being filtered
         if findFirst(site,gRNAUpstream.seq) > -1 or findFirst(revComp(site),gRNAUpstream.seq) > -1: # if cut site found,
             log = log + "\nWarning: gRNA sequence for gene " + gene.label + ": \n" + gRNAUpstream + "\ncontains restriction site " + site + "\n"; # add warning to log
@@ -756,3 +766,66 @@ def createKlenowOligos(plasmid, part, lengthHom=40): #TODO: debug.
 
     log = log + "Klenow oligos for part " + part.label + " selected.\n\n"; # logs this process finished
     return {"out":[annPrimFwd, annPrimRev], "log":log}; # return list of primers
+
+"""
+Returns dictionary with ["log":messageLog, "out":method out]
+Out: GenBank object with the annotated, edited locus;
+with all the inserted sequences in their genomic context.
+"""
+def editLocus(geneName, gene, construct):
+    log = ""; # message log
+    LHRlistAll = construct.findAnnsLabel(geneName + " LHR"); # find LHR annotations
+    LHRlist = []; # contain only exact matches
+    LHR = ""; # init LHR var
+    for ann in LHRlistAll: # will keep only those exact matches (exclude primers, for example)
+        if ann.label == geneName + " LHR":
+            LHRlist.append(ann);
+
+    if len(LHRlist) == 1: # if LHR found,
+        LHR = LHRlist[0]; # save first LHR annotation as LHR
+        log = log + "\nFound user LHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
+    elif len(LHRlist) == 0: # if no LHR found,
+        log = log + "\nERROR: Did not find LHR annotations, genomic context file could not be built." + "\n"; # add warning to log
+    else:
+        LHR = LHRlist[0]; # save first LHR annotation as RHR
+        log = log + "\nWarning: Found multiple LHR annotations, genomic context file built with the first one found." + "\n"; # add warning to log
+
+    RHRlistAll = construct.findAnnsLabel("RHR"); # saves RHR annotation
+    RHRlist = []; # contain only exact matches
+    RHR = ""; # init LHR var
+    for ann in RHRlistAll: # will keep only those exact matches (exclude primers, for example)
+        if ann.label == geneName + " RHR":
+            RHRlist.append(ann);
+
+    if len(RHRlist) == 1: # if LHR found,
+        RHR = RHRlist[0]; # save first RHR annotation as RHR
+        log = log + "\nFound user RHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
+    elif len(RHRlist) == 0: # if no LHR found,
+        log = log + "\nERROR: Did not find RHR annotations, genomic context file could not be built." + "\n"; # add warning to log
+    else:
+        RHR = RHRlist[0]; # save first RHR annotation as RHR
+        log = log + "\nWarning: Found multiple RHR annotations, genomic context file built with the first one found." + "\n"; # add warning to log
+
+    startInsertChrom = findFirst(gene.origin, LHR.seq); # find index of insertion start in the chromosomal DNA given
+    endInsertChrom = findFirst(gene.origin, RHR.seq) + len(RHR.seq); # find index of insertion end in the chromosomal DNA given
+
+    startInsertConst = findFirst(construct.origin, LHR.seq); # find index of insertion start in the chromosomal DNA given
+    endInsertConst = findFirst(construct.origin, RHR.seq) + len(RHR.seq); # find index of insertion end in the chromosomal DNA given
+    insert = construct.origin[startInsertConst:endInsertConst]; # saves string containing insert
+
+    editedLocus = deepcopy(gene); # var will contain the edited locus
+    editedLocus.removeSeq([startInsertChrom,endInsertChrom]); # remove deleted bases between homologous regions
+    editedLocus.insertSeq(insert, startInsertChrom); # inserts construct into edited locus
+
+    # Now we add all the plasmid's annotations to the edited locus
+    for ann in construct.features: # loop through plasmid annotations
+        if ann.index[0] >= startInsertConst and ann.index[1] <= endInsertConst: # if annotation is completely inside integrating region
+            editedAnn = deepcopy(ann); # annotation on edited chromosome
+            editedAnn.index[0] = editedAnn.index[0] + startInsertChrom - startInsertConst; # shift index according to new context
+            editedAnn.index[1] = editedAnn.index[1] + startInsertChrom - startInsertConst; # shift index according to new context
+            editedLocus.features.append(editedAnn); # adds annotation to edited locus
+
+
+    log += "\nEdited locus (genomic context) file built."; # add log entry
+
+    return {"out":editedLocus, "log":log}; # return dictionary

@@ -10,7 +10,7 @@ from copy import deepcopy; # Import object copying methods for deep copies, used
 
 class GenBankAnn(object):
     """Stores some GenBank format information for an annotation."""
-    def __init__(self, pLab="", pType="", pSeq="", pComp=False, pIndex=[]): # class constructor
+    def __init__(self, pLab="", pType="misc", pSeq="", pComp=False, pIndex=[]): # class constructor
         self.label = pLab # annotation label
         self.type = pType; # type of annotation
         self.seq = pSeq; # sequence of annotation
@@ -268,6 +268,7 @@ class GenBank(object):
                     i = i - 1; # adjusts iterator accordingly
                     maxIter = maxIter - 1; # adjusts maxIter accordingly
                 elif ann.index[1] > indexes[0]: # if the end of the annotated region is inside the eliminated sequence, it means the part removed from the annotated region includes the ending point (trimmed from right)
+                    lenTrim = ann.index[1] - indexes[0]; # stores length of sequence removed from this region (overlap between removal region and annotated region)
                     ann.index[1] = indexes[0]; # shift the annotation's end index to the start of the excision point
                     ann.seq = ann.seq[:(len(ann.seq)-lenTrim)]; # updates annotation sequence
                     r.append(ann); # add to return list

@@ -83,8 +83,7 @@
 					'MyGene gRNA 1', your second best should be 'MyGene gRNA
 					2, etc.'" class="tooltip">
 					a number</a>
-				indicating their preferred order. The gene's annotation name
-				should be the same as the file name. Additionally you may annotate
+				indicating their order of preferrence. Additionally you may annotate
 				hand-picked left and right homologous regions on your file, if
 				you do not want GeneTargeter to choose them automatically for you.
 			</p>
@@ -170,11 +169,23 @@
 				<ul>
 					<li>
 						<b>a GenBank file</b> containing the given gene annotated with
-						the chosen left and right homologous regions
+						the chosen left and right homologous regions, before chromosomal
+						editing.
 					</li>
 					<li>
 						<b>a GenBank file</b> containing the fully annotated plasmid
 						vector designed to target the given gene.
+					</li>
+					<li>
+						<b>a GenBank file</b> containing the edited chromosomal locus
+						targeted by the construct. <!--Chromosomal context is provided by
+						searching across the <i>P. falciparum</i> 3D7 genome first published by
+						<a href="https://dx.doi.org/10.1038/nature01097" target="_blank">
+							Gardner et al. (2002)</a>
+						and subsequently edited by the
+						<a href="http://plasmodb.org/plasmo/" target="_blank">
+						PlasmoDB</a>
+						community.-->
 					</li>
 					<li><b>a CSV file</b> containing primers,
 						gene fragment sequences and Klenow reaction oligos designed to

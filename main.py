@@ -43,7 +43,7 @@ def gene_message(message):
     lengthGib = [int(i) for i in msgList[5].split(",")];
     #TODO: other params
     output = pSN054TargetGene(geneName, geneFileStr, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib); # call result
-    outMsg = output["geneName"] + sep + output["geneFileStr"] + sep + output["plasmidFileStr"] + sep + output["oligoFileStr"] + sep + output["logFileStr"];
+    outMsg = output["geneName"] + sep + output["geneFileStr"] + sep + output["plasmidFileStr"] + sep + output["editedLocusFileStr"] + sep + output["oligoFileStr"] + sep + output["logFileStr"];
     sendMsg('Process complete',"misc");
     sendMsg(outMsg, "geneOutput");
 
