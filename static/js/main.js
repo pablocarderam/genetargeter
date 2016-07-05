@@ -11,14 +11,16 @@ function init() {
 }
 
 function askCredentials() {
-    document.getElementById('myModal').style.display = "block";
-    document.getElementById("modFooter").innerHTML = "Type passcode";
-    document.getElementById("passcode").value = "";
-    if (document.getElementById("modContent").classList.contains("modal-out")) {
-        document.getElementById("modContent").classList.remove("modal-out");
-    }
-    if (!document.getElementById("modContent").classList.contains("modal-in")) {
-        document.getElementById("modContent").classList.add("modal-in");
+    if (document.getElementById('run').innerHTML === "Target Gene!") {
+      document.getElementById('myModal').style.display = "block";
+      document.getElementById("modFooter").innerHTML = "Type passcode";
+      document.getElementById("passcode").value = "";
+      if (document.getElementById("modContent").classList.contains("modal-out")) {
+          document.getElementById("modContent").classList.remove("modal-out");
+      }
+      if (!document.getElementById("modContent").classList.contains("modal-in")) {
+          document.getElementById("modContent").classList.add("modal-in");
+      }
     }
 }
 
