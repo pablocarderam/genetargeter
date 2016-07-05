@@ -92,31 +92,86 @@
 					Select homology regions manually:
 					<input class="chkBox" type="checkbox" unchecked id="HRannChkBox">
 				</p>
-				<div class="container">
-					<div class="column-center">
-						<p class="head">Right chromosomal integration homologous region size:</p>
-						&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="RHRMin" value="450"> bp <br>
-						&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="RHRPref" value="500"> bp <br>
-						&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="RHRMax" value="750"> bp <br>
-					</div>
-					<div class="column-left">
-						<p class="head">Left chromosomal integration homologous region size:</p>
-						&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="LHRMin" value="450"> bp <br>
-						&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="LHRPref" value="500"> bp <br>
-						&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="LHRMax" value="650"> bp <br>
-					</div>
-					<div class="column-right">
-						<p class="head">Gibson Assembly homologous region size:</p>
-						<br>
-						&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="gibMin" value="30"> bp <br>
-						&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="gibPref" value="40"> bp <br>
-						&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="gibMax" value="50"> bp <br>
+				<div id=moreOptions class="expand">
+					<div class="measuringWrapper">
+						<div class="container">
+							<div class="column-center">
+								<p class="head">Right chromosomal integration homologous region</p>
+								Size:<br>
+								&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="RHRMin" value="450"> bp <br>
+								&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="RHRPref" value="500"> bp <br>
+								&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="RHRMax" value="750"> bp <br>
+								<p>
+									Minimum melting temperature of the first and last
+									<input class="txtInput" type="number" id="endsRHR" value="40"> bp
+									of the right homologous region:
+									<input class="txtInput" type="number" id="endsTempRHR" value="59"> ºC
+								</p>
+								<p>
+									Search for best start/end point
+									<input class="txtInput" type="number" id="optLowRHR" value="20">
+									bp upstream and
+									<input class="txtInput" type="number" id="optHighRHR" value="20">
+									bp downstream of first valid start/end point
+								</p>
+								<p>
+									Maximum distance from gene:
+									<input class="txtInput" type="number" id="maxDistRHR" value="500">
+									bp
+								</p>
+							</div>
+							<div class="column-left">
+								<p class="head">Left chromosomal integration homologous region</p>
+								Size:<br>
+								&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="LHRMin" value="450"> bp <br>
+								&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="LHRPref" value="500"> bp <br>
+								&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="LHRMax" value="650"> bp <br>
+								<p>
+									Minimum melting temperature of the first and last
+									<input class="txtInput" type="number" id="endsLHR" value="40"> bp of
+									the left homologous region:
+									<input class="txtInput" type="number" id="endsTempLHR" value="55"> ºC
+								</p>
+								<p>
+									Search for best start/end point
+									<input class="txtInput" type="number" id="optLowLHR" value="20">
+									bp upstream and
+									<input class="txtInput" type="number" id="optHighLHR" value="10">
+									bp downstream of first valid start/end point
+								</p>
+								<p>
+									Maximum distance from gRNA:
+									<input class="txtInput" type="number" id="maxDistLHR" value="500"> bp
+								</p>
+							</div>
+							<div class="column-right">
+								<br>
+								<p class="head">Gibson Assembly</p>
+								<br>
+								Homologous region size*:
+								&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="gibMin" value="30"> bp <br>
+								&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="gibPref" value="40"> bp <br>
+								&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="gibMax" value="50"> bp <br>
+								<br>
+								*Each primer is twice the homologous region size.
+								<p>
+									Minimum primer melting temperature:
+									<input class="txtInput" type="number" id="gibTemp" value="65"> ºC
+								</p>
+								<p>
+									Maximum melting temperature difference between primers:
+									<input class="txtInput" type="number" id="gibTDif" value="5"> ºC
+								</p>
+								<p>
+									Minimum gene fragment size:
+									<input class="txtInput" type="number" id="minFragSize" value="125">
+									bp
+								</p>
+							</div>
+						</div>
 					</div>
 				</div>
-				<p>
-					Minimum gene fragment size:
-					<input class="txtInput" type="number" id="chromMin" value="125"> bp
-				</p>
+				<label class="btn" id="optionsBtn" onclick="toggleOptions()">Show more options</label>
 			</div>
 			<p>
 				<label class="btn" ><input type="file" id="geneFileForm" accept=".gb" multiple size="50" onchange="uploadFile()">

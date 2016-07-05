@@ -368,7 +368,6 @@ a.pcr:hover {
 	text-align: left;
 }
 .head {
-	width: 150px;
 	text-align: center;
 	font-weight:bolder;
 }
@@ -376,6 +375,31 @@ a.pcr:hover {
 	width: 600px;
 	margin: auto;
 	padding-bottom: 20px;
+}
+.container p {
+	width: 180px;
+}
+
+.expand {
+  -moz-transition: height .5s;
+  -ms-transition: height .5s;
+  -o-transition: height .5s;
+  -webkit-transition: height .5s;
+  transition: height .5s;
+  height: 0;
+  overflow: hidden;
+}
+
+#controls p {
+	width: 90%;
+}
+
+#controls {
+	width: 75%;
+	padding: 12px;
+	margin: auto;
+	background-color: rgba(32, 58, 32, 0.7);
+	border-radius: 5px;
 }
 
 #titLeft {

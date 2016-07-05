@@ -75,6 +75,23 @@ window.onclick = function(event) {
     }
 }
 
+function toggleOptions() {
+    var growDiv = document.getElementById('moreOptions');
+    if (document.getElementById('moreOptions').clientHeight) {
+      document.getElementById('moreOptions').style.height = 0;
+    } else {
+      var wrapper = document.querySelector('.measuringWrapper');
+      document.getElementById('moreOptions').style.height = document.querySelector('.measuringWrapper').clientHeight + "px";
+    }
+
+    if (document.getElementById("optionsBtn").innerHTML == "Show more options") {
+        document.getElementById("optionsBtn").innerHTML = "Show less options";
+    }
+    else {
+        document.getElementById("optionsBtn").innerHTML = "Show more options";
+    }
+}
+
 // Load file adapted from http://www.w3schools.com/jsref/prop_fileupload_files.asp
 function uploadFile(){
     var x = document.getElementById("geneFileForm");
@@ -199,7 +216,18 @@ function run() {
                         lengthLHR = [document.getElementById("LHRMin").value, document.getElementById("LHRPref").value, document.getElementById("LHRMax").value];
                         lengthRHR = [document.getElementById("RHRMin").value, document.getElementById("RHRPref").value, document.getElementById("RHRMax").value];
                         lengthGib = [document.getElementById("gibMin").value, document.getElementById("gibPref").value, document.getElementById("gibMax").value];
-                        msg = createFileMsg(evt.target.result, evt.target.fileName, HRann, lengthLHR, lengthRHR, lengthGib);
+                        optimLHR = [-1*document.getElementById("optLowLHR").value, document.getElementById("optHighLHR").value];
+                        optimRHR = [-1*document.getElementById("optLowRHR").value, document.getElementById("optHighRHR").value];
+                        endsLHR = document.getElementById("endsLHR").value;
+                        endsRHR = document.getElementById("endsRHR").value;
+                        endsTempLHR = document.getElementById("endsTempLHR").value;
+                        endsTempRHR = document.getElementById("endsTempRHR").value;
+                        gibTemp = document.getElementById("gibTemp").value;
+                        gibTDif = document.getElementById("gibTDif").value;
+                        maxDistLHR = document.getElementById("maxDistLHR").value;
+                        maxDistRHR = document.getElementById("maxDistRHR").value;
+                        minFragSize = document.getElementById('minFragSize').value;
+                        msg = createFileMsg([evt.target.result, evt.target.fileName, HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR, endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize]);
                         sendMessageToServer('Sending requests...', "misc");
                         sendMessageToServer(msg,'sendGeneFile');
                     }
@@ -260,13 +288,18 @@ function downloadOutput() {
 }
 
 
-function createFileMsg(content, name, HRann, lengthLHR, lengthRHR, lengthGib) {
+function createFileMsg(info) {
     var sep = ":::";
+    var msg = "";
     var HRannStr = "FALSE";
-    if (HRann) {
+    if (info[2]) { // info[2] is HRann
         HRannStr = "TRUE";
     }
-    return name + sep + content + sep + HRannStr + sep + lengthLHR.toString() + sep + lengthRHR.toString() + sep + lengthGib.toString();
+    for (var i = 0; i < info.length; i++) {
+        msg = msg + info[i] + sep;
+    }
+    msg = msg.substr(0,msg.length-sep.length);
+    return msg;
 }
 
 

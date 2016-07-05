@@ -35,14 +35,25 @@ def index():
 def gene_message(message):
     # process input message into geneName, geneFileStr, HRann and other params
     msgList = message["data"].split(sep);
-    geneName = msgList[0];
-    geneFileStr = msgList[1];
+    geneFileStr = msgList[0];
+    geneName = msgList[1];
     HRann = (msgList[2] == "TRUE");
     lengthLHR = [int(i) for i in msgList[3].split(",")];
     lengthRHR = [int(i) for i in msgList[4].split(",")];
     lengthGib = [int(i) for i in msgList[5].split(",")];
+    optimLHR = [int(i) for i in msgList[6].split(",")];
+    optimRHR = [int(i) for i in msgList[7].split(",")];
+    endsLHR = int(msgList[8]);
+    endsRHR = int(msgList[9]);
+    endTempLHR = int(msgList[10]);
+    endTempRHR = int(msgList[11]);
+    gibTemp = int(msgList[12]);
+    gibTDif = int(msgList[13]);
+    maxDistLHR = int(msgList[14]);
+    maxDistRHR = int(msgList[15]);
+    minFragSize = int(msgList[16]);
     #TODO: other params
-    output = pSN054TargetGene(geneName, geneFileStr, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib); # call result
+    output = pSN054TargetGene(geneName, geneFileStr, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib, optimRangeLHR=optimLHR, optimRangeRHR=optimRHR, endSizeLHR=endsLHR, endSizeRHR=endsRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minFragSize); # call result
     outMsg = output["geneName"] + sep + output["geneFileStr"] + sep + output["plasmidFileStr"] + sep + output["editedLocusFileStr"] + sep + output["oligoFileStr"] + sep + output["logFileStr"];
     sendMsg('Process complete',"misc");
     sendMsg(outMsg, "geneOutput");

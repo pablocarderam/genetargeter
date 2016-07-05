@@ -65,7 +65,7 @@ HRannotated is true if the GenBank file given as input includes manual LHR and
 filterCutSites is a list of strings containing cut sequences to be filtered if
     user provides LHR and RHR.
 """
-def pSN054TargetGene(geneName, geneFileName, useFileStrs=False, gibsonHomRange=[30,40,50], lengthLHR=[450,500,650], lengthRHR=[450,500,750], minGBlockSize=125, HRannotated=False, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]):
+def pSN054TargetGene(geneName, geneFileName, HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], useFileStrs=False):
     outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":""}; # dictionary containing keys to all values being returned
     outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid pSN054_V5 **** \n\n"; # starts message log to file
 
@@ -98,10 +98,10 @@ def pSN054TargetGene(geneName, geneFileName, useFileStrs=False, gibsonHomRange=[
         RHR = GenBankAnn(); # init RHR var
 
         # pick HRs first
-        LHR = chooseLHR(geneGB, gene, lengthLHR=lengthLHR); # chooses an LHR
+        LHR = chooseLHR(geneGB, gene, lengthLHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, optimizeRange=optimRangeLHR, maxDistanceFromGRNA=maxDistLHR); # chooses an LHR
         outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"]; # add logs
         LHR = LHR["out"]; # saves actual data
-        RHR = chooseRHR(geneGB, gene, lengthRHR=lengthRHR); # chooses RHR
+        RHR = chooseRHR(geneGB, gene, lengthRHR=lengthRHR, minTmEnds=endTempLHR, endsLength=endSizeRHR, optimizeRange=optimRangeRHR, maxDistanceFromGene=maxDistRHR); # chooses RHR
         outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
         RHR = RHR["out"]; # saves actual data
 
@@ -160,7 +160,7 @@ def pSN054TargetGene(geneName, geneFileName, useFileStrs=False, gibsonHomRange=[
             primerString = primerString + "\n" + geneName + " gBlock primer (fwd)," + primGBlock[0].seq + "\n" + geneName + " gBlock primer (rev)," + primGBlock[1].seq; # write primers to output string
         elif len(recoded.seq) >= gibsonHomRange[0]/2: # if length of recoded region greater or equal to half of minimum size of homology region,
             outputDic["logFileStr"] = outputDic["logFileStr"] + "\ngBlock deemed not feasible for recoded region of construct targeting gene " + geneName + ", used Klenow instead.\n"; # say so
-            klenowRecoded = createKlenowOligos(pSN054_ARMED, recodedOnPlasmid); # creates Klenow oligos
+            klenowRecoded = createKlenowOligos(pSN054_ARMED, recodedOnPlasmid, gibsonHomRange[1]); # creates Klenow oligos
             outputDic["logFileStr"] = outputDic["logFileStr"] + klenowRecoded["log"]; # add logs
             klenowRecoded = klenowRecoded["out"]; # saves actual data
             pSN054_ARMED.features.append(klenowRecoded[0]); # add fwd primer to plasmid annotations
@@ -169,21 +169,21 @@ def pSN054TargetGene(geneName, geneFileName, useFileStrs=False, gibsonHomRange=[
         else: # if Klenow unnecesary too,
             outputDic["logFileStr"] = outputDic["logFileStr"] + "\ngBlock and Klenow deemed unnecesary for construct targeting gene " + geneName +".\n"; # say so
 
-        primLHR = createGibsonPrimers(pSN054_ARMED, LHROnPlasmid); # creates LHR Gibson primers
+        primLHR = createGibsonPrimers(pSN054_ARMED, LHROnPlasmid, rangeHom=gibsonHomRange, minMeltTemp=gibTemp, maxTempDif=gibTDif); # creates LHR Gibson primers
         outputDic["logFileStr"] = outputDic["logFileStr"] + primLHR["log"]; # add logs
         primLHR = primLHR["out"]; # saves actual data
         pSN054_ARMED.features.append(primLHR[0]); # add fwd primer to plasmid annotations
         pSN054_ARMED.features.append(primLHR[1]); # add rev primer to plasmid annotations
         primerString = primerString + "\n" + geneName + " LHR primer (fwd)," + primLHR[0].seq + "\n" + geneName + " LHR primer (rev)," + primLHR[1].seq; # write primers to output string
 
-        primRHR = createGibsonPrimers(pSN054_ARMED, RHROnPlasmid); # creates RHR Gibson primers
+        primRHR = createGibsonPrimers(pSN054_ARMED, RHROnPlasmid, rangeHom=gibsonHomRange, minMeltTemp=gibTemp, maxTempDif=gibTDif); # creates RHR Gibson primers
         outputDic["logFileStr"] = outputDic["logFileStr"] + primRHR["log"]; # add logs
         primRHR = primRHR["out"]; # saves actual data
         pSN054_ARMED.features.append(primRHR[0]); # add fwd primer to plasmid annotations
         pSN054_ARMED.features.append(primRHR[1]); # add rev primer to plasmid annotations
         primerString = primerString  + "\n" + geneName + " RHR primer (fwd)," + primRHR[0].seq + "\n" + geneName + " RHR primers (rev)," + primRHR[1].seq; # write primers to output string
 
-        klenow = createKlenowOligos(pSN054_ARMED, gRNAOnPlasmid); # creates Klenow oligos
+        klenow = createKlenowOligos(pSN054_ARMED, gRNAOnPlasmid, gibsonHomRange[1]); # creates Klenow oligos
         outputDic["logFileStr"] = outputDic["logFileStr"] + klenow["log"]; # add logs
         klenow = klenow["out"]; # saves actual data
         pSN054_ARMED.features.append(klenow[0]); # add fwd primer to plasmid annotations
