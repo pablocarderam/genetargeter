@@ -213,6 +213,8 @@ function run() {
                 if (file.name.substr(file.name.length-3,file.name.length) === ".gb") {
                     var fR = new FileReader();
                     fR.fileName = document.getElementById('selectedFiles').children[i].children[0].value;
+                    var queryNumber = 0;
+                    console.log(fR.number);
                     fR.readAsText(file, "UTF-8");
                     fR.onload = function (evt) {
                         var HRann = document.getElementById("HRannChkBox").checked;
@@ -230,9 +232,10 @@ function run() {
                         maxDistLHR = document.getElementById("maxDistLHR").value;
                         maxDistRHR = document.getElementById("maxDistRHR").value;
                         minFragSize = document.getElementById('minFragSize').value;
-                        msg = createFileMsg([evt.target.result, evt.target.fileName, HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR, endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize]);
+                        msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName, HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR, endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize]);
                         sendMessageToServer('Sending requests...', "misc");
                         sendMessageToServer(msg,'sendGeneFile');
+                        queryNumber += 1;
                     }
                     fR.onerror = function (evt) {
                         var errMsg = "Error reading file ";
@@ -261,19 +264,20 @@ function run() {
 function displayGeneOutput(files) {
     var clean = true;
     var msgLog = files[files.length-1];
+    var fileNum = parseInt(files[0]);
     var fileLine = document.getElementById('selectedFiles').children;
     if (msgLog.search(/warning/i) > -1) {
-        fileLine[fileCounter].style.color = "#FEB36E";
-        fileLine[fileCounter].children[1].innerHTML = " <b> || WARNINGS</b>"
+        fileLine[fileNum].style.color = "#FEB36E";
+        fileLine[fileNum].children[1].innerHTML = " <b> || WARNINGS</b>"
         clean = false;
     }
     if (msgLog.search(/error/i) > -1) {
-        fileLine[fileCounter].style.color = "#DA717A";
-        fileLine[fileCounter].children[1].innerHTML = " <b> || ERROR</b>"
+        fileLine[fileNum].style.color = "#DA717A";
+        fileLine[fileNum].children[1].innerHTML = " <b> || ERROR</b>"
     }
     else if (clean) {
-        fileLine[fileCounter].style.color = "#73A46F";
-        fileLine[fileCounter].children[1].innerHTML = " <b> || SUCCESS!</b>"
+        fileLine[fileNum].style.color = "#73A46F";
+        fileLine[fileNum].children[1].innerHTML = " <b> || SUCCESS!</b>"
     }
     fileCounter += 1;
 }
@@ -295,7 +299,7 @@ function createFileMsg(info) {
     var sep = ":::";
     var msg = "";
     var HRannStr = "FALSE";
-    if (info[2]) { // info[2] is HRann
+    if (info[3]) { // info[3] is HRann
         HRannStr = "TRUE";
     }
     for (var i = 0; i < info.length; i++) {
@@ -316,7 +320,7 @@ function decodeFileMsg(content) {
     // }
 
     files = content.data.split(sep);
-    currentOutput = files;
+    currentOutput = files.slice(1,files.length-1); // first file is actually number, not a file
     return files;
 }
 

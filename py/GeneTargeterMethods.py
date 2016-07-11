@@ -167,7 +167,7 @@ def pSN054TargetGene(geneName, geneFileName, HRannotated=False, lengthLHR=[450,5
             pSN054_ARMED.features.append(klenowRecoded[1]); # add rev primer to plasmid annotations
             primerString = primerString + "\n" + geneName + " Recoded region Klenow oligo (fwd)," + klenowRecoded[0].seq + "\n" + geneName + " Recoded region Klenow oligo (rev)," + klenowRecoded[1].seq; # write oligos to output string
         else: # if Klenow unnecesary too,
-            outputDic["logFileStr"] = outputDic["logFileStr"] + "\ngBlock and Klenow deemed unnecesary for construct targeting gene " + geneName +".\n"; # say so
+            outputDic["logFileStr"] = outputDic["logFileStr"] + "\ngBlock and Klenow deemed unnecesary for construct targeting gene " + geneName +".\n\n"; # say so
 
         primLHR = createGibsonPrimers(pSN054_ARMED, LHROnPlasmid, rangeHom=gibsonHomRange, minMeltTemp=gibTemp, maxTempDif=gibTDif); # creates LHR Gibson primers
         outputDic["logFileStr"] = outputDic["logFileStr"] + primLHR["log"]; # add logs
@@ -576,12 +576,21 @@ def chooseRecodeRegion(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpo
 
         cutSeqs = filterCutSites + [g.seq for g in gRNAs]; # list of all cut seqs. all gRNAs in gene are to be included as cut sequences
         cutCheck = 0; # variable used to check if cut sequences are present. Initially greater than -1*len(cutSeqs) since all gRNAs are present.
-        while cutCheck > -2*len(cutSeqs): # while cutCheck is greater than what you would expect for no hits in all cut sequences plus the gRNAs on both positive and comp strands,
-            cutCheck = 0; # reset cutCheck
-            recodedSeq = scrambleCodons(recodeSeq); # scramble codons. TODO: codon optimization?
-            for site in cutSeqs: # for every cut site being filtered,
-                cutCheck += findFirst(site,recodedSeq); # Find cut site, register in cutCheck
-                cutCheck += findFirst(revComp(site),recodedSeq); # Find cut site in comp strand, register in cutCheck
+        count = 0; # iteration counter
+        recodedSeq = recodeSeq; # assign recoded sequence to same as original
+        if len(recodeSeq) > 2: # if recodeSeq contains at least one codon,
+            while cutCheck > -2*len(cutSeqs): # while cutCheck is greater than what you would expect for no hits in all cut sequences plus the gRNAs on both positive and comp strands,
+                cutCheck = 0; # reset cutCheck
+                recodedSeq = scrambleCodons(recodeSeq); # scramble codons. TODO: codon optimization?
+                for site in cutSeqs: # for every cut site being filtered,
+                    cutCheck += findFirst(site,recodedSeq); # Find cut site, register in cutCheck
+                    cutCheck += findFirst(revComp(site),recodedSeq); # Find cut site in comp strand, register in cutCheck
+
+                count += 1; # advances iteration counter
+                if count > 10000: # if out of iteration limit,
+                    log = log + "\nWarning: Recoded region for gene " + gene.label + " contains at least one of the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
+                    break; # escape loop
+
 
 
         recodedSeq = geneGB.origin[LHR.index[1]:LHR.index[1]+frame] + recodedSeq; # adds initial bases from reading frame adjustment
