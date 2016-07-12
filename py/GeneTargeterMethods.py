@@ -143,13 +143,15 @@ def pSN054TargetGene(geneName, geneFileName, HRannotated=False, lengthLHR=[450,5
         pSN054_ARMED = insertTargetingElementsPSN054(pSN054_V5, gene.label, gRNA.seq, LHR.seq, recoded.seq, RHR.seq); # inserts targeting elements
 
         gRNAOnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " gRNA")[0]; # saves gRNA annotation actually on plasmid
-        recodedOnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " Recoded")[0]; # saves recoded annotation actually on plasmid
+        if len(recoded.seq) > 0: # if there actually is a recoded region,
+            recodedOnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " Recoded")[0]; # saves recoded annotation actually on plasmid
+
         LHROnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " LHR")[0]; # saves LHR annotation actually on plasmid
         RHROnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " RHR")[0]; # saves RHR annotation actually on plasmid
 
         primerString = ""; # "OLIGOS for construct targeting gene " + geneName + "\n\n"; # String will save all primer information to be written to file
 
-        if len(recoded.seq) + gibsonHomRange[1]*2 >= minGBlockSize: # if length of recoded region plus homology regions necessary for Gibson Assembly is greater or equal to minimum gBlock size,
+        if len(recoded.seq) > 0 and len(recoded.seq) + gibsonHomRange[1]*2 >= minGBlockSize: # if there is a recoded region and length of recoded region plus homology regions necessary for Gibson Assembly is greater or equal to minimum gBlock size,
             gBlock = createGBlock(pSN054_ARMED,recodedOnPlasmid); # annotates gBlock on plasmid
             outputDic["logFileStr"] = outputDic["logFileStr"] + gBlock["log"]; # add logs
             gBlock = gBlock["out"]; # saves actual data
@@ -171,7 +173,7 @@ def pSN054TargetGene(geneName, geneFileName, HRannotated=False, lengthLHR=[450,5
             pSN054_ARMED.features.append(klenowRecoded[1]); # add rev primer to plasmid annotations
             primerString = primerString + "\n" + geneName + " Recoded region Klenow oligo (fwd)," + klenowRecoded[0].seq + "\n" + geneName + " Recoded region Klenow oligo (rev)," + klenowRecoded[1].seq; # write oligos to output string
         else: # if Klenow unnecesary too,
-            outputDic["logFileStr"] = outputDic["logFileStr"] + "\ngBlock and Klenow deemed unnecesary for construct targeting gene " + geneName +".\n\n"; # say so
+            outputDic["logFileStr"] = outputDic["logFileStr"] + "\ngBlock and Klenow for recoded region deemed unnecesary for construct targeting gene " + geneName +".\n\n"; # say so
 
         primLHR = createGibsonPrimers(pSN054_ARMED, LHROnPlasmid, rangeHom=gibsonHomRange, minMeltTemp=gibTemp, maxTempDif=gibTDif); # creates LHR Gibson primers
         outputDic["logFileStr"] = outputDic["logFileStr"] + primLHR["log"]; # add logs
@@ -601,6 +603,7 @@ def chooseRecodeRegion(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpo
         # creates var to store finished recodedSeq as annotation
         annRecoded = GenBankAnn(gene.label + " Recoded", "misc_feature", recodedSeq, False, [startRecode,endRecode]); # creates GenBankAnn object to hold RHR
         log = log + "\nRecoded region for gene " + gene.label + " selected.\n\n"; # logs this process finished
+
     else: # if no recoded region necessary,
         log = log + "\nRecoded region for gene " + gene.label + " not deemed necessary.\n\n"; # logs this process finished
 
