@@ -3,7 +3,7 @@
 Created on June 7 2016
 GeneTargeterMethods
 Methods for creating constructs aimed at inserting regulatory elements into
-chromosomal DNA.
+chromosomal DNA. TODO: generalize
 For now, creates a construct based on pSN054 (updated) V5 developed by the Niles
 Lab at MIT tagged designed to deliver the regulatory element 3' UTR payload to a
 specific gene, given as a parameter.
@@ -99,7 +99,11 @@ def pSN054TargetGene(geneName, geneFileName, HRannotated=False, lengthLHR=[450,5
 
         # pick HRs first
         LHR = chooseLHR(geneGB, gene, lengthLHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, optimizeRange=optimRangeLHR, maxDistanceFromGRNA=maxDistLHR); # chooses an LHR
+        outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"]; # add logs
+        LHR = LHR["out"]; # saves actual data
         RHR = chooseRHR(geneGB, gene, lengthRHR=lengthRHR, minTmEnds=endTempLHR, endsLength=endSizeRHR, optimizeRange=optimRangeRHR, maxDistanceFromGene=maxDistRHR); # chooses RHR
+        outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
+        RHR = RHR["out"]; # saves actual data
 
         if HRannotated: # if LHR and RHR are already annotated,
             LHRlist = geneGB.findAnnsLabel("LHR"); # overwrite LHR annotations
@@ -108,8 +112,6 @@ def pSN054TargetGene(geneName, geneFileName, HRannotated=False, lengthLHR=[450,5
                 outputDic["logFileStr"] = outputDic["logFileStr"] + "\nFound user LHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
             else: # if no LHR found,
                 outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user LHR annotation, used automatic annotation instead." + "\n"; # add warning to log
-                outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"]; # add logs
-                LHR = LHR["out"]; # saves actual data
 
             RHRlist = geneGB.findAnnsLabel("RHR"); # saves RHR annotation
             if len(RHRlist) > 0: # if LHR found,
@@ -117,8 +119,6 @@ def pSN054TargetGene(geneName, geneFileName, HRannotated=False, lengthLHR=[450,5
                 outputDic["logFileStr"] = outputDic["logFileStr"] + "\nFound user RHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
             else: # if no LHR found,
                 outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user RHR annotation, used automatic annotation instead." + "\n"; # add warning to log
-                outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
-                RHR = RHR["out"]; # saves actual data
 
             for site in filterCutSites: # for every cut site being filtered
                 if findFirst(site,LHR.seq) > -1 or findFirst(revComp(site),LHR.seq) > -1: # if cut site found,
@@ -128,10 +128,6 @@ def pSN054TargetGene(geneName, geneFileName, HRannotated=False, lengthLHR=[450,5
 
 
         else: # if HRs not annotated,
-            outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"]; # add logs
-            LHR = LHR["out"]; # saves actual data
-            outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
-            RHR = RHR["out"]; # saves actual data
             geneGB.features.append(gRNA); # adds gRNA to gene annotations (at this point, redundant)
             geneGB.features.append(LHR); # adds LHR to gene annotations
             geneGB.features.append(RHR); # adds RHR to gene annotations
@@ -209,7 +205,7 @@ def pSN054TargetGene(geneName, geneFileName, HRannotated=False, lengthLHR=[450,5
         outputDic["geneName"] = geneName; # saves gene name to output
 
         if not useFileStrs: # if saving to files,
-            output(outputDic["oligoFileStr"], path + "/" + geneName + "_Oligos.csv",wipe=True); # saves oligos to file
+            output(outputDic["oligoFileStr"], path + "/" + geneName + "_Oligos.txt",wipe=True); # saves oligos to file
             output(outputDic["logFileStr"], path + "/" + geneName + "_Message_Log.txt",wipe=True); # saves message log to file
 
     else:

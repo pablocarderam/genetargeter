@@ -214,7 +214,6 @@ function run() {
                     var fR = new FileReader();
                     fR.fileName = document.getElementById('selectedFiles').children[i].children[0].value;
                     var queryNumber = 0;
-                    console.log(fR.number);
                     fR.readAsText(file, "UTF-8");
                     fR.onload = function (evt) {
                         var HRann = document.getElementById("HRannChkBox").checked;
@@ -298,10 +297,6 @@ function downloadOutput() {
 function createFileMsg(info) {
     var sep = ":::";
     var msg = "";
-    var HRannStr = "FALSE";
-    if (info[3]) { // info[3] is HRann
-        HRannStr = "TRUE";
-    }
     for (var i = 0; i < info.length; i++) {
         msg = msg + info[i] + sep;
     }
@@ -320,7 +315,7 @@ function decodeFileMsg(content) {
     // }
 
     files = content.data.split(sep);
-    currentOutput = files.slice(1,files.length-1); // first file is actually number, not a file
+    currentOutput = files.slice(1,files.length); // first file is actually number, not a file
     return files;
 }
 
