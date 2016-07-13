@@ -200,11 +200,13 @@ def pSN054TargetGene(geneName, geneFileName, HRannotated=False, lengthLHR=[450,5
         outputDic["logFileStr"] += editedLocus["log"]; # add logs
         editedLocus = editedLocus["out"]; # saves actual data
 
+        outputDic["logFileStr"] = outputDic["logFileStr"] + "\n\nVector constructed and written to file. End of process.\n"; # saves message log to file
+        pSN054_ARMED.definition = pSN054_ARMED.definition + "\n" + outputDic["logFileStr"]; # save logs to file definition to be viewed in benchling
+
         outputDic["geneFileStr"] = geneGB.save(path + "/" + geneName + "_Locus_Pre-editing.gb", saveToFile=(not useFileStrs)); # saves annotated gene
-        outputDic["plasmidFileStr"] = pSN054_ARMED.save(path + "/" + geneName+"_Construct.gb", saveToFile=(not useFileStrs)); # saves plasmid
+        outputDic["plasmidFileStr"] = pSN054_ARMED.save(path + "/" +  "pSN054_V5_targeting" + geneName, saveToFile=(not useFileStrs)); # saves plasmid
         outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + geneName+"_Locus_Post-editing.gb", saveToFile=(not useFileStrs)); # saves edited locus
         outputDic["oligoFileStr"] = primerString; # saves primers to file
-        outputDic["logFileStr"] = outputDic["logFileStr"] + "\n\nVector constructed and written to file. End of process.\n"; # saves message log to file
         outputDic["newPlasmid"] = pSN054_ARMED; # saves new plasmid to output dictionary
         outputDic["newGene"] = geneGB; # saves new plasmid to output dictionary
         outputDic["editedLocus"] = editedLocus; # saves edited locus to output dictionary

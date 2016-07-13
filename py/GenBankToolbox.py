@@ -88,11 +88,11 @@ class GenBank(object):
             w = d[i].split(); # splits line into words
 
         if w[0] == "DEFINITION": # if definition found...
-            self.definition = d[i][10].lstrip(); # saves definition information on this line after "DEFINITION" string and ensuing whitespace.
-            while w[len(w)-1].find(".") > -1 and i < len(d): # iterates until last word in line contains period, or end of document reached
-                self.definition = d[i]; # save this line as definition information
+            self.definition = d[i].lstrip()[12::]; # saves definition information on this line after "DEFINITION" string and ensuing whitespace.
+            while w[len(w)-1].find(".") < 0 and i < len(d): # iterates until last word in line contains period, or end of document reached
                 i = i+1; # advance counter
                 w = d[i].split(); # splits line into words
+                self.definition = self.definition + d[i]; # save this line as definition information
 
         # We need to load the sequence before we load the annotations
         while w[0] != "ORIGIN" and i < len(d): # iterates until ORIGIN found or end of document reached
@@ -160,7 +160,7 @@ class GenBank(object):
         outStr = outStr + "LOCUS       " + self.name + " " + str(len(self.origin)) + " bp " + self.additionalInfo + "     " + todayDateStr() + "\n"; # writes LOCUS line
 
         d = "DEFINITION  " + self.definition; # Stores string with definition and start string
-        defOut = "\n".join([d[i:i+80] for i in range(0, len(d), 80)]); # introduces line separators into string
+        defOut = d; #"\n".join([d[i:i+80] for i in range(0, len(d), 80)]); # introduces line separators into string ##WILL NOW PRINT STRING WITHOUT SEPARATORS
 
         outStr = outStr + defOut + "\nFEATURES             Location/Qualifiers\n"; # write locus and definition information to file, writes a new line to start features list
 

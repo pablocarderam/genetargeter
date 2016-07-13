@@ -284,12 +284,12 @@ function displayGeneOutput(files) {
 
 function downloadOutput() {
     var geneName = currentOutput[0];
-    var fileTypes = ["_Locus_Pre-editing.gb","_Annotated_Plasmid.gb","_Locus_Post-editing.gb","_Oligos.csv","_Message_File.txt"];
+    var fileTypes = ["Locus_Pre-editing _","pSN054_V5_","Locus_Post-editing_","Oligos_","Message_File_"];
+    var fileExt = [".gb",".gb",".gb",".csv",".txt"];
     for (var j = 1; j < currentOutput.length; j++) {
         var file = currentOutput[j];
-        var fileType = fileTypes[j-1];
         var data = 'data:text/plain;charset=utf-8,' + encodeURIComponent(file);
-        saveAs(data,geneName+fileType);
+        saveAs(data,fileTypes[j-1]+geneName+fileExt[j-1]);
     }
 }
 
