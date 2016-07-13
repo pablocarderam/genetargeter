@@ -16,7 +16,7 @@ from flask import Flask, render_template, session, request
 from flask.ext.socketio import SocketIO, emit, disconnect
 
 app = Flask(__name__)
-app.debug = True
+app.debug = False
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
