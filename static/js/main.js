@@ -11,7 +11,6 @@ function init() {
 }
 
 function askCredentials() {
-    console.log(document.getElementById('run').innerHTML);
     if (document.getElementById('run').innerHTML === "Target Gene!" || document.getElementById('run').innerHTML === "Target Genes!") {
         document.getElementById('myModal').style.display = "block";
         document.getElementById("modFooter").innerHTML = "Type passcode";
@@ -22,6 +21,9 @@ function askCredentials() {
         if (!document.getElementById("modContent").classList.contains("modal-in")) {
             document.getElementById("modContent").classList.add("modal-in");
         }
+    }
+    else {
+        document.getElementById('geneFileForm').click();
     }
 }
 
@@ -231,7 +233,9 @@ function run() {
                         maxDistLHR = document.getElementById("maxDistLHR").value;
                         maxDistRHR = document.getElementById("maxDistRHR").value;
                         minFragSize = document.getElementById('minFragSize').value;
-                        msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName, HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR, endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize]);
+                        optimOrg = document.getElementById('codonOptimizeOrg').value;
+                        codonSampling = document.getElementById('codonOptimStrat').value;
+                        msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName, HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR, endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize, optimOrg, codonSampling]);
                         sendMessageToServer('Sending requests...', "misc");
                         sendMessageToServer(msg,'sendGeneFile');
                         queryNumber += 1;

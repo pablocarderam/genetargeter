@@ -26,6 +26,18 @@ pSN054_V5 = GenBank();
 pSN054_V5.load("input/plasmids/psn054-updated_v5-tagged-jn_final.gb",loadFromFile=True); # load plasmid sequence from GenBank format
 # Genomes
 # Pf3D7_genome = loadFastas("input/genomes/PlasmoDB-28_Pfalciparum3D7_Genome.fasta"); # saves whole genome as dictionary (each key is a chromosome, including apicoplast and mitochondrial chromosomes)
+# Codon usage tables
+codonUsageTables = {
+    'P. falciparum 3D7': codonUsage('input/codonUsageTables/Pfalciparum3D7.txt'),
+    'P. vivax': codonUsage('input/codonUsageTables/Pvivax.txt'),
+    'T. gondii': codonUsage('input/codonUsageTables/Tgondii.txt'),
+    'E. coli K12': codonUsage('input/codonUsageTables/EcoliK12.txt'),
+    'S. cerevisiae': codonUsage('input/codonUsageTables/Scerevisiae.txt'),
+    'H. sapiens': codonUsage('input/codonUsageTables/Hsapiens.txt'),
+    'R. norvegicus': codonUsage('input/codonUsageTables/Rnorvegicus.txt'),
+    'scramble': codonUsage()
+}
+
 
 # Methods
 """
@@ -65,7 +77,7 @@ HRannotated is true if the GenBank file given as input includes manual LHR and
 filterCutSites is a list of strings containing cut sequences to be filtered if
     user provides LHR and RHR.
 """
-def pSN054TargetGene(geneName, geneFileName, HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], useFileStrs=False):
+def pSN054TargetGene(geneName, geneFileName, codonOptimize="scramble", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], useFileStrs=False, codonSampling=False):
     outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":""}; # dictionary containing keys to all values being returned
     outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid pSN054_V5 **** \n\n"; # starts message log to file
 
@@ -136,7 +148,9 @@ def pSN054TargetGene(geneName, geneFileName, HRannotated=False, lengthLHR=[450,5
             geneGB.features.append(LHR); # adds LHR to gene annotations
             geneGB.features.append(RHR); # adds RHR to gene annotations
 
-        recoded = chooseRecodeRegion(geneGB, gene); # defines region to be recoded, returns recoded sequence
+
+
+        recoded = chooseRecodeRegion(geneGB, gene, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling); # defines region to be recoded, returns recoded sequence
         outputDic["logFileStr"] = outputDic["logFileStr"] + recoded["log"]; # add logs
         recoded = recoded["out"]; # saves actual data
 
@@ -556,7 +570,7 @@ its label. Also needs all gRNAs to be annotated in the file. Returns empty
 region if LHR end is at or downstream of gene stop codon. Checks against
 restriction sites given as parameters.
 """
-def chooseRecodeRegion(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]):
+def chooseRecodeRegion(geneGB, gene, orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], codonSampling=False):
     #TODO: debug
     log = ""; # init log
     LHR = geneGB.findAnnsLabel("LHR")[0]; # LHR annotation object
@@ -589,7 +603,7 @@ def chooseRecodeRegion(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpo
         if len(recodeSeq) > 2: # if recodeSeq contains at least one codon,
             while cutCheck > -2*len(cutSeqs): # while cutCheck is greater than what you would expect for no hits in all cut sequences plus the gRNAs on both positive and comp strands,
                 cutCheck = 0; # reset cutCheck
-                recodedSeq = scrambleCodons(recodeSeq); # scramble codons. TODO: codon optimization?
+                recodedSeq = optimizeCodons(recodeSeq,orgCodonTable,codonSampling=codonSampling); # optimize codons.
                 for site in cutSeqs: # for every cut site being filtered,
                     cutCheck += findFirst(site,recodedSeq); # Find cut site, register in cutCheck
                     cutCheck += findFirst(revComp(site),recodedSeq); # Find cut site in comp strand, register in cutCheck

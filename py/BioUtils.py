@@ -243,6 +243,37 @@ def geneticCode():
 
 
 """
+Returns dictionary with keys=codons and values=frequencies for the codon table
+whose file path was specified as an argument. If no organism is specified,
+uniform codon usage is assumed by default.
+"""
+def codonUsage(tableFilePath=""):
+    p = 1/float(64); # calculates probability of a codon according to uniform distribution
+    codonFreqs = dict.fromkeys( geneticCode().keys(), 1/float(len(geneticCode())) ); # creates dictionary with codons as keys and a uniform probability of each key as values
+    if len(tableFilePath) > 0: # if a file path was passed as an argument,
+        txt = open(tableFilePath); # Access given file
+        d = txt.read(); # Read file
+
+        d = d.lstrip(); # Remove initial whitespace
+        d = d.split("\n"); # Split into separate sequences
+
+        totCodons = 0; # stores total number of codons
+        for l in d[1::]: # iterates across file lines; starts at 1 to skip table header
+            el = l.split(); # splits lines into elements separated by whitespace
+            if len(el) > 0: # if line is not empty,
+                codon = el[1]; # stores codon (second column)
+                freq = float(el[2]); # stores codon's frequency (third column)
+                codonFreqs[codon] = freq; # associates codon to frequency
+                totCodons += freq; # adds number of codons to total
+
+        txt.close(); # close file
+        for c in codonFreqs: # for every codon,
+            codonFreqs[c] = codonFreqs[c]/float(totCodons); # normalize over total number of codons
+
+    return codonFreqs;
+
+
+"""
 Translates RNA to protein (takes rna string, returns peptide string).
 """
 def translate(pSeq):
@@ -262,9 +293,12 @@ def translate(pSeq):
 
 
 """
-Changes codons in dna sequence to synonyms. Assumes frame starts in 0.
+Changes codons in dna sequence to synonyms according to given codon frequency
+dictionary. Assumes frame starts in 0. Default codon frequency is equal
+probabilities, resulting in codon scramble. Will select codons probabilistically
+if sampling is True, will choose most likely codon otherwise.
 """
-def scrambleCodons(pSeq):
+def optimizeCodons(pSeq, codonFreqs=codonUsage(), codonSampling=True):
     seq = transcribe(pSeq.upper()); # everything to uppercase
     code = geneticCode(); # Stores genetic code
     newSeq = ""; # stores new sequence
@@ -277,7 +311,27 @@ def scrambleCodons(pSeq):
             if code[c] == code[codon]: # if codon is synonym,
                 synonyms.append(c); # add to synonyms list
 
-        newCodon = synonyms[random.randint(0,len(synonyms)-1)]; # change codon for random synonym
+        totalProb = 0; # saves sum of likelihoods of all synonymous codons
+        for syn in synonyms: # for every synonymous codon,
+            totalProb += codonFreqs[syn]; # add this synonym's likelihood to total
+
+        newCodon = synonyms[0]; # set first codon synonym as default new codon
+        if codonSampling: # if not deterministic (choose codons probabilistically),
+            r = random.random(); # random number between zero and 1
+            j = 0; # stores index of codon selected
+            cumProb = 0; # stores cumulative probability of belonging to all codons in indexes 0:i
+            while cumProb < r: # will shift selected codon until cumulative probability surpasses random number
+                cumProb += codonFreqs[synonyms[j]]/float(totalProb); # adds this codon's probabilty to the cumulative frequency
+                j += 1; # advance counter
+
+            newCodon = synonyms[j-1]; # change codon for chosen synonym
+
+        else: # if deterministic mode (choose most likely codons),
+            for c in synonyms: # iterate over synonyms
+                if codonFreqs[c] > codonFreqs[newCodon]: # if this codon is more likely than current new codon,
+                    newCodon = c; # set this codon as the new codon
+
+
         newSeq = newSeq + newCodon; # add codon to sequence
         i = i+3; # next codon
 

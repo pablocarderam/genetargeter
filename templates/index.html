@@ -120,6 +120,7 @@
 									<input class="txtInput" type="number" id="maxDistRHR" value="500">
 									bp
 								</p>
+								<br><br><br><br>
 							</div>
 							<div class="column-left">
 								<p class="head">Left chromosomal integration homologous region</p>
@@ -146,9 +147,7 @@
 								</p>
 							</div>
 							<div class="column-right">
-								<br>
 								<p class="head">Gibson Assembly</p>
-								<br>
 								Homologous region size*:
 								&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="gibMin" value="30"> bp <br>
 								&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="gibPref" value="40"> bp <br>
@@ -163,8 +162,30 @@
 									Maximum melting temperature difference between primers:
 									<input class="txtInput" type="number" id="gibTDif" value="5"> ºC
 								</p>
+								<p class="head">
+									Recoded Region
+								</p>
 								<p>
-									Minimum gene fragment size:
+									Codon optimize to
+									<select id="codonOptimizeOrg">
+										<option value="T. gondii" selected="selected">T. gondii</option>
+								    <option value="P. falciparum 3D7">P. falciparum 3D7</option>
+								    <option value="P. vivax">P. vivax</option>
+										<option value="E. coli K12">E. coli K12</option>
+										<option value="S. cerevisiae">S. cerevisiae</option>
+								    <option value="H. sapiens">H. sapiens</option>
+								    <option value="R. norvegicus">R. norvegicus</option>
+										<option value="scramble">Scramble</option>
+									</select>
+									<a href="http://omicsomics.blogspot.com/2009/04/is-codon-optimization-bunk.html" target="_blank">
+										using</a>
+									<select id="codonOptimStrat">
+								    <option value="CAI Maximization">CAI Maximization</option>
+								    <option value="Codon Sampling">Codon Sampling</option>
+									</select>
+								</p>
+								<p>
+									Minimum gBlock gene fragment size (will create Klenow oligos if smaller):
 									<input class="txtInput" type="number" id="minFragSize" value="125">
 									bp
 								</p>
@@ -272,16 +293,19 @@
 				</p>
 			</a>
 			<p>
-	            Background Image:
-	            <a href="https://commons.wikimedia.org/wiki/File:Plasmodium_falciparum_in_a_patient_presenting_with_pyrexia_and_headache.jpg" target="_blank">
-	                <i>Plasmodium falciparum in a patient presenting with pyrexia and
-	                headache.</i> O. Erhabor (2013)</a>
-	            <br>
-	            <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.en" target="_blank">
-	                CC BY-SA 3.0</a>
-	        </p>
-	        <p>
-	            Code: <a href="http://opensource.org/licenses/MIT" target="_blank">
+	        Background Image:
+	        <a href="https://commons.wikimedia.org/wiki/File:Plasmodium_falciparum_in_a_patient_presenting_with_pyrexia_and_headache.jpg" target="_blank">
+	            <i>Plasmodium falciparum in a patient presenting with pyrexia and
+	            headache.</i> O. Erhabor (2013)</a>
+	        <br>
+	        <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.en" target="_blank">
+	            CC BY-SA 3.0</a>
+	    </p>
+			<p>
+					Codon tables obtained July 17, 2016 from the <a href="http://www.kazusa.or.jp/codon/">Codon Usage Database</a> run by Kazusa DRI.
+			</p>
+	    <p>
+	        Code: <a href="http://opensource.org/licenses/MIT" target="_blank">
 					MIT License</a>, appropriately.
 				<br>
 				<a href="https://github.com/pablocarderam/GeneTargeter" target="_blank">

@@ -16,7 +16,7 @@ from flask import Flask, render_template, session, request
 from flask.ext.socketio import SocketIO, emit, disconnect
 
 app = Flask(__name__)
-app.debug = False
+app.debug = True # change in dev/prod
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
@@ -53,8 +53,9 @@ def gene_message(message):
     maxDistLHR = int(msgList[15]);
     maxDistRHR = int(msgList[16]);
     minFragSize = int(msgList[17]);
-    #TODO: other params
-    output = pSN054TargetGene(geneName, geneFileStr, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib, optimRangeLHR=optimLHR, optimRangeRHR=optimRHR, endSizeLHR=endsLHR, endSizeRHR=endsRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minFragSize); # call result
+    optimOrg = msgList[18];
+    codonSampling = (msgList[19] == "Codon Sampling");
+    output = pSN054TargetGene(geneName, geneFileStr, codonOptimize=optimOrg, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib, optimRangeLHR=optimLHR, optimRangeRHR=optimRHR, endSizeLHR=endsLHR, endSizeRHR=endsRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minFragSize, codonSampling=codonSampling); # call result
     outMsg = queryNumber + sep + output["geneName"] + sep + output["geneFileStr"] + sep + output["plasmidFileStr"] + sep + output["editedLocusFileStr"] + sep + output["oligoFileStr"] + sep + output["logFileStr"];
     sendMsg('Process complete',"misc");
     sendMsg(outMsg, "geneOutput");
