@@ -102,7 +102,14 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="scramble", HRannotat
                 break; # stop loop
 
 
-        gRNA = chooseGRNA(geneGB, gene); # finds gRNA most upstream. At this point, user must annotate it manually.
+        if HRannotated: # if not using manual annotations
+            gRNA = findGRNA(geneGB, gene); # finds gRNA most upstream annotated manually.
+            if len(gRNA["out"].label) == 0: # if no manual annotation found,
+                gRNA = chooseGRNA(geneGB, gene); # chooses gRNA.
+
+        else: # if not,
+            gRNA = chooseGRNA(geneGB, gene); # chooses gRNA.
+
         outputDic["logFileStr"] = outputDic["logFileStr"] + gRNA["log"]; # add logs
         gRNA = gRNA["out"]; # saves actual data
 
@@ -122,6 +129,7 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="scramble", HRannotat
                 outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user LHR annotation, used automatic annotation instead." + "\n"; # add warning to log
                 outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"]; # add logs
                 LHR = LHR["out"]; # saves actual data
+                geneGB.features.append(LHR); # adds LHR to gene annotations
 
             RHRlist = geneGB.findAnnsLabel("RHR"); # saves RHR annotation
             if len(RHRlist) > 0: # if LHR found,
@@ -131,6 +139,7 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="scramble", HRannotat
                 outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user RHR annotation, used automatic annotation instead." + "\n"; # add warning to log
                 outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
                 RHR = RHR["out"]; # saves actual data
+                geneGB.features.append(RHR); # adds RHR to gene annotations
 
             for site in filterCutSites: # for every cut site being filtered
                 if findFirst(site,LHR.seq) > -1 or findFirst(revComp(site),LHR.seq) > -1: # if cut site found,
@@ -215,7 +224,7 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="scramble", HRannotat
         editedLocus = editedLocus["out"]; # saves actual data
 
         outputDic["logFileStr"] = outputDic["logFileStr"] + "\n\nVector constructed and written to file. End of process.\n"; # saves message log to file
-        pSN054_ARMED.definition = pSN054_ARMED.definition + "\n" + outputDic["logFileStr"]; # save logs to file definition to be viewed in benchling
+        pSN054_ARMED.definition = (pSN054_ARMED.definition + "  " + outputDic["logFileStr"]).replace("\n","   "); # save logs to file definition to be viewed in benchling
 
         outputDic["geneFileStr"] = geneGB.save(path + "/" + geneName + "_Locus_Pre-editing.gb", saveToFile=(not useFileStrs)); # saves annotated gene
         outputDic["plasmidFileStr"] = pSN054_ARMED.save(path + "/" +  "pSN054_V5_targeting" + geneName, saveToFile=(not useFileStrs)); # saves plasmid
@@ -349,6 +358,40 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
     log = log + "gRNA for gene " + gene.label + " selected.\n\n"; # logs this process finished
     return {"out":gRNAUpstream, "log":log}; # returns gRNA and log
 
+
+"""
+Finds gRNA already annotated on gene. Filters for given restriction enzyme cut
+sites. If no gRNA found on gene, nothing will happen (logs this).
+"""
+def findGRNA(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]):
+    log = ""; # init log
+    gRNAs = geneGB.findAnnsLabel("gRNA 1", True); # List of all gRNAs TODO: "1" is to choose best
+    gRNAUpstream = GenBankAnn(); # init var to hold gRNA
+    if len(gRNAs) == 0: # if no gRNAs found
+        gRNAs = geneGB.findAnnsLabel("gRNA"); # List of all gRNAs TODO: "1" is to choose best
+        if len(gRNAs) == 0: # if no gRNAs found
+            log = log + "\nWarning: no gRNA found on gene " + gene.label + ", selecting one automatically.\n"; # add warning to log
+        else: # if gRNAs found,
+            gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
+            for g in gRNAs: # loops across gRNAs
+                if g.index[0] < gRNAUpstream.index[0]: # if more upstream
+                    gRNAUpstream = g; # replace as most upstream
+
+
+
+
+    if len(gRNAs) > 0: # if gRNAs found
+        gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
+        gRNAUpstream = deepcopy(gRNAUpstream); # fixes referencing issue. We want this to be a genuinenly new annotation
+        for site in filterCutSites: # for every cut site being filtered
+            if findFirst(site,gRNAUpstream.seq) > -1 or findFirst(revComp(site),gRNAUpstream.seq) > -1: # if cut site found,
+                log = log + "\nWarning: gRNA sequence for gene " + gene.label + ": \n" + gRNAUpstream + "\ncontains restriction site " + site + "\n"; # add warning to log
+
+        gRNAUpstream.label = gene.label + " gRNA"; # renames gRNA according to this program's convention
+
+        log = log + "gRNA for gene " + gene.label + " found on gene.\n\n"; # logs this process finished
+
+    return {"out":gRNAUpstream, "log":log}; # returns gRNA and log
 
 
 
