@@ -6,7 +6,7 @@ Calls main method to build targeted vector with arguments from the command line.
 # Usage:
 # To run GeneTargeter as a command line application, use the following command called from within the GeneTargeter directory:
 #
-# python GeneTargeterCLI.py path/NAME_OF_FILE.gb NAME_OF_GENE 'ADDITIONAL_PARAM_1="X1",ADDITIONAL_PARAM_2=X2'
+# GeneTargeterCLI PATH/TO/FILE/NAME_OF_FILE.gb NAME_OF_GENE 'ADDITIONAL_PARAM_1="X1", ADDITIONAL_PARAM_2=X2'
 #
 # Alternatively, the script may be called from a different directory if the correct file path is given.
 # Additional parameters that may be added are:
