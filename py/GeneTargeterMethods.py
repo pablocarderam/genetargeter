@@ -77,7 +77,7 @@ HRannotated is true if the GenBank file given as input includes manual LHR and
 filterCutSites is a list of strings containing cut sequences to be filtered if
     user provides LHR and RHR.
 """
-def pSN054TargetGene(geneName, geneFileName, codonOptimize="scramble", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], useFileStrs=False, codonSampling=False):
+def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], useFileStrs=False, codonSampling=False):
     outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":""}; # dictionary containing keys to all values being returned
     outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid pSN054_V5 **** \n\n"; # starts message log to file
 
@@ -86,13 +86,13 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="scramble", HRannotat
         geneGB.load(geneFileName, loadFromFile=False); # load gene from file string
         path = ""; # sets an empty path, needed for save functions of class GenBank
     else: # If we're using files,
-        geneGB.load("input/genes/" + geneFileName, loadFromFile=True); # load gene file
+        geneGB.load(geneFileName, loadFromFile=True); # load gene file
         path = "output/" + geneName; # string with path to this gene's directory in output folder
         if not os.path.exists(path): # if a directory for this gene does not exist already,
             os.mkdir(path); # makes new directory
 
 
-    geneList = geneGB.findAnnsLabel(geneName); #search for annotations with gene name
+    geneList = geneGB.findAnnsLabel(geneName); # search for annotations with gene name
     if len(geneList) > 0: # if genes found,
         gene = geneList[0]; # stores gene annotation
         geneAnns = geneGB.findAnnsLabel(geneName); # stores all gene annotations with gene name in them
@@ -425,7 +425,7 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
     else: # if gRNAs found,
         gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
 
-    endLHR = min(gRNAUpstream.index[0],gene.index[1]-3); # saves end index of LHR as whatever is more upstream between the start of the gRNA or the end end of the gene (minus the stop codon) (in Python indexing, i.e. not included in LHR).
+    endLHR = min(gRNAUpstream.index[0],gene.index[1]-3); # saves end index of LHR as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon) (in Python indexing, i.e. not included in LHR).
     startLHR = endLHR - lengthLHR[1]; # stores LHR start index according to preferred length
     failSearchEnd = False; # true if no suitable LHR end region is found within given parameters.
 
@@ -858,7 +858,7 @@ def editLocus(geneName, gene, construct):
 
     if len(LHRlist) == 1: # if LHR found,
         LHR = LHRlist[0]; # save first LHR annotation as LHR
-        log = log + "\nFound user LHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
+        log = log + "\nFound LHR annotation for locus editing." + "\n"; # add warning to log
     elif len(LHRlist) == 0: # if no LHR found,
         log = log + "\nERROR: Did not find LHR annotations, genomic context file could not be built." + "\n"; # add warning to log
     else:
@@ -874,7 +874,7 @@ def editLocus(geneName, gene, construct):
 
     if len(RHRlist) == 1: # if LHR found,
         RHR = RHRlist[0]; # save first RHR annotation as RHR
-        log = log + "\nFound user RHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
+        log = log + "\nFound RHR annotation for locus editing." + "\n"; # add warning to log
     elif len(RHRlist) == 0: # if no LHR found,
         log = log + "\nERROR: Did not find RHR annotations, genomic context file could not be built." + "\n"; # add warning to log
     else:

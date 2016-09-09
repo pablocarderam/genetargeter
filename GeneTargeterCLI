@@ -1,0 +1,41 @@
+#!/usr/bin/env python
+
+"""
+Calls main method to build targeted vector with arguments from the command line.
+"""
+# Usage:
+# To run GeneTargeter as a command line application, use the following command called from within the GeneTargeter directory:
+#
+# python GeneTargeterCLI.py path/NAME_OF_FILE.gb NAME_OF_GENE 'ADDITIONAL_PARAM_1="X1",ADDITIONAL_PARAM_2=X2'
+#
+# Alternatively, the script may be called from a different directory if the correct file path is given.
+# Additional parameters that may be added are:
+#
+# Homologous regions annotated: "False" (default) / "True"
+# LHR length: "[minimum, preferred, maximum]" (default [450,500,650])
+# RHR length: "[minimum, preferred, maximum]" (default [450,500,650])
+# Gibson Homology Range: "[minimum, preferred, maximum]" (default [30,40,50])
+# LHR optimization range: "[start_range, end_range]" (default [-20,10])
+# RHR optimization range: "[start_range, end_range]" (default [-20,20])
+# Length of LHR ends analyzed: length_in_bp (default 40)
+# Length of RHR ends analyzed: length_in_bp (default 40)
+# Minimum melting temperature of LHR ends: temp_in_C (default 55)
+# Minimum melting temperature of RHR ends: temp_in_C (default 59)
+# Minimum melting temperature of Gibson primers: temp_in_C (default 65)
+# Maximum temperature difference between Gibson primers: temp_in_C (default 5)
+# Maximum distance between LHR and sgRNA/stop: distance_in_bp (default 500)
+# Maximum distance between RHR and sgRNA/stop: distance_in_bp (default 500)
+# Minimum gBlock size: size_in_bp (default 125)
+# Codon Sampling (as opposed to CAI Maximization): "False" (default) / "True"
+
+from sys import argv; # Needed for receiving user input
+from py.GeneTargeterMethods import *;
+
+script, geneFile, geneName = argv[0:3]; # From console, argv returns script name, arguments
+
+if len(argv) < 3:
+    eval("pSN054TargetGene(geneName, geneFile," + argv[3] + ");");
+else:
+    pSN054TargetGene(geneName, geneFile); # call result
+
+print geneName + " targeted. Results in output folder."

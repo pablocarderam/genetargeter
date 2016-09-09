@@ -257,7 +257,7 @@ class GenBank(object):
                         r.append(ann); # add to return list
                     else: # if not, it means a middle part of the region was removed
                         ann.index[1] = ann.index[1] - lenRem; # shift the annotation's end index
-                        indexInSeq = ann.indexes[0]-ann.index[0]; # stores index of start of removed portion inside annotation sequence
+                        indexInSeq = indexes[0]-ann.index[0]; # index of start of removed portion inside annotation sequence is stored
                         ann.seq = ann.seq[:indexInSeq] + ann.seq[(indexInSeq+lenRem):]; # updates annotation sequence
                         r.append(ann); # add to return list
                 elif ann.index[0] >= indexes[0]: # else if the annotation's start index is greater than or equal to the start of the removed sequence, then the totality of the annotated region was removed.
