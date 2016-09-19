@@ -334,29 +334,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
         else: # if no gRNAs were found
             output("ERROR: No gRNAs found for gene " + geneName, log); # say so"""
 
-    log = ""; # init log
-    gRNAs = geneGB.findAnnsLabel("gRNA 1", True); # List of all gRNAs TODO: "1" is to choose best
-    gRNAUpstream = GenBankAnn(); # init var to hold gRNA
-    if len(gRNAs) == 0: # if no gRNAs found
-        gRNAs = geneGB.findAnnsLabel("gRNA"); # List of all gRNAs TODO: "1" is to choose best
-        gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
-        for g in gRNAs: # loops across gRNAs
-            if g.index[0] < gRNAUpstream.index[0]: # if more upstream
-                gRNAUpstream = g; # replace as most upstream
-
-
-    else: # if gRNAs found,
-        gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
-
-    gRNAUpstream = deepcopy(gRNAUpstream); # fixes referencing issue. We want this to be a genuinenly new annotation
-    for site in filterCutSites: # for every cut site being filtered
-        if findFirst(site,gRNAUpstream.seq) > -1 or findFirst(revComp(site),gRNAUpstream.seq) > -1: # if cut site found,
-            log = log + "\nWarning: gRNA sequence for gene " + gene.label + ": \n" + gRNAUpstream + "\ncontains restriction site " + site + "\n"; # add warning to log
-
-    gRNAUpstream.label = gene.label + " gRNA"; # renames gRNA according to this program's convention
-
-    log = log + "gRNA for gene " + gene.label + " selected.\n\n"; # logs this process finished
-    return {"out":gRNAUpstream, "log":log}; # returns gRNA and log
+    return findGRNA(geneGB, gene, filterCutSites); # TODO: provisional. Write actual gRNA algorithm
 
 
 """
@@ -365,17 +343,19 @@ sites. If no gRNA found on gene, nothing will happen (logs this).
 """
 def findGRNA(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]):
     log = ""; # init log
-    gRNAs = geneGB.findAnnsLabel("gRNA 1", True); # List of all gRNAs TODO: "1" is to choose best
+    gRNAs = geneGB.findAnnsLabel("gRNA 1", True); # List of all gRNAs
     gRNAUpstream = GenBankAnn(); # init var to hold gRNA
     if len(gRNAs) == 0: # if no gRNAs found
-        gRNAs = geneGB.findAnnsLabel("gRNA"); # List of all gRNAs TODO: "1" is to choose best
+        gRNAs = geneGB.findAnnsLabel("gRNA1", True); # List of all gRNAs
         if len(gRNAs) == 0: # if no gRNAs found
-            log = log + "\nWarning: no gRNA found on gene " + gene.label + ", selecting one automatically.\n"; # add warning to log
-        else: # if gRNAs found,
-            gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
-            for g in gRNAs: # loops across gRNAs
-                if g.index[0] < gRNAUpstream.index[0]: # if more upstream
-                    gRNAUpstream = g; # replace as most upstream
+            gRNAs = geneGB.findAnnsLabel("gRNA"); # List of all gRNAs
+            if len(gRNAs) == 0: # if no gRNAs found
+                log = log + "\nWarning: no gRNA found on gene " + gene.label + ", selecting one automatically.\n"; # add warning to log
+            else: # if gRNAs found,
+                gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
+                for g in gRNAs: # loops across gRNAs
+                    if g.index[0] < gRNAUpstream.index[0]: # if more upstream
+                        gRNAUpstream = g; # replace as most upstream
 
 
 
