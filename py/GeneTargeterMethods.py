@@ -219,6 +219,8 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
         pSN054_ARMED.features.append(klenow[1]); # add rev primer to plasmid annotations
         primerString = primerString + "\n" + geneName + " gRNA Klenow oligo (fwd)," + klenow[0].seq + "\n" + geneName + " gRNA Klenow oligo (rev)," + klenow[1].seq; # write oligos to output string
 
+        primerString = shortenOligoNames(primerString); # abbreviates primer names to fit on commercial tube labels
+
         editedLocus = editLocus(geneName, geneGB, pSN054_ARMED); # inserts construct into genomic context
         outputDic["logFileStr"] += editedLocus["log"]; # add logs
         editedLocus = editedLocus["out"]; # saves actual data
@@ -884,3 +886,51 @@ def editLocus(geneName, gene, construct):
     log += "\nEdited locus (genomic context) file built."; # add log entry
 
     return {"out":editedLocus, "log":log}; # return dictionary
+
+"""
+Abbreviates primer names to fit on commercial tube labels with the format:
+Seven Digit Gene Identifier_Oligo type_Orientation
+
+The seven digit gene identifier code follows "PF3D7_".
+Oligo types include:
+LHR (Gibson overhang PCR primers)
+RHR (Gibson overhang PCR primers)
+gRNA (Klenow oligos for gRNA sequence)
+gBlock (gBlock sequencing primer)
+RecKlen (Klenow oligos for recoded region, if the region is small enough)
+
+Orientation refers to forward (F) and reverse (R) primers.
+"""
+def shortenOligoNames(primerString):
+    mat = primerString.split("\n"); # split string into lines
+    mat = [l.split(",") for l in mat]; # split lines into cells. mat is now 2D array
+
+    for primer in mat: # iterates across all primers (rows in array)
+        name = primer[0]; # gets primer name
+        if name[0:6] == "PF3D7_": # if primer format start is correct
+            newName = name[6:13] + "_"; # Adds numerical identifier to new name
+            # Add oligo type to new name:
+            if name.find("gBlock") > -1:
+                newName = newName + "gBlock" + "_";
+            elif name.find("LHR") > -1:
+                newName = newName + "LHR" + "_";
+            elif name.find("RHR") > -1:
+                newName = newName + "RHR" + "_";
+            elif name.find("gRNA") > -1:
+                newName = newName + "gRNA" + "_";
+            elif name.find("Recoded region Klenow") > -1:
+                newName = newName + "RecKlen" + "_";
+
+            # Add oligo orientation
+            if name.find("fwd") > -1:
+                newName = newName + "F";
+            elif name.find("rev") > -1:
+                newName = newName + "R";
+
+            primer[0] = newName; # replace name
+
+
+    mat = [",".join(l) for l in mat]; # join cells into lines
+    outStr = "\n".join(mat); # join lines into string
+
+    return outStr;
