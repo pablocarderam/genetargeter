@@ -172,7 +172,7 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
         LHROnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " LHR")[0]; # saves LHR annotation actually on plasmid
         RHROnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " RHR")[0]; # saves RHR annotation actually on plasmid
 
-        primerString = ""; # "OLIGOS for construct targeting gene " + geneName + "\n\n"; # String will save all primer information to be written to file
+        primerString = "Primer name,Sequence"; # "OLIGOS for construct targeting gene " + geneName + "\n\n"; # String will save all primer information to be written to file
 
         if len(recoded.seq) > 0 and len(recoded.seq) + gibsonHomRange[1]*2 >= minGBlockSize: # if there is a recoded region and length of recoded region plus homology regions necessary for Gibson Assembly is greater or equal to minimum gBlock size,
             gBlock = createGBlock(pSN054_ARMED,recodedOnPlasmid); # annotates gBlock on plasmid
