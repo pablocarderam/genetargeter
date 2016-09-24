@@ -287,7 +287,7 @@ def insertTargetingElementsPSN054(plasmid, geneName, gRNA, LHR, recodedRegion, R
     annGRNA = GenBankAnn(geneName+" gRNA", "misc_feature", gRNA, False, [startGRNA+2,startGRNA+2+len(gRNA)]); # annotation object. Note that gRNA starts after "gg" added for T7 polymerase
     plas.features.append(annGRNA); # adds annotation
 
-    inRHR = findFirst(plas.origin, cut_ISceI) + len(cut_ISceI); # index of RHR insertion site (at end of I-SceI cut sequence)
+    inRHR = findFirst(plas.origin, cut_ISceI); # index of RHR insertion site (at start of I-SceI cut sequence)
     plas.insertSeq(RHR, inRHR); # inserts RHR sequence
     annRHR = GenBankAnn(geneName+" RHR", "misc_feature", RHR, False, [inRHR,inRHR+len(RHR)]); # annotation object
     plas.features.append(annRHR); # adds annotation
@@ -656,7 +656,7 @@ Creates list with GenBankAnn objects for forward and reverse primers for
 obtaining part given. Poor design, user should check with other tools
 afterwards.
 """
-def createPrimers(plasmid, part, rangeSize=[18,20,25], rangeMeltTemp=[52,55,65], maxTempDif=5): #TODO: this code is crap.
+def createPrimers(plasmid, part, rangeSize=[18,20,35], rangeMeltTemp=[55,60,65], maxTempDif=5): #TODO: this code is crap.
     log = ""; # init log
     startPF = part.index[0]; # Rev primer preferred start position
     endPF = part.index[0] + rangeSize[1]; # Rev primer preferred end position
