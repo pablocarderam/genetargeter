@@ -219,7 +219,7 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
         pSN054_ARMED.features.append(klenow[1]); # add rev primer to plasmid annotations
         primerString = primerString + "\n" + geneName + " gRNA Klenow oligo (fwd)," + klenow[0].seq + "\n" + geneName + " gRNA Klenow oligo (rev)," + klenow[1].seq; # write oligos to output string
 
-        primerString = shortenOligoNames(primerString); # abbreviates primer names to fit on commercial tube labels
+        primerString = shortenOligoNames(primerString) + "\n"; # abbreviates primer names to fit on commercial tube labels
 
         editedLocus = editLocus(geneName, geneGB, pSN054_ARMED); # inserts construct into genomic context
         outputDic["logFileStr"] += editedLocus["log"]; # add logs
@@ -656,7 +656,7 @@ Creates list with GenBankAnn objects for forward and reverse primers for
 obtaining part given. Poor design, user should check with other tools
 afterwards.
 """
-def createPrimers(plasmid, part, rangeSize=[18,20,35], rangeMeltTemp=[55,60,65], maxTempDif=5): #TODO: this code is crap.
+def createPrimers(plasmid, part, rangeSize=[18,20,35], rangeMeltTemp=[59,60,65], maxTempDif=3): #TODO: this code is crap.
     log = ""; # init log
     startPF = part.index[0]; # Rev primer preferred start position
     endPF = part.index[0] + rangeSize[1]; # Rev primer preferred end position
