@@ -656,7 +656,7 @@ Creates list with GenBankAnn objects for forward and reverse primers for
 obtaining part given. Poor design, user should check with other tools
 afterwards.
 """
-def createPrimers(plasmid, part, rangeSize=[18,20,40], rangeMeltTemp=[59,60,65], maxTempDif=3): #TODO: this code is crap.
+def createPrimers(plasmid, part, rangeSize=[18,20,50], rangeMeltTemp=[59,60,65], maxTempDif=3): #TODO: this code is crap.
     log = ""; # init log
     startPF = part.index[0]; # Rev primer preferred start position
     endPF = part.index[0] + rangeSize[1]; # Rev primer preferred end position
