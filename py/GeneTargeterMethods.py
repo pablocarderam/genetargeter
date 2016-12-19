@@ -14,6 +14,8 @@ from copy import deepcopy; # Import object copying methods for deep copies
 from BioUtils import *; # Imports utils
 from GenBankToolbox import *; # Imports utils
 import os; # needed for file handling
+from DoenchScores.Rule_Set_2_scoring_v1.analysis.rs2_score_calculator import onScore; # Import Doench et al. (2016) on-target scoring module
+from DoenchScores.CFD_Scoring.cfd_score_calculator import offScore; # Import Doench et al. (2016) on-target scoring module
 
 # Constants
 # Restriction enzyme cut sequences used
@@ -336,7 +338,9 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
         else: # if no gRNAs were found
             output("ERROR: No gRNAs found for gene " + geneName, log); # say so"""
 
-    return findGRNA(geneGB, gene, filterCutSites); # TODO: provisional. Write actual gRNA algorithm
+    print onScore("aatatgtagctgtagaaaaagtagaggcat");
+    print offScore("tgtagctgtagaaaaagtagagg", "tgtaactgtagcaatagtagagg");
+    return findGRNA(geneGB, gene, filterCutSites); # TODO: provisional. Write actual gRNA algorithm using onScore, offScore
 
 
 """
