@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
 
 # Added by Pablo CR (copy of above code):
-def offScore(pWt, pOff):
+def offScorePairwise(pWt, pOff):
     mm_scores,pam_scores = get_mm_pam_scores()
     wt = pWt.upper()
     off = pOff.upper() # edited this

@@ -15,7 +15,7 @@ from BioUtils import *; # Imports utils
 from GenBankToolbox import *; # Imports utils
 import os; # needed for file handling
 from DoenchScores.Rule_Set_2_scoring_v1.analysis.rs2_score_calculator import onScore; # Import Doench et al. (2016) on-target scoring module
-from DoenchScores.CFD_Scoring.cfd_score_calculator import offScore; # Import Doench et al. (2016) on-target scoring module
+from DoenchScores.CFD_Scoring.cfd_score_calculator import offScorePairwise; # Import Doench et al. (2016) on-target scoring module
 
 # Constants
 # Restriction enzyme cut sequences used
@@ -52,7 +52,6 @@ necessary (annotates a Klenow reaction or gBlock fragment in plasmid given if
 codon recoded region is more than minGBlockSize bp long).
 [1]
 Designed for homologous recombination in Plasmodium falciparum D7.
-
 
 USAGE: download GenBank sequence file from Benchling with at least one
 annotation of the gene to be targeted in 5' to 3' sense, and at least annotation
@@ -297,7 +296,11 @@ def insertTargetingElementsPSN054(plasmid, geneName, gRNA, LHR, recodedRegion, R
     return plas; # returns modified plasmid
 
 
-
+"""
+Sorts gRNA list according to
+"""
+def sortGRNAs(gRNAs):
+    pass
 
 """
 Selects an appropriate gRNA for the given gene. GenBank gene sequence given as
@@ -308,13 +311,57 @@ end indexes, counted with the last bp in the gene's stop codon as index 0.
 side3Prime is false if PAM sequence is at the 5' end of gRNA, true if at 3'.
 gRNA: guide RNA used by CRISPR enzyme.
 """
-def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True, gLength=20, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]): #TODO: this is provisional. for now, choose gRNA manually in Benchling and export as GenBank file with gRNA as an annotation. http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help https://code.google.com/archive/p/ssfinder/ http://www.hindawi.com/journals/bmri/2014/742482/ http://crispr.mit.edu/about later
-    """# Finds gene annotation
+def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True, minGCContent=0.3, minOnTargetScore=0.25, minOffTargetScore=0.5, gLength=20, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]): #TODO: this is provisional. for now, choose gRNA manually in Benchling and export as GenBank file with gRNA as an annotation. http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help https://code.google.com/archive/p/ssfinder/ http://www.hindawi.com/journals/bmri/2014/742482/ http://crispr.mit.edu/about later
+    # Finds gene annotation
+    pamSeq = "GG"; # should be derived from PAM, but replacing N would involve regex and I'm lazy
     geneName = gene.name;
     gene = seqGB.findAnnsLabel(geneName)[0]; # stores gene annotation
-    gRNAs = []; # list of possible gRNAs
+    gRNAs = []; # list of GenBankAnn objects for gRNAs. # lists containing 0. extended sequences containing NNNN-gRNA-PAM-NNN, 1. indexes on gene [start,stop] (just gRNA, not extended seq). 2. GC content 3. On-target score 4. Off-target specificity score.
 
     if len(gene.label) > 0: # if gene found,
+        searchStart = gene.index[side3Prime]+searchRange[0]; # Start searching for gRNAs in a position relative to gene start or end point
+        searchEnd = gene.index[side3Prime]+searchRange[1]; # Finish searching for gRNAs in a position relative to gene start or end point
+        searchSeq = gene.seq[searchStart:searchEnd]; # get sequence where gRNAs will be searched for, centered around start or end of gene
+        i = len(searchSeq); # start searching for gRNAs by searching for PAM in searchSeq. Start at downstream end, go upstream
+        while i > 0 and len(gRNAs) > 3: # iterate through all searchSeq until done with searchSeq or three candidates found.
+            nextI = searchSeq.find(pamSeq, i); # find next PAM downstream on plus strand
+            comp = False; # set sense to plus strand
+            if searchSeq.find(revComp(pamSeq), i) > nextI: # if next PAM downstream on minus strand is further upstream than next one on plus strand,
+                nextI = searchSeq.find(revComp(pamSeq), i); # set next PAM downstream on minus strand
+                comp = True; # set sense to complementary strand
+
+            i = nextI; # set index to next PAM sequence
+            if i == -1: # if no PAM found,
+                break; # escape loop
+
+            if comp:
+                extGRNASeq = revComp(gene.seq[i-5:i+25]); # store extended sequence NNNN-gRNA-PAM-NNN on comp strand
+                gRNAIndexes = [searchStart+i+1,searchStart+i+21]; # store gRNA indexes on comp strand
+            else:
+                extGRNASeq = gene.seq[i-25:i+5]; # store extended sequence NNNN-gRNA-PAM-NNN
+                gRNAIndexes = [searchStart+i-21,searchStart+i-1]; # store gRNA indexes
+
+            gRNASeq = extGRNASeq[5:25]; # store actual gRNA seq
+            gc = gcContent(gRNASeq); # store gc content
+            if gc > minGCContent and findFirst(gRNASeq,"ATATATATAT") < 0: # if gc content is acceptable and does not contain five consecutive ATs,
+                onTarget = onScore(extGRNASeq) # store on-target score
+                if onTarget > minOnTargetScore: # if on-target score is passable,
+                    offTarget = offScore(extGRNASeq,falciparumGRNAs) # store off-target score TODO: make offScore calculate across all plasmo gRNAs using offScorePairwise. Make plasmo gRNA db.
+                    if offTarget > minOffTargetScore: # if off-target score is passable,
+                        newGRNA = GenBankAnn(gene.name+" gRNA ","misc",gRNASeq,comp,gRNAIndexes); # create annotation object with gRNA information
+                        newGRNA.onTarget = onTarget; # Add on-target score as attribute
+                        newGRNA.offTarget = offTarget; # Add off-target score as attribute
+                        newGRNA.gc = gc; # Add gc content as attribute
+                        gRNAs.append(newGRNA); # add this gRNA's information to list.
+
+
+
+            i -= 1; # advance indexer
+
+        #TODO: evaluate which candidates are in range (depending whether or not after gene end and distance from gene end)
+        gRNAs.sort(key=sortGRNAs); # sorts gRNA list according to custom function (GC content) TODO: maybe not external sort function, just number candidates according to their quality
+
+        #TODO: this is probably junk
         zero = gene.index[1] - 1; # saves position of gene's last bp within original GenBank file
         for i in range(searchRange[0],searchRange[1]): # we search for the gRNA in the given region by testing all possible gRNAs
             testStart = zero + i; # saves position of this test gRNA within original GenBank file

@@ -136,7 +136,7 @@ def gcContent(pSeq):
         if bp == "G" or bp == "C": # if letter is G or C
             GC = GC + 1; # add one to GC counter
 
-    GC = GC/len(seq); # Stores GC content for this sequence as percentage. Since using future division, we're fine with the division operator on ints.
+    GC = GC/len(seq); # Stores GC content for this sequence as decimal. Since using future division, we're fine with the division operator on ints.
     return GC;
 
 
