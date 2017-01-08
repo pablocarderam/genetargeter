@@ -4,6 +4,7 @@
 var backToTopShown = true; // used to control back-to-top button appearance and disappearance
 var currentOutput = []; // saves current output array to download multiple times if desired
 var fileCounter = 0; // used in coloring output file lines
+var numFilesUploaded = 0;
 
 function init() {
     document.getElementById("backToTopBtn").style.opacity = 0;
@@ -22,8 +23,19 @@ function askCredentials() {
             document.getElementById("modContent").classList.add("modal-in");
         }
     }
-    else {
+    else if (document.getElementById("run").innerHTML === "Select one or more GenBank gene files.") {
         document.getElementById('geneFileForm').click();
+    }
+    else if (document.getElementById("run").innerHTML === "Completed!") {
+        if (numFilesUploaded > 1) {
+            document.getElementById("run").innerHTML = "Target Genes!";
+        }
+        else if (numFilesUploaded == 1) {
+            document.getElementById("run").innerHTML = "Target Gene!";
+        }
+        else {
+            document.getElementById("run").innerHTML = "Select one or more GenBank gene files.";
+        }
     }
 }
 
@@ -202,6 +214,8 @@ function fadeIn(el, display){
 }
 
 function run() {
+    uploadFile();
+    document.getElementById("run").innerHTML = "Processing files...";
     var x = document.getElementById("geneFileForm");
     var txt = "";
     fileCounter = 0;
@@ -210,6 +224,8 @@ function run() {
             txt = "Select one or more GenBank gene files.";
         }
         else {
+            numFilesUploaded = x.files.length;
+            document.getElementById("run").innerHTML = "Processing files...";
             for (var i = 0; i < x.files.length; i++) {
                 var file = x.files[i];
                 if (file.name.substr(file.name.length-3,file.name.length) === ".gb") {
@@ -235,7 +251,17 @@ function run() {
                         minFragSize = document.getElementById('minFragSize').value;
                         optimOrg = document.getElementById('codonOptimizeOrg').value;
                         codonSampling = document.getElementById('codonOptimStrat').value;
-                        msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName, HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR, endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize, optimOrg, codonSampling]);
+                        minGCContent = document.getElementById('gRNAGCContent').value;
+                        onTargetScore = document.getElementById('gRNAOnTargetCutoff').value;
+                        offTargetMethod = document.getElementById('gRNAOffTargetMethod').value;
+                        offTargetScore = document.getElementById('minOffTargetScore').value;
+                        offTargetHitScore = document.getElementById('maxOffTargetHitScore').value;
+
+                        msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
+                          HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
+                          endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
+                          optimOrg, codonSampling, minGCContent, onTargetScore, offTargetMethod,
+                          offTargetScore, offTargetHitScore]);
                         sendMessageToServer('Sending requests...', "misc");
                         sendMessageToServer(msg,'sendGeneFile');
                         queryNumber += 1;
@@ -283,6 +309,9 @@ function displayGeneOutput(files) {
         fileLine[fileNum].children[1].innerHTML = " <b> || SUCCESS!</b>"
     }
     fileCounter += 1;
+    if (fileCounter == numFilesUploaded) {
+        document.getElementById("run").innerHTML = "Completed!";
+    }
 }
 
 
@@ -334,5 +363,16 @@ function saveAs(uri, filename) {
         document.body.removeChild(link); // remove the link when done
     } else {
         location.replace(uri);
+    }
+}
+
+function changeScoringMethod() {
+    if (document.getElementById('gRNAOffTargetMethod').value === 'hsu') {
+        document.getElementById('minOffTargetScore').value = 75;
+        document.getElementById('maxOffTargetHitScore').value = 5;
+    }
+    else if (document.getElementById('gRNAOffTargetMethod').value === 'cfd') {
+        document.getElementById('minOffTargetScore').value = 0.35;
+        document.getElementById('maxOffTargetHitScore').value = 30;
     }
 }

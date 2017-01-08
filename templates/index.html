@@ -68,32 +68,101 @@
 					gene appears from right to left on the bottom strand, you
 					can select the whole sequence -> right click -> Copy Special
 					-> Reverse Complement -> paste in new file.">
-					in 5'->3' sense</a>
-				and all
-				<a href="https://benchling.com" class="tooltip" target="_blank"
-					tipTxt="You can use Benchling's CRISPR tool, but you must
-					create annotations on the sequence for all the gRNAs to be
-					considered by GeneTargeter.">
-					CRISPR guide RNAs</a>
-				to be included in targeting. The
-				guide RNAs should contain "gRNA" in the label and
-				<a href="https://benchling.com" class="tooltip" target="_blank"
-					tipTxt="i.e., your best-ranked gRNA should be labeled
-					'MyGene gRNA 1', your second best should be 'MyGene gRNA
-					2, etc.'" class="tooltip">
-					a number</a>
-				indicating their order of preference. Additionally you may annotate
-				hand-picked left and right homologous regions on your file, if
-				you do not want GeneTargeter to choose them automatically for you.
-			</p>
+					in 5'->3' sense.</a>
+				</p>
+
+				<p>
+					For every gene uploaded, GeneTargeter outputs
+					<ul>
+						<li>
+							<b>a GenBank file</b> containing the given gene annotated with
+							the chosen left and right homologous regions, before chromosomal
+							editing.
+						</li>
+						<li>
+							<b>a GenBank file</b> containing the fully annotated plasmid
+							vector designed to target the given gene.
+						</li>
+						<li>
+							<b>a GenBank file</b> containing the edited chromosomal locus
+							targeted by the construct.
+						</li>
+						<li><b>a CSV file</b> containing primers,
+							gene fragment sequences and Klenow reaction oligos designed to
+							assemble the new plasmid using
+							<a href="https://dx.doi.org/10.1038/nmeth.1318" target="_blank">
+								Gibson Assembly</a>.
+							This file can be
+							<a href="https://benchling.com" class="tooltip" target="_blank"
+								tipTxt="Open the '+' drop-down menu in the top-right corner of
+								Benchling's interface, select 'More', and select 'Import oligos'.
+								Copy and paste the CSV file contents onto Benchling's field.">
+								imported into Benchling</a>. Abbreviates primer names to fit on
+								commercial tube labels with the <a href="" class="tooltip" tipTxt="The seven digit gene identifier
+								code follows 'PF3D7_'.
+								Oligo types include:
+								LHR (Gibson overhang PCR primers)
+								RHR (Gibson overhang PCR primers)
+								gRNA (Klenow oligos for gRNA sequence)
+								gBlock (gBlock sequencing primer)
+								RecKlen (Klenow oligos for recoded region, if the region is small
+								enough)
+								Orientation refers to forward (F) and reverse (R) primers.">format:</a><br>
+
+								Seven Digit Gene Identifier_Oligo type_Orientation
+						</li>
+						<li>
+							<b>a text file</b> containing a message log and warnings
+							issued during the <i>in silico</i> design process.
+						</li>
+					</ul>
+				</p>
 			<div class="small" id="controls">
 				<p>
-					Use homology regions already annotated on files (if any):
+					Use homology regions and/or guide RNAs already annotated on files (if any):
 					<input class="chkBox" type="checkbox" unchecked id="HRannChkBox">
 				</p>
 				<label class="btn" id="optionsBtn" onclick="toggleOptions()">Show more options</label>
 				<div id=moreOptions class="expand">
 					<div class="measuringWrapper">
+						<br>
+						<p>
+							Guide RNAs will be selected automatically based
+							on <a href="https://dx.doi.org/10.1038/nbt.3437" target="_blank">
+							Doench et al. (2016)</a> on-target score and either
+							<a href="https://dx.doi.org/10.1038/nbt.3437" target="_blank">
+							Doench et al. (2016)</a> or
+							<a href="http://crispr.mit.edu/about" target="_blank">
+							Hsu et al. (2013)</a> off-target scores. Off-target scores
+							are evaluated based on off-target gRNAs in the <i>P. falciparum</i>
+							3D7 genome first published by
+							<a href="https://dx.doi.org/10.1038/nature01097" target="_blank">
+								Gardner et al. (2002)</a>
+							and subsequently edited by the
+							<a href="http://plasmodb.org/plasmo/" target="_blank">
+							PlasmoDB</a>
+							community.
+						</p>
+						<p>
+							Alternatively, you may
+							manually annotate all
+							<a href="https://benchling.com" class="tooltip" target="_blank"
+								tipTxt="You can use Benchling's CRISPR tool, but you must
+								create annotations on the sequence for all the gRNAs to be
+								considered by GeneTargeter.">
+								CRISPR guide RNAs</a>
+							to be included in targeting. Guide RNA annotations should start
+							with the word "gRNA" in the label, followed by
+							<a href="https://benchling.com" class="tooltip" target="_blank"
+								tipTxt="i.e., your best-ranked gRNA should be labeled
+								'MyGene gRNA 1', your second best should be 'MyGene gRNA
+								2, etc.'" class="tooltip">
+								a number</a>
+							indicating their order of preference. You may also annotate
+							hand-picked left and right homologous regions on your file, if
+							you do not want GeneTargeter to choose them automatically for you.
+						</p><br>
+
 						<div class="container">
 							<div class="column-center">
 								<p class="head">Right chromosomal integration homologous region</p>
@@ -119,7 +188,6 @@
 									of the right homologous region:
 									<input class="txtInput" type="number" id="endsTempRHR" value="59"> ºC
 								</p>
-								<br><br><br><br>
 							</div>
 							<div class="column-left">
 								<p class="head">Left chromosomal integration homologous region</p>
@@ -161,6 +229,28 @@
 									Maximum melting temperature difference between primers:
 									<input class="txtInput" type="number" id="gibTDif" value="5"> ºC
 								</p>
+							</div>
+						</div>
+						<div class="container">
+							<div class="column-leftcenter">
+								<p class="head">Guide RNA (gRNA) Selection</p>
+								<p>
+									Minimum GC content: &nbsp<input class="txtInput" type="number" id="gRNAGCContent" value="30"> % <br>
+									Minimum <a href="https://doi.org/10.1038/nbt.3437" target="_blank">
+										on-target score: </a>&nbsp<input class="txtInput" type="number" id="gRNAOnTargetCutoff" value="35"> % <br>
+									Off-target <a href="http://crispr.mit.edu/about" class="tooltip" target="_blank"
+										tipTxt="CFD scores are more accurate (Doench et al., 2016). Hsu et al. (2013) scores are used by crispr.mit.edu. Individual scores are aggregated as per crispr.mit.edu.">
+										scoring method</a> for single hits:<br>
+											<select id="gRNAOffTargetMethod" onchange="changeScoringMethod()">
+												<option value="cfd" selected="selected">CFD (Doench et al., 2016)</option>
+												<option value="hsu">Zhang Lab (Hsu et al. 2013)</option>
+											</select> <br>
+									Minimum off-target total score: </a>&nbsp<input class="txtInput" type="number" id="minOffTargetScore" value="0.35"> %<br>
+									Maximum single hit off-target score:</a>&nbsp<input class="txtInput" type="number" id="maxOffTargetHitScore" value="30"> %<br>
+								</p>
+								<br><br>
+							</div>
+							<div class="column-right">
 								<p class="head">
 									Recoded Region
 								</p>
@@ -168,19 +258,19 @@
 									Codon optimize to
 									<select id="codonOptimizeOrg">
 										<option value="T. gondii" selected="selected">T. gondii</option>
-								    <option value="P. falciparum 3D7">P. falciparum 3D7</option>
-								    <option value="P. vivax">P. vivax</option>
+										<option value="P. falciparum 3D7">P. falciparum 3D7</option>
+										<option value="P. vivax">P. vivax</option>
 										<option value="E. coli K12">E. coli K12</option>
 										<option value="S. cerevisiae">S. cerevisiae</option>
-								    <option value="H. sapiens">H. sapiens</option>
-								    <option value="R. norvegicus">R. norvegicus</option>
+										<option value="H. sapiens">H. sapiens</option>
+										<option value="R. norvegicus">R. norvegicus</option>
 										<option value="scramble">Scramble</option>
 									</select>
 									<a href="http://omicsomics.blogspot.com/2009/04/is-codon-optimization-bunk.html" target="_blank">
 										using</a>
 									<select id="codonOptimStrat">
-								    <option value="CAI Maximization">CAI Maximization</option>
-								    <option value="Codon Sampling">Codon Sampling</option>
+										<option value="CAI Maximization">CAI Maximization</option>
+										<option value="Codon Sampling">Codon Sampling</option>
 									</select>
 								</p>
 								<p>
@@ -200,8 +290,7 @@
 			<div class="fileList small" id="selectedFiles">
 			</div>
 			<p>
-				<label class="runBtn" id="run" onclick="askCredentials()">
-					<span> Select one or more GenBank gene files. </span></label>
+				<label class="runBtn" id="run" onclick="askCredentials()">Select one or more GenBank gene files.</label>
 			</p>
 
 			<div id="myModal" class="modal">
@@ -239,59 +328,7 @@
 			<p>
 				<div class="fileList" id="outputLog"></div>
 			</p>
-			<p>
-				For every gene uploaded, GeneTargeter outputs
-				<ul>
-					<li>
-						<b>a GenBank file</b> containing the given gene annotated with
-						the chosen left and right homologous regions, before chromosomal
-						editing.
-					</li>
-					<li>
-						<b>a GenBank file</b> containing the fully annotated plasmid
-						vector designed to target the given gene.
-					</li>
-					<li>
-						<b>a GenBank file</b> containing the edited chromosomal locus
-						targeted by the construct. <!--Chromosomal context is provided by
-						searching across the <i>P. falciparum</i> 3D7 genome first published by
-						<a href="https://dx.doi.org/10.1038/nature01097" target="_blank">
-							Gardner et al. (2002)</a>
-						and subsequently edited by the
-						<a href="http://plasmodb.org/plasmo/" target="_blank">
-						PlasmoDB</a>
-						community.-->
-					</li>
-					<li><b>a CSV file</b> containing primers,
-						gene fragment sequences and Klenow reaction oligos designed to
-						assemble the new plasmid using
-						<a href="https://dx.doi.org/10.1038/nmeth.1318" target="_blank">
-							Gibson Assembly</a>.
-						This file can be
-						<a href="https://benchling.com" class="tooltip" target="_blank"
-							tipTxt="Open the '+' drop-down menu in the top-right corner of
-							Benchling's interface, select 'More', and select 'Import oligos'.
-							Copy and paste the CSV file contents onto Benchling's field.">
-							imported into Benchling</a>. Abbreviates primer names to fit on
-							commercial tube labels with the <a href="" class="tooltip" tipTxt="The seven digit gene identifier
-							code follows 'PF3D7_'.
-							Oligo types include:
-							LHR (Gibson overhang PCR primers)
-							RHR (Gibson overhang PCR primers)
-							gRNA (Klenow oligos for gRNA sequence)
-							gBlock (gBlock sequencing primer)
-							RecKlen (Klenow oligos for recoded region, if the region is small
-							enough)
-							Orientation refers to forward (F) and reverse (R) primers.">format:</a><br>
 
-							Seven Digit Gene Identifier_Oligo type_Orientation
-					</li>
-					<li>
-						<b>a text file</b> containing a message log and warnings
-						issued during the <i>in silico</i> design process.
-					</li>
-				</ul>
-			</p>
 		</div>
 
 		<div class="bottom">

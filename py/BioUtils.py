@@ -368,7 +368,6 @@ def revComp(seq):
 
     return revSeq;
 
-
 # Auxiliary methods
 """
 Returns a random hex color code.

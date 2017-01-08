@@ -9,15 +9,14 @@ Lab at MIT tagged designed to deliver the regulatory element 3' UTR payload to a
 specific gene, given as a parameter.
 @author: Pablo the awesome molecular jedi
 """
-# Libraries
+#### Libraries ####
 from copy import deepcopy; # Import object copying methods for deep copies
 from BioUtils import *; # Imports utils
 from GenBankToolbox import *; # Imports utils
 import os; # needed for file handling
-from DoenchScores.Rule_Set_2_scoring_v1.analysis.rs2_score_calculator import onScore; # Import Doench et al. (2016) on-target scoring module
-from DoenchScores.CFD_Scoring.cfd_score_calculator import offScorePairwise; # Import Doench et al. (2016) on-target scoring module
+from gRNAScores.gRNAScoring import * # import methods for gRNA scoring
 
-# Constants
+#### Constants ####
 # Restriction enzyme cut sequences used
 cut_FseI = "ggccggcc"; # FseI cut site
 cut_AsiSI = "gcgatcgc"; # AsiSI cut site
@@ -26,8 +25,6 @@ cut_ISceI = "attaccctgttatcccta"; # I-SceI cut site
 # Plasmids
 pSN054_V5 = GenBank();
 pSN054_V5.load("input/plasmids/psn054-updated_v5-tagged-jn_final.gb",loadFromFile=True); # load plasmid sequence from GenBank format
-# Genomes
-# Pf3D7_genome = loadFastas("input/genomes/PlasmoDB-28_Pfalciparum3D7_Genome.fasta"); # saves whole genome as dictionary (each key is a chromosome, including apicoplast and mitochondrial chromosomes)
 # Codon usage tables
 codonUsageTables = {
     'P. falciparum 3D7': codonUsage('input/codonUsageTables/Pfalciparum3D7.txt'),
@@ -41,7 +38,7 @@ codonUsageTables = {
 }
 
 
-# Methods
+#### Methods ####
 """
 Inserts targeting elements into pSN054 in order to target it to the given gene
 through CRISPR homologous recombination. Input: Gene and gRNAs
@@ -78,7 +75,7 @@ HRannotated is true if the GenBank file given as input includes manual LHR and
 filterCutSites is a list of strings containing cut sequences to be filtered if
     user provides LHR and RHR.
 """
-def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], useFileStrs=False, codonSampling=False):
+def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35): # cfd, 0.5, 35; hsu, 75, 5
     outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":""}; # dictionary containing keys to all values being returned
     outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid pSN054_V5 **** \n\n"; # starts message log to file
 
@@ -103,146 +100,148 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
                 break; # stop loop
 
 
+
         if HRannotated: # if not using manual annotations
             gRNA = findGRNA(geneGB, gene); # finds gRNA most upstream annotated manually.
             if len(gRNA["out"].label) == 0: # if no manual annotation found,
-                gRNA = chooseGRNA(geneGB, gene); # chooses gRNA.
+                gRNA = chooseGRNA(geneGB, gene, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore); # chooses gRNA.
 
         else: # if not,
-            gRNA = chooseGRNA(geneGB, gene); # chooses gRNA.
+            gRNA = chooseGRNA(geneGB, gene, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore); # chooses gRNA.
 
         outputDic["logFileStr"] = outputDic["logFileStr"] + gRNA["log"]; # add logs
         gRNA = gRNA["out"]; # saves actual data
 
-        LHR = GenBankAnn(); # init LHR var
-        RHR = GenBankAnn(); # init RHR var
+        if len(gRNA.label) > 0: # if gRNA found,
+            LHR = GenBankAnn(); # init LHR var
+            RHR = GenBankAnn(); # init RHR var
 
-        # pick HRs first
-        LHR = chooseLHR(geneGB, gene, lengthLHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, optimizeRange=optimRangeLHR, maxDistanceFromGRNA=maxDistLHR); # chooses an LHR
-        RHR = chooseRHR(geneGB, gene, lengthRHR=lengthRHR, minTmEnds=endTempLHR, endsLength=endSizeRHR, optimizeRange=optimRangeRHR, maxDistanceFromGene=maxDistRHR); # chooses RHR
+            # pick HRs first
+            LHR = chooseLHR(geneGB, gene, lengthLHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, optimizeRange=optimRangeLHR, maxDistanceFromGRNA=maxDistLHR); # chooses an LHR
+            RHR = chooseRHR(geneGB, gene, lengthRHR=lengthRHR, minTmEnds=endTempLHR, endsLength=endSizeRHR, optimizeRange=optimRangeRHR, maxDistanceFromGene=maxDistRHR); # chooses RHR
 
-        if HRannotated: # if LHR and RHR are already annotated,
-            LHRlist = geneGB.findAnnsLabel("LHR"); # overwrite LHR annotations
-            if len(LHRlist) > 0: # if LHR found,
-                LHR = LHRlist[0]; # save first LHR annotation as LHR
-                outputDic["logFileStr"] = outputDic["logFileStr"] + "\nFound user LHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
-            else: # if no LHR found,
-                outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user LHR annotation, used automatic annotation instead." + "\n"; # add warning to log
+            if HRannotated: # if LHR and RHR are already annotated,
+                LHRlist = geneGB.findAnnsLabel("LHR"); # overwrite LHR annotations
+                if len(LHRlist) > 0: # if LHR found,
+                    LHR = LHRlist[0]; # save first LHR annotation as LHR
+                    outputDic["logFileStr"] = outputDic["logFileStr"] + "\nFound user LHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
+                else: # if no LHR found,
+                    outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user LHR annotation, used automatic annotation instead." + "\n"; # add warning to log
+                    outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"]; # add logs
+                    LHR = LHR["out"]; # saves actual data
+                    geneGB.features.append(LHR); # adds LHR to gene annotations
+
+                RHRlist = geneGB.findAnnsLabel("RHR"); # saves RHR annotation
+                if len(RHRlist) > 0: # if LHR found,
+                    RHR = RHRlist[0]; # save first RHR annotation as RHR
+                    outputDic["logFileStr"] = outputDic["logFileStr"] + "\nFound user RHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
+                else: # if no LHR found,
+                    outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user RHR annotation, used automatic annotation instead." + "\n"; # add warning to log
+                    outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
+                    RHR = RHR["out"]; # saves actual data
+                    geneGB.features.append(RHR); # adds RHR to gene annotations
+
+                for site in filterCutSites: # for every cut site being filtered
+                    if findFirst(site,LHR.seq) > -1 or findFirst(revComp(site),LHR.seq) > -1: # if cut site found,
+                        outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: LHR sequence for gene " + gene.label + ": \n" + LHR + "\ncontains restriction site " + site + "\n"; # add warning to log
+                    if findFirst(site,RHR.seq) > -1 or findFirst(revComp(site),RHR.seq) > -1: # if cut site found,
+                        outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: RHR sequence for gene " + gene.label + ": \n" + RHR + "\ncontains restriction site " + site + "\n"; # add warning to log
+
+
+            else: # if HRs not annotated,
                 outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"]; # add logs
                 LHR = LHR["out"]; # saves actual data
-                geneGB.features.append(LHR); # adds LHR to gene annotations
-
-            RHRlist = geneGB.findAnnsLabel("RHR"); # saves RHR annotation
-            if len(RHRlist) > 0: # if LHR found,
-                RHR = RHRlist[0]; # save first RHR annotation as RHR
-                outputDic["logFileStr"] = outputDic["logFileStr"] + "\nFound user RHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
-            else: # if no LHR found,
-                outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user RHR annotation, used automatic annotation instead." + "\n"; # add warning to log
                 outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
                 RHR = RHR["out"]; # saves actual data
+                geneGB.features.append(LHR); # adds LHR to gene annotations
                 geneGB.features.append(RHR); # adds RHR to gene annotations
 
-            for site in filterCutSites: # for every cut site being filtered
-                if findFirst(site,LHR.seq) > -1 or findFirst(revComp(site),LHR.seq) > -1: # if cut site found,
-                    outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: LHR sequence for gene " + gene.label + ": \n" + LHR + "\ncontains restriction site " + site + "\n"; # add warning to log
-                if findFirst(site,RHR.seq) > -1 or findFirst(revComp(site),RHR.seq) > -1: # if cut site found,
-                    outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: RHR sequence for gene " + gene.label + ": \n" + RHR + "\ncontains restriction site " + site + "\n"; # add warning to log
 
 
-        else: # if HRs not annotated,
-            outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"]; # add logs
-            LHR = LHR["out"]; # saves actual data
-            outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
-            RHR = RHR["out"]; # saves actual data
-            geneGB.features.append(gRNA); # adds gRNA to gene annotations (at this point, redundant)
-            geneGB.features.append(LHR); # adds LHR to gene annotations
-            geneGB.features.append(RHR); # adds RHR to gene annotations
+            recoded = chooseRecodeRegion(geneGB, gene, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling); # defines region to be recoded, returns recoded sequence
+            outputDic["logFileStr"] = outputDic["logFileStr"] + recoded["log"]; # add logs
+            recoded = recoded["out"]; # saves actual data
+
+            pSN054_ARMED = insertTargetingElementsPSN054(pSN054_V5, gene.label, gRNA.seq, LHR.seq, recoded.seq, RHR.seq); # inserts targeting elements
+
+            gRNAOnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " gRNA")[0]; # saves gRNA annotation actually on plasmid
+            if len(recoded.seq) > 0: # if there actually is a recoded region,
+                recodedOnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " Recoded")[0]; # saves recoded annotation actually on plasmid
+
+            LHROnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " LHR")[0]; # saves LHR annotation actually on plasmid
+            RHROnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " RHR")[0]; # saves RHR annotation actually on plasmid
+
+            primerString = "Primer name,Sequence"; # "OLIGOS for construct targeting gene " + geneName + "\n\n"; # String will save all primer information to be written to file
+
+            if len(recoded.seq) > 0 and len(recoded.seq) + gibsonHomRange[1]*2 >= minGBlockSize: # if there is a recoded region and length of recoded region plus homology regions necessary for Gibson Assembly is greater or equal to minimum gBlock size,
+                gBlock = createGBlock(pSN054_ARMED,recodedOnPlasmid); # annotates gBlock on plasmid
+                outputDic["logFileStr"] = outputDic["logFileStr"] + gBlock["log"]; # add logs
+                gBlock = gBlock["out"]; # saves actual data
+                pSN054_ARMED.features.append(gBlock); # add to plasmid annotations
+
+                primGBlock = createPrimers(pSN054_ARMED, gBlock); # creates gBlock primers
+                outputDic["logFileStr"] = outputDic["logFileStr"] + primGBlock["log"]; # add logs
+                primGBlock = primGBlock["out"]; # saves actual data
+                pSN054_ARMED.features.append(primGBlock[0]); # add fwd primer to plasmid annotations
+                pSN054_ARMED.features.append(primGBlock[1]); # add rev primer to plasmid annotations
+
+                primerString = primerString + "\n" + geneName + " gBlock primer (fwd)," + primGBlock[0].seq + "\n" + geneName + " gBlock primer (rev)," + primGBlock[1].seq; # write primers to output string
+            elif len(recoded.seq) >= gibsonHomRange[0]/2: # if length of recoded region greater or equal to half of minimum size of homology region,
+                outputDic["logFileStr"] = outputDic["logFileStr"] + "\ngBlock deemed not feasible for recoded region of construct targeting gene " + geneName + ", used Klenow instead.\n"; # say so
+                klenowRecoded = createKlenowOligos(pSN054_ARMED, recodedOnPlasmid, gibsonHomRange[1]); # creates Klenow oligos
+                outputDic["logFileStr"] = outputDic["logFileStr"] + klenowRecoded["log"]; # add logs
+                klenowRecoded = klenowRecoded["out"]; # saves actual data
+                pSN054_ARMED.features.append(klenowRecoded[0]); # add fwd primer to plasmid annotations
+                pSN054_ARMED.features.append(klenowRecoded[1]); # add rev primer to plasmid annotations
+                primerString = primerString + "\n" + geneName + " Recoded region Klenow oligo (fwd)," + klenowRecoded[0].seq + "\n" + geneName + " Recoded region Klenow oligo (rev)," + klenowRecoded[1].seq; # write oligos to output string
+            else: # if Klenow unnecesary too,
+                outputDic["logFileStr"] = outputDic["logFileStr"] + "\ngBlock and Klenow for recoded region deemed unnecesary for construct targeting gene " + geneName +".\n\n"; # say so
+
+            primLHR = createGibsonPrimers(pSN054_ARMED, LHROnPlasmid, rangeHom=gibsonHomRange, minMeltTemp=gibTemp, maxTempDif=gibTDif); # creates LHR Gibson primers
+            outputDic["logFileStr"] = outputDic["logFileStr"] + primLHR["log"]; # add logs
+            primLHR = primLHR["out"]; # saves actual data
+            pSN054_ARMED.features.append(primLHR[0]); # add fwd primer to plasmid annotations
+            pSN054_ARMED.features.append(primLHR[1]); # add rev primer to plasmid annotations
+            primerString = primerString + "\n" + geneName + " LHR primer (fwd)," + primLHR[0].seq + "\n" + geneName + " LHR primer (rev)," + primLHR[1].seq; # write primers to output string
+
+            primRHR = createGibsonPrimers(pSN054_ARMED, RHROnPlasmid, rangeHom=gibsonHomRange, minMeltTemp=gibTemp, maxTempDif=gibTDif); # creates RHR Gibson primers
+            outputDic["logFileStr"] = outputDic["logFileStr"] + primRHR["log"]; # add logs
+            primRHR = primRHR["out"]; # saves actual data
+            pSN054_ARMED.features.append(primRHR[0]); # add fwd primer to plasmid annotations
+            pSN054_ARMED.features.append(primRHR[1]); # add rev primer to plasmid annotations
+            primerString = primerString  + "\n" + geneName + " RHR primer (fwd)," + primRHR[0].seq + "\n" + geneName + " RHR primers (rev)," + primRHR[1].seq; # write primers to output string
+
+            klenow = createKlenowOligos(pSN054_ARMED, gRNAOnPlasmid, gibsonHomRange[1]); # creates Klenow oligos
+            outputDic["logFileStr"] = outputDic["logFileStr"] + klenow["log"]; # add logs
+            klenow = klenow["out"]; # saves actual data
+            pSN054_ARMED.features.append(klenow[0]); # add fwd primer to plasmid annotations
+            pSN054_ARMED.features.append(klenow[1]); # add rev primer to plasmid annotations
+            primerString = primerString + "\n" + geneName + " gRNA Klenow oligo (fwd)," + klenow[0].seq + "\n" + geneName + " gRNA Klenow oligo (rev)," + klenow[1].seq; # write oligos to output string
+
+            primerString = shortenOligoNames(primerString) + "\n"; # abbreviates primer names to fit on commercial tube labels
+
+            editedLocus = editLocus(geneName, geneGB, pSN054_ARMED); # inserts construct into genomic context
+            outputDic["logFileStr"] += editedLocus["log"]; # add logs
+            editedLocus = editedLocus["out"]; # saves actual data
+
+            outputDic["logFileStr"] = outputDic["logFileStr"] + "\n\nVector constructed and written to file. End of process.\n"; # saves message log to file
+            pSN054_ARMED.definition = (pSN054_ARMED.definition + "  " + outputDic["logFileStr"]).replace("\n","   "); # save logs to file definition to be viewed in benchling
+
+            outputDic["geneFileStr"] = geneGB.save(path + "/" + geneName + "_Locus_Pre-editing.gb", saveToFile=(not useFileStrs)); # saves annotated gene
+            outputDic["plasmidFileStr"] = pSN054_ARMED.save(path + "/" +  "pSN054_V5_targeting" + geneName, saveToFile=(not useFileStrs)); # saves plasmid
+            outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + geneName+"_Locus_Post-editing.gb", saveToFile=(not useFileStrs)); # saves edited locus
+            outputDic["oligoFileStr"] = primerString; # saves primers to file
+            outputDic["newPlasmid"] = pSN054_ARMED; # saves new plasmid to output dictionary
+            outputDic["newGene"] = geneGB; # saves new plasmid to output dictionary
+            outputDic["editedLocus"] = editedLocus; # saves edited locus to output dictionary
+            outputDic["geneName"] = geneName; # saves gene name to output
+
+            if not useFileStrs: # if saving to files,
+                output(outputDic["oligoFileStr"], path + "/" + geneName + "_Oligos.csv",wipe=True); # saves oligos to file
+                output(outputDic["logFileStr"], path + "/" + geneName + "_Message_Log.txt",wipe=True); # saves message log to file
 
 
-
-        recoded = chooseRecodeRegion(geneGB, gene, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling); # defines region to be recoded, returns recoded sequence
-        outputDic["logFileStr"] = outputDic["logFileStr"] + recoded["log"]; # add logs
-        recoded = recoded["out"]; # saves actual data
-
-        pSN054_ARMED = insertTargetingElementsPSN054(pSN054_V5, gene.label, gRNA.seq, LHR.seq, recoded.seq, RHR.seq); # inserts targeting elements
-
-        gRNAOnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " gRNA")[0]; # saves gRNA annotation actually on plasmid
-        if len(recoded.seq) > 0: # if there actually is a recoded region,
-            recodedOnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " Recoded")[0]; # saves recoded annotation actually on plasmid
-
-        LHROnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " LHR")[0]; # saves LHR annotation actually on plasmid
-        RHROnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " RHR")[0]; # saves RHR annotation actually on plasmid
-
-        primerString = "Primer name,Sequence"; # "OLIGOS for construct targeting gene " + geneName + "\n\n"; # String will save all primer information to be written to file
-
-        if len(recoded.seq) > 0 and len(recoded.seq) + gibsonHomRange[1]*2 >= minGBlockSize: # if there is a recoded region and length of recoded region plus homology regions necessary for Gibson Assembly is greater or equal to minimum gBlock size,
-            gBlock = createGBlock(pSN054_ARMED,recodedOnPlasmid); # annotates gBlock on plasmid
-            outputDic["logFileStr"] = outputDic["logFileStr"] + gBlock["log"]; # add logs
-            gBlock = gBlock["out"]; # saves actual data
-            pSN054_ARMED.features.append(gBlock); # add to plasmid annotations
-
-            primGBlock = createPrimers(pSN054_ARMED, gBlock); # creates gBlock primers
-            outputDic["logFileStr"] = outputDic["logFileStr"] + primGBlock["log"]; # add logs
-            primGBlock = primGBlock["out"]; # saves actual data
-            pSN054_ARMED.features.append(primGBlock[0]); # add fwd primer to plasmid annotations
-            pSN054_ARMED.features.append(primGBlock[1]); # add rev primer to plasmid annotations
-
-            primerString = primerString + "\n" + geneName + " gBlock primer (fwd)," + primGBlock[0].seq + "\n" + geneName + " gBlock primer (rev)," + primGBlock[1].seq; # write primers to output string
-        elif len(recoded.seq) >= gibsonHomRange[0]/2: # if length of recoded region greater or equal to half of minimum size of homology region,
-            outputDic["logFileStr"] = outputDic["logFileStr"] + "\ngBlock deemed not feasible for recoded region of construct targeting gene " + geneName + ", used Klenow instead.\n"; # say so
-            klenowRecoded = createKlenowOligos(pSN054_ARMED, recodedOnPlasmid, gibsonHomRange[1]); # creates Klenow oligos
-            outputDic["logFileStr"] = outputDic["logFileStr"] + klenowRecoded["log"]; # add logs
-            klenowRecoded = klenowRecoded["out"]; # saves actual data
-            pSN054_ARMED.features.append(klenowRecoded[0]); # add fwd primer to plasmid annotations
-            pSN054_ARMED.features.append(klenowRecoded[1]); # add rev primer to plasmid annotations
-            primerString = primerString + "\n" + geneName + " Recoded region Klenow oligo (fwd)," + klenowRecoded[0].seq + "\n" + geneName + " Recoded region Klenow oligo (rev)," + klenowRecoded[1].seq; # write oligos to output string
-        else: # if Klenow unnecesary too,
-            outputDic["logFileStr"] = outputDic["logFileStr"] + "\ngBlock and Klenow for recoded region deemed unnecesary for construct targeting gene " + geneName +".\n\n"; # say so
-
-        primLHR = createGibsonPrimers(pSN054_ARMED, LHROnPlasmid, rangeHom=gibsonHomRange, minMeltTemp=gibTemp, maxTempDif=gibTDif); # creates LHR Gibson primers
-        outputDic["logFileStr"] = outputDic["logFileStr"] + primLHR["log"]; # add logs
-        primLHR = primLHR["out"]; # saves actual data
-        pSN054_ARMED.features.append(primLHR[0]); # add fwd primer to plasmid annotations
-        pSN054_ARMED.features.append(primLHR[1]); # add rev primer to plasmid annotations
-        primerString = primerString + "\n" + geneName + " LHR primer (fwd)," + primLHR[0].seq + "\n" + geneName + " LHR primer (rev)," + primLHR[1].seq; # write primers to output string
-
-        primRHR = createGibsonPrimers(pSN054_ARMED, RHROnPlasmid, rangeHom=gibsonHomRange, minMeltTemp=gibTemp, maxTempDif=gibTDif); # creates RHR Gibson primers
-        outputDic["logFileStr"] = outputDic["logFileStr"] + primRHR["log"]; # add logs
-        primRHR = primRHR["out"]; # saves actual data
-        pSN054_ARMED.features.append(primRHR[0]); # add fwd primer to plasmid annotations
-        pSN054_ARMED.features.append(primRHR[1]); # add rev primer to plasmid annotations
-        primerString = primerString  + "\n" + geneName + " RHR primer (fwd)," + primRHR[0].seq + "\n" + geneName + " RHR primers (rev)," + primRHR[1].seq; # write primers to output string
-
-        klenow = createKlenowOligos(pSN054_ARMED, gRNAOnPlasmid, gibsonHomRange[1]); # creates Klenow oligos
-        outputDic["logFileStr"] = outputDic["logFileStr"] + klenow["log"]; # add logs
-        klenow = klenow["out"]; # saves actual data
-        pSN054_ARMED.features.append(klenow[0]); # add fwd primer to plasmid annotations
-        pSN054_ARMED.features.append(klenow[1]); # add rev primer to plasmid annotations
-        primerString = primerString + "\n" + geneName + " gRNA Klenow oligo (fwd)," + klenow[0].seq + "\n" + geneName + " gRNA Klenow oligo (rev)," + klenow[1].seq; # write oligos to output string
-
-        primerString = shortenOligoNames(primerString) + "\n"; # abbreviates primer names to fit on commercial tube labels
-
-        editedLocus = editLocus(geneName, geneGB, pSN054_ARMED); # inserts construct into genomic context
-        outputDic["logFileStr"] += editedLocus["log"]; # add logs
-        editedLocus = editedLocus["out"]; # saves actual data
-
-        outputDic["logFileStr"] = outputDic["logFileStr"] + "\n\nVector constructed and written to file. End of process.\n"; # saves message log to file
-        pSN054_ARMED.definition = (pSN054_ARMED.definition + "  " + outputDic["logFileStr"]).replace("\n","   "); # save logs to file definition to be viewed in benchling
-
-        outputDic["geneFileStr"] = geneGB.save(path + "/" + geneName + "_Locus_Pre-editing.gb", saveToFile=(not useFileStrs)); # saves annotated gene
-        outputDic["plasmidFileStr"] = pSN054_ARMED.save(path + "/" +  "pSN054_V5_targeting" + geneName, saveToFile=(not useFileStrs)); # saves plasmid
-        outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + geneName+"_Locus_Post-editing.gb", saveToFile=(not useFileStrs)); # saves edited locus
-        outputDic["oligoFileStr"] = primerString; # saves primers to file
-        outputDic["newPlasmid"] = pSN054_ARMED; # saves new plasmid to output dictionary
-        outputDic["newGene"] = geneGB; # saves new plasmid to output dictionary
-        outputDic["editedLocus"] = editedLocus; # saves edited locus to output dictionary
-        outputDic["geneName"] = geneName; # saves gene name to output
-
-        if not useFileStrs: # if saving to files,
-            output(outputDic["oligoFileStr"], path + "/" + geneName + "_Oligos.csv",wipe=True); # saves oligos to file
-            output(outputDic["logFileStr"], path + "/" + geneName + "_Message_Log.txt",wipe=True); # saves message log to file
-
-    else:
+    else: # if no gene found,
         outputDic["logFileStr"] = outputDic["logFileStr"] + "\nERROR: No gene annotations found in this file with name " + geneName + "\nProcess terminated.";
 
     return outputDic; # returns output dictionary
@@ -297,12 +296,6 @@ def insertTargetingElementsPSN054(plasmid, geneName, gRNA, LHR, recodedRegion, R
 
 
 """
-Sorts gRNA list according to
-"""
-def sortGRNAs(gRNAs):
-    pass
-
-"""
 Selects an appropriate gRNA for the given gene. GenBank gene sequence given as
 argument must have an annotation with "gRNA 1" as a part of its label, and the
 gene must be at least searchRange[0] bp long. The file must include at least
@@ -311,83 +304,101 @@ end indexes, counted with the last bp in the gene's stop codon as index 0.
 side3Prime is false if PAM sequence is at the 5' end of gRNA, true if at 3'.
 gRNA: guide RNA used by CRISPR enzyme.
 """
-def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True, minGCContent=0.3, minOnTargetScore=0.25, minOffTargetScore=0.5, gLength=20, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]): #TODO: this is provisional. for now, choose gRNA manually in Benchling and export as GenBank file with gRNA as an annotation. http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help https://code.google.com/archive/p/ssfinder/ http://www.hindawi.com/journals/bmri/2014/742482/ http://crispr.mit.edu/about later
-    # Finds gene annotation
-    pamSeq = "GG"; # should be derived from PAM, but replacing N would involve regex and I'm lazy
-    geneName = gene.name;
-    gene = seqGB.findAnnsLabel(geneName)[0]; # stores gene annotation
-    gRNAs = []; # list of GenBankAnn objects for gRNAs. # lists containing 0. extended sequences containing NNNN-gRNA-PAM-NNN, 1. indexes on gene [start,stop] (just gRNA, not extended seq). 2. GC content 3. On-target score 4. Off-target specificity score.
+def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True, minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
+    log = ""; # init log
+    pamSeq = "GG"; # should be derived from PAM, but replacing N would involve regex and I'm lazy. The Doench et al. (2016) gRNA scoring technologies only work with NGG PAMs anyway.
+    gene = geneGB.findAnnsLabel(gene.label)[0]; # stores gene annotation
+    gRNAs = []; # list of GenBankAnn objects for gRNAs.
+    backupGRNAs = []; # stores gRNAs that fail off-target score as possible backups
+    gRNAUpstream = GenBankAnn(); # will store gRNA most upstream
 
     if len(gene.label) > 0: # if gene found,
         searchStart = gene.index[side3Prime]+searchRange[0]; # Start searching for gRNAs in a position relative to gene start or end point
         searchEnd = gene.index[side3Prime]+searchRange[1]; # Finish searching for gRNAs in a position relative to gene start or end point
-        searchSeq = gene.seq[searchStart:searchEnd]; # get sequence where gRNAs will be searched for, centered around start or end of gene
-        i = len(searchSeq); # start searching for gRNAs by searching for PAM in searchSeq. Start at downstream end, go upstream
-        while i > 0 and len(gRNAs) > 3: # iterate through all searchSeq until done with searchSeq or three candidates found.
-            nextI = searchSeq.find(pamSeq, i); # find next PAM downstream on plus strand
+        searchSeq = geneGB.origin[searchStart:searchEnd].upper(); # get sequence where gRNAs will be searched for, centered around start or end of gene
+        i = len(searchSeq)-6; # start searching for gRNAs by searching for PAM in searchSeq. Start at downstream end (allow five bases downstream to accomodate on-target 30-mer gRNA sequence), go upstream
+        while i > 3 and len(gRNAs) < 3: # iterate through all searchSeq until done with searchSeq (allow 3 bases upstream of search end point to accomodate on-target 30-mer minus-strand gRNA sequence) or three candidates found.
             comp = False; # set sense to plus strand
-            if searchSeq.find(revComp(pamSeq), i) > nextI: # if next PAM downstream on minus strand is further upstream than next one on plus strand,
-                nextI = searchSeq.find(revComp(pamSeq), i); # set next PAM downstream on minus strand
+            extGRNASeq = ""; # stores extended sequence sequence NNNN-gRNA-PAM-NNN
+            gRNAIndexes = []; # store gRNA indexes
+            if searchSeq[i:i+2] == pamSeq: # if PAM found on plus strand,
+                extGRNASeq = searchSeq[i-25:i+5]; # store extended sequence NNNN-gRNA-PAM-NNN
+                gRNAIndexes = [searchStart+i-21,searchStart+i-1]; # store gRNA indexes
+            elif searchSeq[i:i+2] == revComp(pamSeq): # if PAM found on minus strand,
+                extGRNASeq = revComp(searchSeq[i-3:i+27]); # store extended sequence NNNN-gRNA-PAM-NNN on comp strand
+                gRNAIndexes = [searchStart+i+3,searchStart+i+23]; # store gRNA indexes on comp strand
                 comp = True; # set sense to complementary strand
 
-            i = nextI; # set index to next PAM sequence
-            if i == -1: # if no PAM found,
-                break; # escape loop
-
-            if comp:
-                extGRNASeq = revComp(gene.seq[i-5:i+25]); # store extended sequence NNNN-gRNA-PAM-NNN on comp strand
-                gRNAIndexes = [searchStart+i+1,searchStart+i+21]; # store gRNA indexes on comp strand
-            else:
-                extGRNASeq = gene.seq[i-25:i+5]; # store extended sequence NNNN-gRNA-PAM-NNN
-                gRNAIndexes = [searchStart+i-21,searchStart+i-1]; # store gRNA indexes
-
-            gRNASeq = extGRNASeq[5:25]; # store actual gRNA seq
-            gc = gcContent(gRNASeq); # store gc content
-            if gc > minGCContent and findFirst(gRNASeq,"ATATATATAT") < 0: # if gc content is acceptable and does not contain five consecutive ATs,
-                onTarget = onScore(extGRNASeq) # store on-target score
-                if onTarget > minOnTargetScore: # if on-target score is passable,
-                    offTarget = offScore(extGRNASeq,falciparumGRNAs) # store off-target score TODO: make offScore calculate across all plasmo gRNAs using offScorePairwise. Make plasmo gRNA db.
-                    if offTarget > minOffTargetScore: # if off-target score is passable,
-                        newGRNA = GenBankAnn(gene.name+" gRNA ","misc",gRNASeq,comp,gRNAIndexes); # create annotation object with gRNA information
+            if len(extGRNASeq) == 30: # if extended gRNA is right size
+                gRNASeqPAM = extGRNASeq[4:27]; # store actual gRNA seq with PAM
+                gRNASeq = extGRNASeq[4:24]; # store actual gRNA seq without PAM
+                gc = gcContent(gRNASeq); # store gc content
+                if gc >= minGCContent and findFirst(gRNASeq.replace('T','A'),"AAAAAAAAAA") < 0: # if gc content is acceptable and does not contain 10 or more consecutive As or Ts,
+                    onTarget = onTargetScore(extGRNASeq); # store on-target score
+                    if onTarget > minOnTargetScore: # if on-target score is passable,
+                        offTargetScores = offTargetScore(gRNASeqPAM,offTargetMethod); # store off-target score
+                        newGRNA = GenBankAnn(gene.label+" gRNA ","misc",gRNASeq,comp,gRNAIndexes); # create annotation object with gRNA information
                         newGRNA.onTarget = onTarget; # Add on-target score as attribute
-                        newGRNA.offTarget = offTarget; # Add off-target score as attribute
+                        newGRNA.offTarget = offTargetScores; # Add off-target scores as attribute
                         newGRNA.gc = gc; # Add gc content as attribute
-                        gRNAs.append(newGRNA); # add this gRNA's information to list.
+                        if offTargetScores[0] > minOffTargetScore and offTargetScores[1] < maxOffTargetHitScore: # if total off-target score and max hit score are passable
+                            gRNAs.append(newGRNA); # add this gRNA's information to list.
+                        else: # if failed off-target score culling.
+                            newGRNA.label = newGRNA.label + "(backup)"; # notify backup on label
+                            backupGRNAs.append(newGRNA); # add this gRNA's information to backup list.
+
+
 
 
 
             i -= 1; # advance indexer
 
-        #TODO: evaluate which candidates are in range (depending whether or not after gene end and distance from gene end)
-        gRNAs.sort(key=sortGRNAs); # sorts gRNA list according to custom function (GC content) TODO: maybe not external sort function, just number candidates according to their quality
+        if len(gRNAs) == 0: # if no gRNAs found,
+            log = log + "\nERROR: no acceptable gRNA with at least " + str(minGCContent) + " GC content, " + str(minOnTargetScore) + " on-target score and " + str(minOffTargetScore) + " off-target total score found on gene " + gene.label + ", please modify your criteria or select and annotate one manually.\n\n"; # add warning to log
+        else: #if gRNAs found,
+            newList = []; # new list will only contain gRNAs within acceptable range
+            if gRNAs[0].index[0] > gene.index[1]-3: # if most downstream gRNA starts after start of stop codon,
+                for g in gRNAs: # loop through gRNAs
+                    if g.index[0] > gene.index[1]-3 and gRNAs[0].index[0] - g.index[0] < maxDistanceBetweenGRNAS: # if this gRNA is still in the 3' UTR or stop codon and is within the max distance from the most downstream gRNA,
+                        newList.append(g); # add it to the new list
 
-        #TODO: this is probably junk
-        zero = gene.index[1] - 1; # saves position of gene's last bp within original GenBank file
-        for i in range(searchRange[0],searchRange[1]): # we search for the gRNA in the given region by testing all possible gRNAs
-            testStart = zero + i; # saves position of this test gRNA within original GenBank file
-            testPAM = ""; # initializes var to store PAM sequence to be tested
-            if side3Prime: # if on 3' side,
-                testPAM = seqGB[(testStart+gLength):(testStart+gLength+len(PAM))]; # saves sequence from 3' end to be tested
-            else: # if on 5' side,
-                testPAM = seqGB[(testStart-len(PAM)):testStart]; # saves sequence from 5' end to be tested
-            if compareSeq(testPAM,PAM): # if PAM sequence is where it should be
-                gRNAs.append(seqGB[testStart:(testStart+gLength)]); # saves this gRNA to be tested
 
-        if len(gRNAs) > 0: # if at least one gRNA was found,
-            gRNA = gRNAs[0]; # sets the first one as optimum
-            for testGRNA in gRNAs: # iterate across all gRNAs found
-                if gcContent(testGRNA) >= gcContent(gRNA): # if the gRNA being tested has higher or equal GC content than the previous one,
-                    gRNA = testGRNA; # save the one being tested
 
-            if gcContent(gRNA) < 0.3: # if gc content of gRNA is less than 30 percent,
-                output("ERROR: No gRNAs found for gene " + geneName + " with more than 30 percent GC content.", log); # say so
+            else: # if most downstream gRNA is upstream of stop codon,
+                for g in gRNAs: # loop through gRNAs
+                    if gRNAs[0].index[0] - g.index[0] < maxDistanceBetweenGRNAS: # if this gRNA is within the max distance from the most downstream gRNA
+                        newList.append(g); # add it to the new list
 
-        else: # if no gRNAs were found
-            output("ERROR: No gRNAs found for gene " + geneName, log); # say so"""
 
-    print onScore("aatatgtagctgtagaaaaagtagaggcat");
-    print offScore("tgtagctgtagaaaaagtagagg", "tgtaactgtagcaatagtagagg");
-    return findGRNA(geneGB, gene, filterCutSites); # TODO: provisional. Write actual gRNA algorithm using onScore, offScore
+
+
+            gRNAs = newList; # keep the new list of gRNAs as the main list
+            gRNAs.sort(key=lambda g: g.gc); # sorts gRNA list according to custom function (GC content)
+            count = 1; # counter for numbering candidates according to their quality
+            for g in gRNAs: # loop thorugh gRNAs ordered by GC content
+                g.label = g.label + str(count); # add number to gRNA label
+                count += 1; # advance counter
+
+            bestGRNA = gRNAs[0]; # will store best gRNA
+            gRNAUpstream = gRNAs[0]; # will find most upstream gRNA
+            for g in gRNAs: # loop through gRNAs
+                if g.index[0] < gRNAUpstream.index[0]: # if more upstream than previous most upstream
+                    gRNAUpstream = g; # set this gRNA as most upstream
+
+
+            log = log + "\n" + str(len(gRNAs)) + " acceptable gRNAs were selected automatically on gene " + gene.label + ". \ngRNA 1 has GC content of " + str(bestGRNA.gc) + ", on-target score of " + str(bestGRNA.onTarget)  + ", \nand aggregated off-target score of " + str(bestGRNA.offTarget[0]) + " (Method: " + offTargetMethod + ", Max. Hit Score: " + str(bestGRNA.offTarget[1]) + ", Num. hits: " + str(bestGRNA.offTarget[2]) + "."; # add warning to log
+
+
+    geneGB.features = geneGB.features + gRNAs; # add gRNAs to gene GenBank object features list
+    countBackups = 0; # counts how many backup gRNAs are included
+    for g in backupGRNAs: # for every possible backupGRNAs
+        if g.index[0] > gRNAUpstream.index[0]: # if this backup is downstream of most upstream gRNA,
+            geneGB.features.append(g); # add to features list
+            countBackups +=1; # advances counter
+
+    log = log + "\n" + str(len(backupGRNAs)) + " backup gRNAs with possible off-target effects annotated.\n\n"
+
+    return {"out":gRNAUpstream, "log":log}; # returns gRNA and log
 
 
 """
@@ -413,12 +424,14 @@ def findGRNA(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISce
 
 
 
+
     if len(gRNAs) > 0: # if gRNAs found
         gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
         gRNAUpstream = deepcopy(gRNAUpstream); # fixes referencing issue. We want this to be a genuinenly new annotation
         for site in filterCutSites: # for every cut site being filtered
             if findFirst(site,gRNAUpstream.seq) > -1 or findFirst(revComp(site),gRNAUpstream.seq) > -1: # if cut site found,
                 log = log + "\nWarning: gRNA sequence for gene " + gene.label + ": \n" + gRNAUpstream + "\ncontains restriction site " + site + "\n"; # add warning to log
+
 
         gRNAUpstream.label = gene.label + " gRNA"; # renames gRNA according to this program's convention
 
@@ -437,8 +450,7 @@ bp of LHR. minTmEnds is min melting temp in extremes of LHR. endsLength is
 length of extremes of the LHR contemplated in analysis. optimizeRange is a list
 with the index positions relative to the start of the LHR over which the start
 of the LHR is optimized once it is chosen. maxDistanceFromGRNA is maximum
-distance in bp between end of LHR and start of gRNA. log es la dirección del log
-de mensajes.
+distance in bp between end of LHR and start of gRNA.
 LHR: Left Homologous Region used for chromosomal integration by homologous
 recombination during repair.
 """
@@ -529,7 +541,7 @@ endsLength is length of extremes of the RHR contemplated in analysis.
 optimizeRange is a list with the index positions relative to the start of the
 RHR over which the start of the LHR is optimized once it is chosen.
 maxDistanceFromGRNA is maximum distance in bp between end of RHR and start of
-gRNA. log es la dirección del log de mensajes.
+gRNA.
 RHR: Right Homologous Region used for chromosomal integration by homologous
 recombination during repair.
 """
@@ -558,6 +570,8 @@ def chooseRHR(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40
         return inGene; # return
 
     startRHR = max(gene.index[1], gRNADownstream.index[1]); # saves start index of RHR as one bp after gene or after most downstream gRNA.
+    print startRHR
+
     endRHR = startRHR + lengthRHR[1]; # stores RHR start index according to preferred length
 
     failSearchStart = False; # true if no suitable RHR start region is found within given parameters.
@@ -617,13 +631,17 @@ def chooseRHR(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40
     searchIndexesEnd = [int(endRHR+optimizeRange[0]), int(endRHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better end point.
     for i in range(searchIndexesEnd[1], searchIndexesEnd[0], -1): # iterates across optimization range in reverse
         if meltingTemp(geneGB.origin[(i-40):i]) > meltingTemp(geneGB.origin[(endRHR-40):endRHR]) and lengthRHR[2] >= i-startRHR >= lengthRHR[0]: # if this end point has a better Tm and is still within bounds,
-            endRHR = i; # make this the ending position
+            if not checkInGene(i): # if not inside a gene,
+                endRHR = i; # make this the ending position
+
 
 
     searchIndexesStart = [int(startRHR+optimizeRange[0]), int(startRHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better start point.
     for i in range(searchIndexesStart[0], searchIndexesStart[1]): # iterates across optimization range
         if meltingTemp(geneGB.origin[i:(i+40)]) > meltingTemp(geneGB.origin[startRHR:(startRHR+40)]) and lengthRHR[2] >= endRHR-i >= lengthRHR[0] and i > gRNADownstream.index[1]: # if this start point has a better Tm and is still within bounds and after gRNA,
-            startRHR = i; # make this the starting position
+            if not checkInGene(i): # if not inside a gene,
+                startRHR = i; # make this the starting position
+
 
 
     for site in filterCutSites: # for every cut site being filtered
@@ -634,6 +652,7 @@ def chooseRHR(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40
     RHR = GenBankAnn(gene.label + " RHR", "misc_feature", geneGB.origin[startRHR:endRHR], False, [startRHR,endRHR]); # creates GenBankAnn object to hold RHR
 
     log = log + "RHR for gene " + gene.label + " selected.\n\n"; # logs this process finished
+
     return {"out":RHR, "log":log}; # returns RHR GenBankAnn object
 
 

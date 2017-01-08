@@ -169,7 +169,7 @@ class GenBank(object):
             if ann.comp: # if on complementary strand,
                 annSeq = revComp(ann.seq); # save as rev comp
 
-            if self.origin[ann.index[0]:ann.index[1]] == annSeq: # if the annotation sequence was found in the region where it should be,
+            if self.origin[ann.index[0]:ann.index[1]].upper() == annSeq.upper(): # if the annotation sequence was found in the region where it should be,
                 startIndex = ann.index[0] + 1; # advances index (GenBank indexing starts at 1)
                 endIndex = ann.index[1]; # stores end of sequence (GenBank starts at 1, but we don't shift this index because GenBank indexing includes final index)
                 indexStr = str(startIndex) + ".." + str(endIndex); # save annotation indexes as string
