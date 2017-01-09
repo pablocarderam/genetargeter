@@ -1,15 +1,17 @@
 # Used to process batch download from plasmoDB to be input into GeneTargeter
 
 from py.GenBankToolbox import *
+from py.BioUtils import *
 
-def processFastas(fastas):
+def processFastas(fastaFilepath):
+    fastas = loadFastas('ABCTransp.fasta');
     genes = [];
     for f in fastas:
         info = f.split("|");
         geneName = (info[0].strip()+"_"+info[2].strip()).replace("/",",").replace(" ","_");
         genIndexes = [1000,len(fastas[f])-1000]
         geneSeq = fastas[f][genIndexes[0]:genIndexes[1]];
-        geneAnn = GenBankAnn(geneName, "misc", geneSeq, False, genIndexes);
+        geneAnn = GenBankAnn(geneName, "gene", geneSeq, False, genIndexes);
         gene = GenBank();
         gene.name = geneName;
         gene.origin = fastas[f];

@@ -584,7 +584,6 @@ def chooseRHR(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40
         return inGene; # return
 
     startRHR = max(gene.index[1], gRNADownstream.index[1]); # saves start index of RHR as one bp after gene or after most downstream gRNA.
-    print startRHR
 
     endRHR = startRHR + lengthRHR[1]; # stores RHR start index according to preferred length
 
