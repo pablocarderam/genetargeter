@@ -25,9 +25,9 @@
 //
 // --Pablo CR, pablocarderam@gmail.com
 //
-// Compilation: g++ -o offTargetScoring offTargetScoring.cpp
+// Compilation: g++ -o offTargetScoringBin offTargetScoring.cc
 //
-// Usage: ./offTargetScoring "TTGTGTTCTCCATATATCGATGG" "gList.txt" "cfd" "yes"
+// Usage: ./offTargetScoringBin "TTGTGTTCTCCATATATCGATGG" "gList.txt" "cfd" "yes"
 
 /*/ ---  --- /*/
 
@@ -109,7 +109,7 @@ Score offScore(string gRNA, string gListFilePath, string method) {
     bool foundMatch = false; // keeps track of whether orr not an exact match has been found
 
     string offG; // will store off-target gRNA (line in file)
-    ifstream gListFile (gListFilePath); // file stream to off-target gRNA list
+    ifstream gListFile (gListFilePath.c_str()); // file stream to off-target gRNA list
     if (gListFile.is_open()) { // if file is open,
         while (getline (gListFile,offG)) { // loop while there is a new gRNA to compare (new line in file). Stores next line in file (next off-target gRNA) in variable offG.
             singleScore = pairScore(gRNA,offG); // score on-target gRNA with this particular off-target gRNA

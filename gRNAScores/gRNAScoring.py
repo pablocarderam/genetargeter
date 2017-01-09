@@ -8,6 +8,7 @@ executable and text file with off-target gRNA database.
 """
 
 import subprocess;
+import sys;
 from py.BioUtils import *;
 from gRNAScores.Rule_Set_2_scoring_v1.analysis.rs2_score_calculator import *; # Import Doench et al. (2016) on-target scoring module
 
@@ -30,8 +31,12 @@ containing total score (0-100 scale), score of highest-scoring individual hit
 in C++ methods), and Boolean value specifying if the on-target gRNA was found in
 the off-target database or not.
 '''
-def offTargetScore(gRNA, method, gListFilePath="gRNAScores/OffTarget_Scoring/gList.txt", binExecPath="gRNAScores/OffTarget_Scoring/offTargetScoring"):
-    args = (binExecPath, gRNA, gListFilePath, method, "no"); # stores command to be passed to console. "no" specifies output format as just scores.
+def offTargetScore(gRNA, method, gListFilePath="gRNAScores/OffTarget_Scoring/gList.txt", binExecPath="gRNAScores/OffTarget_Scoring/offTargetScoringBin"):
+    platform = "Linux"; # default to linux platform
+    if sys.platform == "darwin": # if running on mac yosemite,
+        platform = "OSX"; # set new osx to access alternate binary file
+
+    args = (binExecPath+platform, gRNA, gListFilePath, method, "no"); # stores command to be passed to console. "no" specifies output format as just scores.
     popen = subprocess.Popen(args, stdout=subprocess.PIPE); # passes command to console
     popen.wait(); # waits?
     output = popen.stdout.read(); # get console output
