@@ -354,7 +354,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
             i -= 1; # advance indexer
 
         if len(gRNAs) == 0: # if no gRNAs found,
-            log = log + "\nERROR: no acceptable gRNA with at least " + str(minGCContent) + " GC content, " + str(minOnTargetScore) + " on-target score and " + str(minOffTargetScore) + " off-target total score found on gene " + gene.label + ", please modify your criteria or select and annotate one manually.\n\n"; # add warning to log
+            log = log + "\nWarning: no acceptable gRNA with at least " + str(minGCContent*100) + "% GC content, " + str(minOnTargetScore) + " on-target score and " + str(minOffTargetScore) + " off-target total score found on gene " + gene.label + ".\n" + "Will use backup gRNA with highest GC content, if there are any backups."; # add warning to log
         else: #if gRNAs found,
             newList = []; # new list will only contain gRNAs within acceptable range
             if gRNAs[0].index[0] > gene.index[1]-3: # if most downstream gRNA starts after start of stop codon,
@@ -386,17 +386,31 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
                     gRNAUpstream = g; # set this gRNA as most upstream
 
 
-            log = log + "\n" + str(len(gRNAs)) + " acceptable gRNAs were selected automatically on gene " + gene.label + ". \ngRNA 1 has GC content of " + str(bestGRNA.gc) + ", on-target score of " + str(bestGRNA.onTarget)  + ", \nand aggregated off-target score of " + str(bestGRNA.offTarget[0]) + " (Method: " + offTargetMethod + ", Max. Hit Score: " + str(bestGRNA.offTarget[1]) + ", Num. hits: " + str(bestGRNA.offTarget[2]) + "."; # add warning to log
+            log = log + "\n" + str(len(gRNAs)) + " acceptable gRNAs were selected automatically on gene " + gene.label + ". \ngRNA 1 has GC content of " + str(bestGRNA.gc*100) + "%, on-target score of " + str(bestGRNA.onTarget)  + ", \nand aggregated off-target score of " + str(bestGRNA.offTarget[0]) + " (Method: " + offTargetMethod + ", Max. Hit Score: " + str(bestGRNA.offTarget[1]) + ", Num. hits: " + str(bestGRNA.offTarget[2]) + "."; # add warning to log
 
 
     geneGB.features = geneGB.features + gRNAs; # add gRNAs to gene GenBank object features list
     countBackups = 0; # counts how many backup gRNAs are included
-    for g in backupGRNAs: # for every possible backupGRNAs
-        if g.index[0] > gRNAUpstream.index[0]: # if this backup is downstream of most upstream gRNA,
+    if len(gRNAs) > 0: # if there is at least one gRNA
+        for g in backupGRNAs: # for every possible backupGRNAs
+            if g.index[0] > gRNAUpstream.index[0]: # if this backup is downstream of most upstream gRNA,
+                geneGB.features.append(g); # add to features list
+                countBackups +=1; # advances counter
+
+
+    else: # if there are no gRNAs,
+        maxGC = 0; # will track max gc content of gRNA
+        for g in backupGRNAs: # for every possible backupGRNAs
             geneGB.features.append(g); # add to features list
             countBackups +=1; # advances counter
+            if g.gc >= maxGC: # if this gRNA has a greater or equal GC content,
+                gRNAUpstream = g; # set as most upstream gRNA
+
+
 
     log = log + "\n" + str(len(backupGRNAs)) + " backup gRNAs with possible off-target effects annotated.\n\n"
+    if len(backupGRNAs) + len(gRNAs) == 0: # If there were absolutely no gRNAs under these settings,
+        log = log + "\n" + "ERROR: no gRNAs found. Please modify your criteria or select and annotate one manually.\n\n"; # say so
 
     return {"out":gRNAUpstream, "log":log}; # returns gRNA and log
 
@@ -631,8 +645,7 @@ def chooseRHR(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40
     searchIndexesEnd = [int(endRHR+optimizeRange[0]), int(endRHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better end point.
     for i in range(searchIndexesEnd[1], searchIndexesEnd[0], -1): # iterates across optimization range in reverse
         if meltingTemp(geneGB.origin[(i-40):i]) > meltingTemp(geneGB.origin[(endRHR-40):endRHR]) and lengthRHR[2] >= i-startRHR >= lengthRHR[0]: # if this end point has a better Tm and is still within bounds,
-            if not checkInGene(i): # if not inside a gene,
-                endRHR = i; # make this the ending position
+            endRHR = i; # make this the ending position
 
 
 
