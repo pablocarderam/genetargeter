@@ -281,10 +281,16 @@
 				<label class="btn" ><input type="file" id="geneFileForm" accept=".gb" multiple size="50" onchange="uploadFile()">
 					<span> Upload .gb files </span></label>
 			</p>
-			<div class="fileList small" id="selectedFiles">
-			</div>
+
 			<p>
 				<label class="runBtn" id="run" onclick="askCredentials()">Select one or more GenBank gene files.</label>
+			</p>
+
+			<div class="fileList small" id="selectedFiles">
+			</div>
+
+			<p>
+				<div class="fileList" id="outputLog"></div>
 			</p>
 
 			<div id="myModal" class="modal">
@@ -319,9 +325,6 @@
 
 			</div>
 
-			<p>
-				<div class="fileList" id="outputLog"></div>
-			</p>
 
 		</div>
 
