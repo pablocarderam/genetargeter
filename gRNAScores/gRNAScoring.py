@@ -161,7 +161,7 @@ def freeEnergy(seq, binExecPath="gRNAScores/RNAfold/RNAfoldBin"):
     if sys.platform == "darwin": # if running on mac yosemite,
         platform = "OSX"; # set new osx to access alternate binary file
 
-    args = ("ls gRNAScores/RNAfold");#binExecPath+platform, "--noPS"); # stores command to be passed to console.
+    args = (binExecPath+platform, "--noPS"); # stores command to be passed to console.
 
     popen = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True); # passes command to console
     output = popen.communicate(input=seq)[0]; # passes sequence to console dialog
