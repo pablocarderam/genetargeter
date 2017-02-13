@@ -157,15 +157,14 @@ Obtains Gibbs free energy (kcal/mol) for a given sequence using ViennaRNA's
 RNAfold binary.
 '''
 def freeEnergy(seq, binExecPath="./gRNAScores/RNAfold/RNAfoldBin"):
-    platform = "Linux2"; # default to linux platform
+    platform = "Linux"; # default to linux platform TODO: generate 64 bit RNAfold binary
     if sys.platform == "darwin": # if running on mac yosemite,
         platform = "OSX"; # set new osx to access alternate binary file
 
-    args = ("file", binExecPath+platform); # stores command to be passed to console.
+    args = (binExecPath+platform, "--noPS"); # stores command to be passed to console.
 
     popen = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, executable='/bin/bash'); # passes command to console
     output = popen.communicate(input=seq)[0]; # passes sequence to console dialog
-    print output
 
     numberIndex = output.find("-"); # finds minus sign to search for free energy
     if numberIndex < 0: # if no minus sign found,
