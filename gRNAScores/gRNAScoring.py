@@ -157,7 +157,7 @@ Obtains Gibbs free energy (kcal/mol) for a given sequence using ViennaRNA's
 RNAfold binary.
 '''
 def freeEnergy(seq, binExecPath="./gRNAScores/RNAfold/RNAfoldBin"):
-    platform = "OSX"; # default to linux platform
+    platform = "Linux"; # default to linux platform
     if sys.platform == "darwin": # if running on mac yosemite,
         platform = "OSX"; # set new osx to access alternate binary file
 
