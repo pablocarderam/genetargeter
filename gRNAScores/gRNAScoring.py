@@ -163,7 +163,7 @@ def freeEnergy(seq, binExecPath="./gRNAScores/RNAfold/RNAfoldBin"):
 
     args = (binExecPath+platform); # stores command to be passed to console.
 
-    popen = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True); # passes command to console
+    popen = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, executable='/bin/bash'); # passes command to console
     output = popen.communicate(input=seq)[0]; # passes sequence to console dialog
     print output
 
