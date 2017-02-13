@@ -14,6 +14,10 @@
 // mismatch. Individual hits are scored on a 0-100 basis, with 100% being equal
 // frequency to the on-target gRNA.
 //
+// The scoring parameters were developed from Cas9 data, however, they can be
+// used for Cpf1 while data on Cpf1 is published. It's recommended to use Hsu
+// scores when evaluating Cpf1 cut sites.
+//
 // Aggregate score is calculated as 100 * 100/(100 + sum of individual hits),
 // resulting in a 0-100 scale as well. If the on-target gRNA is found in the
 // off-target list, it is omitted from the calculation.
@@ -27,7 +31,8 @@
 //
 // Compilation: g++ -o offTargetScoringBin offTargetScoring.cc
 //
-// Usage: ./offTargetScoringBin "TTGTGTTCTCCATATATCGATGG" "gList.txt" "cfd" "yes"
+// Usage: ./offTargetScoringBin "TTGTGTTCTCCATATATCGA" "gListCas9.txt" "cfd" "Cas9" "TGG" "NGG" "yes"
+//
 
 /*/ ---  --- /*/
 
@@ -51,9 +56,9 @@ struct Score { // struct to store multiple return values of offScore function
 };
 
 // Function declarations
-double pairScoreHsu(string gOn, string gOff);
-double pairScoreCFD(string gOn, string gOff);
-Score offScore(string gRNA, string gListFilePath, string method);
+double pairScoreHsu(string gOn, string gOff, string pamSeq, string pamType);
+double pairScoreCFD(string gOn, string gOff, string pamSeq, string pamType);
+Score offScore(string gRNA, string gListFilePath, string pamSeq, string method, string pamType);
 
 // Main
 int main (int argc, char* argv[]) { // receive arguments
@@ -65,12 +70,14 @@ int main (int argc, char* argv[]) { // receive arguments
     }
     string gListFilePath = argv[2]; // file path to off-target gRNA list
     string method = argv[3]; // string defining method
+    string pamSeq = argv[4]; // PAM sequence of gRNA
+    string pamType = argv[5]; // type of PAM sequence being used
     string explainOutput = "yes"; // stores whether or not output will be printed with format explanation. Default is it will.
-    if (argv[4]) { // if there is a fourth argument in call,
-        explainOutput = argv[4]; // set the output parameter to it.
+    if (argv[6]) { // if there is a sixth argument in call,
+        explainOutput = argv[6]; // set the output parameter to it.
     }
 
-    Score score = offScore(gRNA,gListFilePath,method); // scoring function call
+    Score score = offScore(gRNA,gListFilePath,pamSeq,method,pamType); // scoring function call
 
     if (explainOutput == "yes") {
         printf( "Total Score: %f, Max. Hit Score: %f, Num. Hits: %d, gRNA found in DB: %d\n", score.totalScore, score.maxScore, score.numHits, score.foundInList ); // output format
@@ -90,9 +97,9 @@ Will read off-target list every time function is called because function reads
 file line by line and performs comparison without storing whole list in memory,
 since the list file is too large to load.
 */
-Score offScore(string gRNA, string gListFilePath, string method) {
+Score offScore(string gRNA, string gListFilePath, string pamSeq, string method, string pamType) {
     double threshold = 0; // sets threshold under which scores will be ignored.
-    double (*pairScore) (string gOn, string gOff); // function pointer for individual hit scoring
+    double (*pairScore) (string gOn, string gOff, string pamSeq, string pamType); // function pointer for individual hit scoring
     if (method == "hsu") { // if Hsu method is chosen,
         pairScore = &pairScoreHsu; // set scoring function accordingly.
         threshold = 0.05; // threshold based on Benchling's precision in CRISPR guide designing process, or at least what it shows us
@@ -112,7 +119,7 @@ Score offScore(string gRNA, string gListFilePath, string method) {
     ifstream gListFile (gListFilePath.c_str()); // file stream to off-target gRNA list
     if (gListFile.is_open()) { // if file is open,
         while (getline (gListFile,offG)) { // loop while there is a new gRNA to compare (new line in file). Stores next line in file (next off-target gRNA) in variable offG.
-            singleScore = pairScore(gRNA,offG); // score on-target gRNA with this particular off-target gRNA
+            singleScore = pairScore(gRNA,offG,pamSeq,pamType); // score on-target gRNA with this particular off-target gRNA
             if (singleScore == 100 && !foundMatch) { // if an exact match is found and is the first one,
                 foundMatch = true;
             }
@@ -145,9 +152,15 @@ Both methods are numerically equivalent. NAG weight taken from Hsu et al. (2013)
 paper ("approximately five times less than NAG").
 Both gRNAs must be same-sense 23-mers, with the 3-mer (NGG or NAG) PAM sequence at the end.
 */
-double pairScoreHsu(string gOn, string gOff) {
+double pairScoreHsu(string gOn, string gOff, string pamSeq, string pamType) {
 		double score = 1; // stores hit score
-    double modifier = 1 - (1-0.2)*(gOff[21] == 'A'); // stores factor modifying score in case of NAG PAM or multiple mismatches
+    double modifier = 1; // modifier due to PAM sequence
+    if (pamType == "NGG") { // if PAM is NGG
+        modifier = 1 - (1-0.2)*(pamSeq[1] == 'A'); // stores factor modifying score in case of NAG PAM or multiple mismatches (Hsu et al. 2013)
+    }
+    else if (pamType == "TTTV") { // if PAM is TTTV
+        modifier = 1 - (1-0.2)*(pamSeq[0] == 'C'); // stores factor modifying score in case of NAG PAM or multiple mismatches (estimated from Kim et al., 2017)
+    }
 
 		int sumD = 0; // stores sum of distances between mismatches
 	  int numMM = 0; // stores number of mismatches
@@ -187,8 +200,15 @@ weighted as 1), to keep database size down. Score is on a 0-100 scale instead of
 the original 0-1 scale used by the authors.
 Both gRNAs must be same-sense 23-mers, with the 3-mer PAM sequence at the end.
 */
-double pairScoreCFD(string gOn, string gOff) {
-		double score = 1 - (1-0.25925925899999996)*(gOff[21] == 'A'); // hit score, including modifier for NAG PAM
+double pairScoreCFD(string gOn, string gOff, string pamSeq, string pamType) {
+    double score = 1; // hit score
+    double modifier = 1; // modifier for PAM mismatches
+    if (pamType == "NGG") { // if PAM is NGG
+        modifier = 1 - (1-0.25925925899999996)*(pamSeq[1] == 'A'); // modifier for NAG PAM (Doench et al., 2016)
+    }
+    else if (pamType == "TTTV") { // if PAM is TTTV
+        modifier = 1 - (1-0.2)*(pamSeq[0] == 'C'); // stores factor modifying score in case of NAG PAM or multiple mismatches (estimated from Kim et al., 2017)
+    }
     int onBase = -1; // stores integer representation of on-target base
     int offBase = -1; // stores integer representation of off-target base
 
@@ -216,7 +236,7 @@ double pairScoreCFD(string gOn, string gOff) {
         score = score * cfdMatrix[16*i + 4*onBase + offBase]; // multiply score by the weight of this particular mismatch (or match) at this specific position. cfdMatrix is 320 (20*4*4) weights long, and is sorted by position first, on-target base identity second and reverse-complemented off-target base identity last.
 		}
 
-    score = score * 100.0; // scale score to 0-100. Note this is different than the original 0-1 scale used by Doench et al. (2016).
+    score = score * modifier * 100.0; // scale score to 0-100. Note this is different than the original 0-1 scale used by Doench et al. (2016).
 
 		return score;
 }

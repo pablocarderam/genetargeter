@@ -368,6 +368,35 @@ def revComp(seq):
 
     return revSeq;
 
+"""
+Returns a list with all possible DNA sequences given an ambiguous DNA sequence.
+"""
+def ambiguousSeqs(seq):
+    ambigCodes = {"R":"AG", "Y":"TC", "S":"CG", "W":"AT", "K":"GT", "M":"AC",
+                  "B":"CGT", "D":"AGT", "H":"ATC", "V":"ACG", "N":"ATCG"};
+
+    outSeqs = [""];
+    for b in seq:
+        if b in ambigCodes.keys():
+            newOutSeqs = [];
+            for possibleB in ambigCodes[b]:
+                newNewOutSeqs = [];
+                for s in outSeqs:
+                    newNewOutSeqs.append(s + possibleB);
+
+                newOutSeqs = newOutSeqs + newNewOutSeqs;
+
+            outSeqs = newOutSeqs;
+        else:
+            newOutSeqs = [];
+            for s in outSeqs:
+                newOutSeqs.append(s + b);
+
+            outSeqs = newOutSeqs;
+
+
+    return outSeqs;
+
 # Auxiliary methods
 """
 Returns a random hex color code.

@@ -60,10 +60,20 @@ def exportCFDMatrix(scoreDict):
 
 '''
 '''
-def buildPfalGRNADB(pathToGenome):
+def buildPfalGRNADB(pathToGenome,enzyme="Cas9"):
     PfalGenome = loadFastas(pathToGenome);
-    PfalGRNAs = buildGRNADB(PfalGenome,"GG");
-    PfalGRNAs = PfalGRNAs + buildGRNADB(PfalGenome,"AG");
+    PfalGRNAs = [];
+    if enzyme == "Cas9":
+        PfalGRNAs = buildGRNADB(PfalGenome,"GG",[-21,2]);
+        PfalGRNAs = PfalGRNAs + buildGRNADB(PfalGenome,"AG",[-21,2]);
+    elif enzyme == "Cpf1":
+        PfalGRNAs = buildGRNADB(PfalGenome,"TTTA",[0,27]);
+        PfalGRNAs = PfalGRNAs + buildGRNADB(PfalGenome,"TTTC",[0,27]);
+        PfalGRNAs = PfalGRNAs + buildGRNADB(PfalGenome,"TTTG",[0,27]);
+        PfalGRNAs = PfalGRNAs + buildGRNADB(PfalGenome,"CTTA",[0,27]);
+        PfalGRNAs = PfalGRNAs + buildGRNADB(PfalGenome,"CTTC",[0,27]);
+        PfalGRNAs = PfalGRNAs + buildGRNADB(PfalGenome,"CTTG",[0,27]);
+
     #guideListList = [];
     #for g in PfalGRNAs:
     #    guideListList.append(list(g.upper().replace('T','U')));
@@ -75,8 +85,8 @@ Accepts a dictionary containing a multifasta file (see loadFastas in BioUtils)
 Returns a list of all possible gRNAs within that multifasta file.
 Each gRNA sequence in return list contains 20mer gRNA and NGG PAM sequence.
 '''
-def buildGRNADB(genome,PAM="GG"):
-    print "Start building"
+def buildGRNADB(genome,PAM="GG",gRNAIndexes=[-21,2]):
+    print "Start building";
     pamSeq = PAM.upper(); # should be derived from PAM, but replacing N would involve regex and I'm lazy. The Doench et al. (2016) gRNA scoring technologies only work with NGG PAMs anyway.
     gRNADB = []; # will store all possible gRNAs in genome
     for chrom in genome: # for every separate sequence within multifasta file,
@@ -96,16 +106,16 @@ def buildGRNADB(genome,PAM="GG"):
             if i == -1: # if no PAM found,
                 break; # escape loop
 
-            gRNA = chromSeq[i-21:i+2]; # store sequence gRNA-PAM
+            gRNA = chromSeq[i+gRNAIndexes[0]:i+gRNAIndexes[1]]; # store sequence gRNA-PAM
             if comp: # if on comp strand
-                gRNA = revComp(chromSeq[i:i+23]); # store sequence gRNA-PAM on comp strand
+                gRNA = revComp(chromSeq[i-gRNAIndexes[1]+len(PAM):i-gRNAIndexes[0]+len(PAM)]); # store sequence gRNA-PAM on comp strand
 
             gRNA = gRNA.upper(); # make gRNA uppercase
             gChk = gRNA.replace("A",""); # string used to check whether gRNA contains only ACTG characters
             gChk = gChk.replace("T","");
             gChk = gChk.replace("C","");
             gChk = gChk.replace("G","");
-            if len(gRNA) == 23 and len(gChk) == 0: # if gRNA is right size and contains only accepted characters,
+            if len(gRNA) == gRNAIndexes[1]-gRNAIndexes[0] and len(gChk) == 0: # if gRNA is right size and contains only accepted characters,
                 gRNADB.append(gRNA); # add gRNA to DB
 
 
@@ -330,4 +340,6 @@ scoreGRNAs(seqGRNAs,guideListList)
 #from gRNAScores.gRNADBBuilder import *
 #exportCFDMatrix(mm_scores)
 #offTargetScore("TTGTGTTCTCCATATATCGATGG","cfd");
+outStr = "\n".join(gListCpf1);
+output(outStr, "gListCpf1.txt");
 '''

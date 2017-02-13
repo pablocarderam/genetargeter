@@ -56,12 +56,15 @@ def gene_message(message):
     optimOrg = msgList[18];
     codonSampling = (msgList[19] == "Codon Sampling");
     minGRNAGCContent = float(msgList[20])/100.0;
-    minOnTargetScore = float(msgList[21]);
-    offTargetMethod = msgList[22];
-    offTargetThreshold = float(msgList[23]);
-    maxOffTargetHitScore = float(msgList[24]);
+    onTargetMethod = msgList[21];
+    minOnTargetScore = float(msgList[22]);
+    offTargetMethod = msgList[23];
+    offTargetThreshold = float(msgList[24]);
+    maxOffTargetHitScore = float(msgList[25]);
+    enzyme = msgList[26];
+    PAM = msgList[27];
 
-    output = pSN054TargetGene(geneName, geneFileStr, codonOptimize=optimOrg, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib, optimRangeLHR=optimLHR, optimRangeRHR=optimRHR, endSizeLHR=endsLHR, endSizeRHR=endsRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minFragSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, offTargetThreshold=offTargetThreshold, maxOffTargetHitScore=maxOffTargetHitScore); # call result
+    output = pSN054TargetGene(geneName, geneFileStr, codonOptimize=optimOrg, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib, optimRangeLHR=optimLHR, optimRangeRHR=optimRHR, endSizeLHR=endsLHR, endSizeRHR=endsRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minFragSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, onTargetMethod=onTargetMethod, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, offTargetThreshold=offTargetThreshold, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme, PAM=PAM); # call result
     outMsg = queryNumber + sep + output["geneName"] + sep + output["geneFileStr"] + sep + output["plasmidFileStr"] + sep + output["editedLocusFileStr"] + sep + output["oligoFileStr"] + sep + output["logFileStr"];
     sendMsg('Process complete',"misc");
     sendMsg(outMsg, "geneOutput");

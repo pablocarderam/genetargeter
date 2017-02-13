@@ -75,7 +75,7 @@ HRannotated is true if the GenBank file given as input includes manual LHR and
 filterCutSites is a list of strings containing cut sequences to be filtered if
     user provides LHR and RHR.
 """
-def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35, enzyme="Cas9"): # cfd, 0.5, 35; hsu, 75, 5
+def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="ruleset2", minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG"): # cfd, 0.5, 35; hsu, 75, 5
     outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":""}; # dictionary containing keys to all values being returned
     outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid pSN054_V5 **** \n\n"; # starts message log to file
 
@@ -104,10 +104,10 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
         if HRannotated: # if not using manual annotations
             gRNA = findGRNA(geneGB, gene); # finds gRNA most upstream annotated manually.
             if len(gRNA["out"].label) == 0: # if no manual annotation found,
-                gRNA = chooseGRNA(geneGB, gene, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme); # chooses gRNA.
+                gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme); # chooses gRNA.
 
         else: # if not,
-            gRNA = chooseGRNA(geneGB, gene, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme); # chooses gRNA.
+            gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme); # chooses gRNA.
 
         outputDic["logFileStr"] = outputDic["logFileStr"] + gRNA["log"]; # add logs
         gRNA = gRNA["out"]; # saves actual data
@@ -304,47 +304,56 @@ end indexes, counted with the last bp in the gene's stop codon as index 0.
 side3Prime is false if PAM sequence is at the 5' end of gRNA, true if at 3'.
 gRNA: guide RNA used by CRISPR enzyme.
 """
-def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True, minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
+def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True, minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="ruleset2", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
     log = ""; # init log
     gene = geneGB.findAnnsLabel(gene.label)[0]; # stores gene annotation
     gRNAs = []; # list of GenBankAnn objects for gRNAs.
     backupGRNAs = []; # stores gRNAs that fail off-target score as possible backups
     gRNAUpstream = GenBankAnn(); # will store gRNA most upstream
 
-    pamSeq = ""; # store actual PAM sequence without N
-
+    pamSeqs = ambiguousSeqs(PAM); # store actual PAM sequences
+    extGRNASeqIndexes = []; # stores indexes of extended gRNA sequence (NNNN-gRNA 20mer-PAM 3mer-NNN for Cas9, PAM 4mer-gRNA 23mer-NNN for Cpf1) relative to PAM start point.
+    realGRNASeqIndexes = []; # stores indexes of actual gRNA sequence (gRNA 20mer for Cas9, gRNA 23mer for Cpf1) relative to PAM start point.
+    pamIndexes = []; # stores indexes of PAM sequences within extended gRNA
 
     if enzyme == "Cas9": # if enzyme is Cas9,
-        pamSeq = "GG"; # should be derived from PAM, but replacing N would involve regex and I'm lazy. The Doench et al. (2016) gRNA scoring technologies only work with NGG PAMs anyway.
+        #pamSeqs = ["AGG","TGG","CGG","GGG"]; # Cas9 PAM with no N.
+        extGRNASeqIndexes = [-24,6,-3,27]; # Start and end indexes for NNNN-gRNA 20mer-PAM 3mer-NNN extended sequence relative to PAM start position. Second two numbers are for rev comp strand.
+        realGRNASeqIndexes = [4,24]; # Start and end indexes for gRNA 20mer sequence within extended sequence.
+        pamIndexes = [24,24+len(PAM)]; # Stores PAM seq indexes, including Ns and Vs
     elif enzyme == "Cpf1": # if enzyme is Cpf1,
+        #pamSeqs = ["ATTT","CTTT","GTTT"]; # Cpf1 PAM (TTTV) with no V.
+        extGRNASeqIndexes = [0,30,-26,4]; # Start and end indexes for PAM 4mer-gRNA 23mer extended sequence relative to PAM start position. Second two numbers are for rev comp strand.
+        realGRNASeqIndexes = [len(PAM),23+len(PAM)]; # Start and end indexes for PAM gRNA 23mer sequence within extended sequence.
+        pamIndexes = [0,len(PAM)]; # Stores PAM seq indexes, including Ns and Vs
         # assign values
 
     if len(gene.label) > 0: # if gene found,
         searchStart = gene.index[side3Prime]+searchRange[0]; # Start searching for gRNAs in a position relative to gene start or end point
         searchEnd = gene.index[side3Prime]+searchRange[1]; # Finish searching for gRNAs in a position relative to gene start or end point
         searchSeq = geneGB.origin[searchStart:searchEnd].upper(); # get sequence where gRNAs will be searched for, centered around start or end of gene
-        i = len(searchSeq)-6; # start searching for gRNAs by searching for PAM in searchSeq. Start at downstream end (allow five bases downstream to accomodate on-target 30-mer gRNA sequence), go upstream
-        while i > 3 and len(gRNAs) < 3: # iterate through all searchSeq until done with searchSeq (allow 3 bases upstream of search end point to accomodate on-target 30-mer minus-strand gRNA sequence) or three candidates found.
+        i = len(searchSeq)-extGRNASeqIndexes[1]+1; # start searching for gRNAs by searching for PAM in searchSeq. Start at downstream end (allow five bases downstream to accomodate on-target 30-mer gRNA sequence), go upstream
+        while i > len(PAM) and len(gRNAs) < 3: # iterate through all searchSeq until done with searchSeq (allow enough bases upstream of search end point to accomodate on-target 30-mer minus-strand gRNA sequence) or three candidates found.
             comp = False; # set sense to plus strand
-            extGRNASeq = ""; # stores extended sequence sequence NNNN-gRNA-PAM-NNN
+            extGRNASeq = ""; # stores extended sequence sequence (NNNN-gRNA 20mer-PAM 3mer-NNN for Cas9, PAM 4mer-gRNA 23mer for Cpf1)
             gRNAIndexes = []; # store gRNA indexes
-            if searchSeq[i:i+2] == pamSeq: # if PAM found on plus strand,
-                extGRNASeq = searchSeq[i-25:i+5]; # store extended sequence NNNN-gRNA-PAM-NNN
-                gRNAIndexes = [searchStart+i-21,searchStart+i-1]; # store gRNA indexes
-            elif searchSeq[i:i+2] == revComp(pamSeq): # if PAM found on minus strand,
-                extGRNASeq = revComp(searchSeq[i-3:i+27]); # store extended sequence NNNN-gRNA-PAM-NNN on comp strand
-                gRNAIndexes = [searchStart+i+3,searchStart+i+23]; # store gRNA indexes on comp strand
+            if searchSeq[i:i+len(PAM)] in pamSeqs: # if PAM found on plus strand,
+                extGRNASeq = searchSeq[i+extGRNASeqIndexes[0]:i+extGRNASeqIndexes[1]]; # store extended sequence
+                gRNAIndexes = [searchStart+i+extGRNASeqIndexes[0]+realGRNASeqIndexes[0],searchStart+i+extGRNASeqIndexes[0]+realGRNASeqIndexes[1]]; # store gRNA indexes
+            elif searchSeq[i:i+len(PAM)] in [revComp(p) for p in pamSeqs]: # if PAM found on minus strand, +extGRNASeqIndexes[0]+realGRNASeqIndexes[0]
+                extGRNASeq = revComp(searchSeq[i+extGRNASeqIndexes[2]:i+extGRNASeqIndexes[3]]); # store extended sequence on comp strand
+                gRNAIndexes = [searchStart+i+extGRNASeqIndexes[3]-realGRNASeqIndexes[1],searchStart+i+extGRNASeqIndexes[3]-realGRNASeqIndexes[0]]; # store gRNA indexes on comp strand
                 comp = True; # set sense to complementary strand
 
-            if len(extGRNASeq) == 30: # if extended gRNA is right size
-                gRNASeqPAM = extGRNASeq[4:27]; # store actual gRNA seq with PAM
-                gRNASeq = extGRNASeq[4:24]; # store actual gRNA seq without PAM
+            if len(extGRNASeq) == extGRNASeqIndexes[1]-extGRNASeqIndexes[0]: # if extended gRNA is right size (doesn't overstep boundaries)
+                pamSeq = extGRNASeq[pamIndexes[0]:pamIndexes[1]]; # stores PAM sequence
+                gRNASeq = extGRNASeq[realGRNASeqIndexes[0]:realGRNASeqIndexes[1]]; # store actual gRNA seq without PAM
                 gc = gcContent(gRNASeq); # store gc content
                 if gc >= minGCContent and findFirst(gRNASeq.replace('T','A'),"AAAAAAAAAA") < 0: # if gc content is acceptable and does not contain 10 or more consecutive As or Ts,
-                    onTarget = onTargetScore(extGRNASeq); # store on-target score
+                    onTarget = onTargetScore(extGRNASeq,onTargetMethod); # store on-target score
                     if onTarget > minOnTargetScore: # if on-target score is passable,
-                        offTargetScores = offTargetScore(gRNASeqPAM,offTargetMethod); # store off-target score
-                        newGRNA = GenBankAnn(gene.label+" gRNA ","misc",gRNASeq,comp,gRNAIndexes); # create annotation object with gRNA information
+                        offTargetScores = offTargetScore(gRNASeq,offTargetMethod,enzyme,pamSeq,PAM); # store off-target score
+                        newGRNA = GenBankAnn(gene.label + " " + enzyme + " gRNA ","misc",gRNASeq,comp,gRNAIndexes); # create annotation object with gRNA information
                         newGRNA.onTarget = onTarget; # Add on-target score as attribute
                         newGRNA.offTarget = offTargetScores; # Add off-target scores as attribute
                         newGRNA.gc = gc; # Add gc content as attribute
@@ -362,7 +371,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
 
         if len(gRNAs) == 0: # if no gRNAs found,
             log = log + "\nWarning: no acceptable gRNA with at least " + str(minGCContent*100) + "% GC content, " + str(minOnTargetScore) + " on-target score and " + str(minOffTargetScore) + " off-target total score found on gene " + gene.label + ".\n" + "Will use backup gRNA with highest GC content, if there are any backups."; # add warning to log
-        else: #if gRNAs found,
+        else: # if gRNAs found,
             newList = []; # new list will only contain gRNAs within acceptable range
             if gRNAs[0].index[0] > gene.index[1]-3: # if most downstream gRNA starts after start of stop codon,
                 for g in gRNAs: # loop through gRNAs

@@ -229,12 +229,39 @@
 								<p class="head">Guide RNA (gRNA) Selection</p>
 								<p>
 									Minimum GC content: &nbsp<input class="txtInput" type="number" id="gRNAGCContent" value="30"> % <br>
-									Minimum <a href="https://doi.org/10.1038/nbt.3437" target="_blank">
-										on-target score: </a>&nbsp<input class="txtInput" type="number" id="gRNAOnTargetCutoff" value="35"> % <br>
+									CRISPR cutting enzyme:
+											<select id="enzymeType" onchange="changeEnzyme()">
+												<option value="Cas9" selected="selected">Cas9 (3' PAM)</option>
+												<option value="Cpf1">Cpf1 (5' PAM)</option>
+											</select> <br>
+									PAM Sequence: &nbsp<select id="PAMSequence">
+										<option value="NGG" selected="selected">NGG (SpCas9)</option>
+										<option value="NAG">NAG (SpCas9, low efficiency)</option>
+										<option value="NAAG">NAAG (SpCas9 QQR1)</option>
+										<option value="TGAG">TGAG (SpCas9 VQR/EQR)</option>
+										<option value="NGCG">NGCG (SpCas9 VRER)</option>
+										<option value="NNNNGATT">NNNNGATT (NmCas9)</option>
+										<option value="NNAGAAW">NNAGAAW (St1Cas9)</option>
+										<option value="NAAAAC">NAAAAC (TdCas9)</option>
+										<option value="NNGRRT">NNGRRT (SaCas9)</option>
+										<option value="NNGRR">NNGRR (SaCas9, low efficiency)</option>
+										<option value="TTTV">TTTV (AsCpf1)</option>
+										<option value="TYCV">TYCV (AsCpf1 S542R)</option>
+										<option value="CCCC">CCCC (AsCpf1 K607R)</option>
+										<option value="TATV">TATV (AsCpf1 S542R/K548V/N552R)</option>
+									</select> <br>
+									On-target <a href="#bottom" class="tooltip"
+										tipTxt="Doench et al. (2016) scores obtained from gradient-boosted regression trees of SpCas9 data. Kim et al. (2017) scores determined through logistic regression of AsCpf1 data.">
+										scoring method</a>:
+											<select id="gRNAOnTargetMethod" onchange="changeOnScoringMethod()">
+												<option value="ruleset2" selected="selected">Rule Set 2 (Doench et al., 2016)</option>
+												<option value="cindel">CINDEL (Kim et al., 2017)</option>
+											</select> <br>
+									Minimum on-target score: &nbsp<input class="txtInput" type="number" id="gRNAOnTargetCutoff" value="35"> % <br>
 									Off-target <a href="http://crispr.mit.edu/about" class="tooltip" target="_blank"
-										tipTxt="CFD scores are more accurate (Doench et al., 2016). Hsu et al. (2013) scores are used by crispr.mit.edu. Individual scores are aggregated as per crispr.mit.edu.">
+										tipTxt="CFD scores are more accurate in Cas9-edited mammalian cells (Doench et al., 2016). Hsu et al. (2013) scores are used by crispr.mit.edu and Benchling, and are used as proxies for Cpf1. Individual scores are aggregated as per crispr.mit.edu.">
 										scoring method</a> for single hits:<br>
-											<select id="gRNAOffTargetMethod" onchange="changeScoringMethod()">
+											<select id="gRNAOffTargetMethod" onchange="changeOffScoringMethod()">
 												<option value="cfd" selected="selected">CFD (Doench et al., 2016)</option>
 												<option value="hsu">Zhang Lab (Hsu et al. 2013)</option>
 											</select> <br>
@@ -272,6 +299,7 @@
 									bp
 								</p>
 							</div>
+							<br><br><br>
 						</div>
 					</div>
 				</div>
@@ -327,7 +355,7 @@
 
 		</div>
 
-		<div class="bottom">
+		<div class="bottom" id="bottom">
 			<a href="http://web.mit.edu/nileslab/" target="_blank">
 				<p>
 					<img src="static/assets/roundLogoNilesLab.png" width="400px">
@@ -337,16 +365,13 @@
 				</p>
 			</a>
 			<p>
-	        Background Image:
-	        <a href="https://commons.wikimedia.org/wiki/File:Plasmodium_falciparum_in_a_patient_presenting_with_pyrexia_and_headache.jpg" target="_blank">
-	            <i>Plasmodium falciparum in a patient presenting with pyrexia and
-	            headache.</i> O. Erhabor (2013)</a>
-	        <br>
-	        <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.en" target="_blank">
-	            CC BY-SA 3.0</a>
-	    </p>
+					On-target Cas9 gRNA scoring code and CFD scoring matrix obtained December 27, 2016 from <a href="https://dx.doi.org/10.1038/nbt.3437" target="_blank">Doench et al. (2016)</a> supplementary material.
+			</p>
 			<p>
-					On-target gRNA scoring code and CFD scoring matrix obtained December 27, 2016 from <a href="https://dx.doi.org/10.1038/nbt.3437" target="_blank">Doench et al. (2016)</a> supplementary material.
+					On-target Cpf1 gRNA scoring coefficients obtained from <a href="https://dx.doi.org/10.1038/nmeth.4104" target="_blank">Kim et al. (2017)</a> supplementary material, equivalent to <a href="http://big.hanyang.ac.kr/cindel/" target="_blank">CINDEL</a> online tool. Exact on-target scores may vary between GeneTargeter and <a href="http://big.hanyang.ac.kr/cindel/" target="_blank">CINDEL</a> due to minor differenes in gRNA free energy calculations.
+			</p>
+			<p>
+					Self-folding Gibbs free energy of gRNAs (used to calculate <a href="https://dx.doi.org/10.1038/nmeth.4104" target="_blank">Kim et al. (2017)</a> <a href="http://big.hanyang.ac.kr/cindel/" target="_blank">CINDEL</a> scores) calculated using RNAfold obtained from <a href="http://www.tbi.univie.ac.at/RNA/index.html" target="_blank">ViennaRNA v2.3.3</a> <a href="https://dx.doi.org/10.1186/1748-7188-6-26" target="_blank">(Lorenz et al., 2011)</a>.
 			</p>
 			<p>
 					Off-target Zhang Lab scoring matrix obtained December 27, 2016 from the online <a href="http://crispr.mit.edu/about">MIT CRISPR tool</a> <a href="https://dx.doi.org/10.1038/nbt.2647">(Hsu et al., 2016)</a>.
@@ -359,6 +384,15 @@
 			<p>
 					Codon frequency tables obtained July 17, 2016 from the <a href="http://www.kazusa.or.jp/codon/" target="_blank">Codon Usage Database</a> run by Kazusa DRI.
 			</p>
+			<p>
+	        Background Image:
+	        <a href="https://commons.wikimedia.org/wiki/File:Plasmodium_falciparum_in_a_patient_presenting_with_pyrexia_and_headache.jpg" target="_blank">
+	            <i>Plasmodium falciparum in a patient presenting with pyrexia and
+	            headache.</i> O. Erhabor (2013)</a>
+	        <br>
+	        <a href="https://creativecommons.org/licenses/by-sa/3.0/deed.en" target="_blank">
+	            CC BY-SA 3.0</a>
+	    </p>
 			<br><br>
 	    <p>
 	        All other code: <a href="http://opensource.org/licenses/MIT" target="_blank">

@@ -252,16 +252,19 @@ function run() {
                         optimOrg = document.getElementById('codonOptimizeOrg').value;
                         codonSampling = document.getElementById('codonOptimStrat').value;
                         minGCContent = document.getElementById('gRNAGCContent').value;
+                        onTargetMethod = document.getElementById('gRNAOnTargetMethod').value;
                         onTargetScore = document.getElementById('gRNAOnTargetCutoff').value;
                         offTargetMethod = document.getElementById('gRNAOffTargetMethod').value;
                         offTargetScore = document.getElementById('minOffTargetScore').value;
                         offTargetHitScore = document.getElementById('maxOffTargetHitScore').value;
+                        enzyme = document.getElementById('enzymeType').value;
+                        pam = document.getElementById('PAMSequence').value;
 
                         msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
                           HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
                           endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
-                          optimOrg, codonSampling, minGCContent, onTargetScore, offTargetMethod,
-                          offTargetScore, offTargetHitScore]);
+                          optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
+                          offTargetScore, offTargetHitScore, enzyme, pam]);
                         sendMessageToServer('Sending requests...', "misc");
                         sendMessageToServer(msg,'sendGeneFile');
                         queryNumber += 1;
@@ -366,7 +369,7 @@ function saveAs(uri, filename) {
     }
 }
 
-function changeScoringMethod() {
+function changeOffScoringMethod() {
     if (document.getElementById('gRNAOffTargetMethod').value === 'hsu') {
         document.getElementById('minOffTargetScore').value = 75;
         document.getElementById('maxOffTargetHitScore').value = 5;
@@ -375,4 +378,28 @@ function changeScoringMethod() {
         document.getElementById('minOffTargetScore').value = 0.35;
         document.getElementById('maxOffTargetHitScore').value = 30;
     }
+}
+
+function changeOnScoringMethod() {
+    if (document.getElementById('gRNAOnTargetMethod').value === 'ruleset2') {
+        document.getElementById('gRNAOnTargetCutoff').value = 35;
+    }
+    else if (document.getElementById('gRNAOnTargetMethod').value === 'cindel') {
+        document.getElementById('gRNAOnTargetCutoff').value = 20;
+    }
+}
+
+function changeEnzyme() {
+    if (document.getElementById('enzymeType').value === 'Cas9') {
+        document.getElementById('gRNAOnTargetMethod').value = "ruleset2";
+        document.getElementById('gRNAOffTargetMethod').value = "cfd";
+        document.getElementById('PAMSequence').value = "NGG";
+    }
+    else if (document.getElementById('enzymeType').value === 'Cpf1') {
+        document.getElementById('gRNAOnTargetMethod').value = "cindel";
+        document.getElementById('gRNAOffTargetMethod').value = "hsu";
+        document.getElementById('PAMSequence').value = "TTTV";
+    }
+    changeOffScoringMethod();
+    changeOnScoringMethod();
 }
