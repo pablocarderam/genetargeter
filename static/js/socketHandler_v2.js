@@ -16,8 +16,9 @@ var socket = io.connect(namespace);
 // Add a connect listener
 socket.on('connect',function() {
   console.log('Client has connected to the server!');
-  if (disconnected) {
+  if (disconnected && validCredentials) {
     run();
+    console.log("resending");
   }
 });
 // Add a connect listener

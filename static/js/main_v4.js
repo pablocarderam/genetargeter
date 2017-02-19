@@ -6,6 +6,7 @@ var currentOutput = []; // saves current output array to download multiple times
 var fileCounter = 0; // used in coloring output file lines
 var numFilesUploaded = 0;
 var disconnected = false; // true when connection is lost in middle of operations
+var validCredentials = false;
 
 function init() {
     document.getElementById("backToTopBtn").style.opacity = 0;
@@ -50,6 +51,7 @@ function invalidCred() {
 
 function validCred() {
     var x = document.getElementById("geneFileForm");
+    validCredentials = true;
     if ('files' in x) {
         if (x.files.length == 0) {
             document.getElementById("modFooter").innerHTML = "Valid passcode! Select some gene files though.";
