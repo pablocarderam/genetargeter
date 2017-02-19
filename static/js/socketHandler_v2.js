@@ -16,6 +16,9 @@ var socket = io.connect(namespace);
 // Add a connect listener
 socket.on('connect',function() {
   console.log('Client has connected to the server!');
+  if (disconnected) {
+    run();
+  }
 });
 // Add a connect listener
 socket.on('message',function(data) {
@@ -32,6 +35,7 @@ socket.on('geneOutput',function(data) {
 // Add a disconnect listener
 socket.on('disconnect',function() {
   console.log('The client has disconnected!');
+  disconnected = true;
 });
 // Add a validated listener
 socket.on('validCred',function() {

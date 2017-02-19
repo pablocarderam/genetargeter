@@ -5,6 +5,7 @@ var backToTopShown = true; // used to control back-to-top button appearance and 
 var currentOutput = []; // saves current output array to download multiple times if desired
 var fileCounter = 0; // used in coloring output file lines
 var numFilesUploaded = 0;
+var disconnected = false; // true when connection is lost in middle of operations
 
 function init() {
     document.getElementById("backToTopBtn").style.opacity = 0;
@@ -114,6 +115,7 @@ function uploadFile(){
     var x = document.getElementById("geneFileForm");
     var parent = document.getElementById("selectedFiles");
     var txt = "";
+    fileCounter = 0;
     while (parent.firstChild) {
         parent.removeChild(parent.firstChild);
     }
@@ -214,11 +216,9 @@ function fadeIn(el, display){
 }
 
 function run() {
-    uploadFile();
     document.getElementById("run").innerHTML = "Processing files...";
     var x = document.getElementById("geneFileForm");
     var txt = "";
-    fileCounter = 0;
     if ('files' in x) {
         if (x.files.length == 0) {
             txt = "Select one or more GenBank gene files.";
@@ -226,12 +226,12 @@ function run() {
         else {
             numFilesUploaded = x.files.length;
             document.getElementById("run").innerHTML = "Processing files...";
-            for (var i = 0; i < x.files.length; i++) {
+            for (var i = fileCounter; i < x.files.length; i++) {
                 var file = x.files[i];
                 if (file.name.substr(file.name.length-3,file.name.length) === ".gb") {
                     var fR = new FileReader();
                     fR.fileName = document.getElementById('selectedFiles').children[i].children[0].value;
-                    var queryNumber = 0;
+                    var queryNumber = fileCounter;
                     fR.readAsText(file, "UTF-8");
                     fR.onload = function (evt) {
                         var HRann = document.getElementById("HRannChkBox").checked;

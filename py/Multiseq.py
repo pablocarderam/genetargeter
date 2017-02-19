@@ -4,7 +4,7 @@ from py.GenBankToolbox import *
 from py.BioUtils import *
 
 def processFastas(fastaFilepath):
-    fastas = loadFastas('ABCTransp.fasta');
+    fastas = loadFastas(fastaFilepath);
     genes = [];
     for f in fastas:
         info = f.split("|");
