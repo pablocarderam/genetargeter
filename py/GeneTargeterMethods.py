@@ -356,9 +356,9 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
                         newGRNA.onTarget = onTarget; # Add on-target score as attribute
                         newGRNA.offTarget = offTargetScores; # Add off-target scores as attribute
                         newGRNA.gc = gc; # Add gc content as attribute
-                        newGRNA.homopolymer = ( findFirst(gRNASeq,"AAAA") < 0 and findFirst(gRNASeq,"TTTT") < 0 and findFirst(gRNASeq,"CCCC") < 0 and findFirst(gRNASeq,"GGGG") < 0); # 4-homopolymers are bad https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-017-1581-4
-                        newGRNA.tripleT = (findFirst(gRNASeq,"AAAA") < 0); # Triple Ts (triple Us) are bad because they're an RNApol stop codon https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-017-1581-4
-                        if offTargetScores[0] > minOffTargetScore and offTargetScores[1] < maxOffTargetHitScore and not newGRNA.homopolymer and not newGRNA.tripleT: # if total off-target score and max hit score are passable, and if no homopolymer or triple T
+                        newGRNA.homopolymer = ( findFirst(gRNASeq,"AAAA") > 0 or findFirst(gRNASeq,"TTTT") > 0 or findFirst(gRNASeq,"CCCC") > 0 or findFirst(gRNASeq,"GGGG") > 0 ); # 4-homopolymers are bad https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-017-1581-4
+                        newGRNA.tripleT = (findFirst(gRNASeq,"TTT") > 0); # Triple Ts (triple Us) are bad because they're an RNApol stop codon https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-017-1581-4
+                        if offTargetScores[0] >= minOffTargetScore and offTargetScores[1] <= maxOffTargetHitScore and not newGRNA.homopolymer and not newGRNA.tripleT: # if total off-target score and max hit score are passable, and if no homopolymer or triple T
                             gRNAs.append(newGRNA); # add this gRNA's information to list.
                         else: # if failed off-target score culling.
                             newGRNA.label = newGRNA.label + "(backup)"; # notify backup on label
@@ -390,7 +390,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
 
 
             gRNAs = newList; # keep the new list of gRNAs as the main list
-            gRNAs.sort(key=lambda g: g.gc); # sorts gRNA list according to custom function (GC content)
+            gRNAs.sort(reverse=True,key=lambda g: g.gc); # sorts gRNA list according to custom function (GC content)
             count = 1; # counter for numbering candidates according to their quality
             for g in gRNAs: # loop thorugh gRNAs ordered by GC content
                 g.label = g.label + str(count); # add number to gRNA label
@@ -425,7 +425,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
 
 
 
-    log = log + "\n" + str(len(backupGRNAs)) + " backup gRNAs with possible off-target effects annotated.\n\n"
+    log = log + "\n" + str(countBackups) + " backup gRNAs with possible off-target effects annotated.\n\n"
     if len(backupGRNAs) + len(gRNAs) == 0: # If there were absolutely no gRNAs under these settings,
         log = log + "\n" + "ERROR: no gRNAs found. Please modify your criteria or select and annotate one manually.\n\n"; # say so
 
@@ -488,7 +488,7 @@ recombination during repair.
 def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40, optimizeRange=[-20,10], maxDistanceFromGRNA=500, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]):
     #TODO: debug cases in which LHR has to be shifted, do case in which LHR is in intron?
     log = ""; # init log
-    gRNAs = geneGB.findAnnsLabel("gRNA 1", True); # List of all gRNAs
+    gRNAs = []; # List of all gRNAs
     gRNAUpstream = GenBankAnn(); # init var to hold gRNA
     if len(gRNAs) == 0: # if no gRNAs found
         gRNAs = geneGB.findAnnsLabel("gRNA"); # List of all gRNAs
@@ -579,18 +579,18 @@ recombination during repair.
 def chooseRHR(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40, optimizeRange=[-20,20], maxDistanceFromGene=500, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]):
     #TODO: debug cases in which RHR has to be shifted
     log = ""; # init log
-    gRNAs = geneGB.findAnnsLabel("gRNA 1", True); # List of all gRNAs
+    gRNAs = []; # List of all gRNAs
     gRNADownstream = GenBankAnn(); # init var to hold gRNA
     if len(gRNAs) == 0: # if no gRNAs found
         gRNAs = geneGB.findAnnsLabel("gRNA"); # List of all gRNAs
-        gRNADownstream = gRNAs[0]; # will store gRNA most upstream
+        gRNADownstream = gRNAs[0]; # will store gRNA most downstream
         for g in gRNAs: # loops across gRNAs
-            if g.index[0] > gRNADownstream.index[0]: # if more upstream
-                gRNADownstream = g; # replace as most upstream
+            if g.index[0] > gRNADownstream.index[0]: # if more downstream
+                gRNADownstream = g; # replace as most downstream
 
 
     else: # if gRNAs found,
-        gRNADownstream = gRNAs[0]; # will store gRNA most upstream
+        gRNADownstream = gRNAs[0]; # will store gRNA most downstream
 
     genes = geneGB.findAnnsType("gene"); # list of all genes, used to verify RHR doesn't start inside any genes (truncating them)
     def checkInGene(pIndex): # checks whether the index given is inside a gene.
