@@ -356,7 +356,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
                         newGRNA.onTarget = onTarget; # Add on-target score as attribute
                         newGRNA.offTarget = offTargetScores; # Add off-target scores as attribute
                         newGRNA.gc = gc; # Add gc content as attribute
-                        newGRNA.homopolymer = ( findFirst(gRNASeq,"AAAA") < 0 and findFirst(gRNASeq,"TTTT") < 0 and findFirst(gRNASeq,"CCCC") < 0 and findFirst(gRNASeq,"GGGG") ); # 4-homopolymers are bad https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-017-1581-4
+                        newGRNA.homopolymer = ( findFirst(gRNASeq,"AAAA") < 0 and findFirst(gRNASeq,"TTTT") < 0 and findFirst(gRNASeq,"CCCC") < 0 and findFirst(gRNASeq,"GGGG") < 0); # 4-homopolymers are bad https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-017-1581-4
                         newGRNA.tripleT = (findFirst(gRNASeq,"AAAA") < 0); # Triple Ts (triple Us) are bad because they're an RNApol stop codon https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-017-1581-4
                         if offTargetScores[0] > minOffTargetScore and offTargetScores[1] < maxOffTargetHitScore and not newGRNA.homopolymer and not newGRNA.tripleT: # if total off-target score and max hit score are passable, and if no homopolymer or triple T
                             gRNAs.append(newGRNA); # add this gRNA's information to list.
