@@ -10,9 +10,14 @@ executable and text file with off-target gRNA database.
 import subprocess;
 import sys;
 import math;
+import pickle;
+import numpy as np;
 from py.BioUtils import *;
-from gRNAScores.Rule_Set_2_scoring_v1.analysis.rs2_score_calculator import *; # Import Doench et al. (2016) on-target scoring module
+import gRNAScores.Rule_Set_2_scoring_v1.analysis.model_comparison as RS2; # Import Doench et al. (2016) old on-target scoring module
+from gRNAScores.CFD_Scoring.cfd_score_calculator import *; # Import Doench et al. (2016) off-target scoring module
+import gRNAScores.azimuth.model_comparison as azimuth; # Import Doench et al. (2016) new on-target scoring module
 
+# Get models used by old Rule Set 2 scores
 model_file_1 = './gRNAScores/Rule_Set_2_scoring_v1/saved_models/V3_model_nopos.pickle'
 model_file_2 = './gRNAScores/Rule_Set_2_scoring_v1/saved_models/V3_model_full.pickle'
 with open(model_file_1, 'rb') as f:
@@ -20,6 +25,9 @@ with open(model_file_1, 'rb') as f:
 
 with open(model_file_2, 'rb') as f:
     model2= pickle.load(f)
+
+# Get models used by CFD scores
+mm_scores,pam_scores = get_mm_pam_scores_remote();
 
 cindelCoefficients = { # dictionary with keys=features and values=coefficients used in CINDEL logistic regression (Kim et al. 2017)
     "(Intercept)":-1.830804463, "A":0.101900819, "A9":0.037608778,
@@ -55,7 +63,7 @@ containing total score (0-100 scale), score of highest-scoring individual hit
 in C++ methods), and Boolean value specifying if the on-target gRNA was found in
 the off-target database or not.
 '''
-def offTargetScore(gRNA, method, enzyme, pamSeq, pamType, gListFilePath="", binExecPath="gRNAScores/OffTarget_Scoring/offTargetScoringBin"):
+def offTargetScore(gRNA, method, enzyme, pamSeq, pamType, maxNumMisMatches=4, gListFilePath="", binExecPath="gRNAScores/OffTarget_Scoring/offTargetScoringBin"):
     platform = "Linux"; # default to linux platform
     if sys.platform == "darwin": # if running on mac yosemite,
         platform = "OSX"; # set new osx to access alternate binary file
@@ -67,7 +75,7 @@ def offTargetScore(gRNA, method, enzyme, pamSeq, pamType, gListFilePath="", binE
             gListFilePath = "gRNAScores/OffTarget_Scoring/gListCpf1.txt"; # use cpf1 list
 
 
-    args = (binExecPath+platform, gRNA, gListFilePath, method, pamSeq, pamType, "no"); # stores command to be passed to console. "no" specifies output format as just scores.
+    args = (binExecPath+platform, gRNA, gListFilePath, method, pamSeq, pamType, str(maxNumMisMatches), "no"); # stores command to be passed to console. "no" specifies output format as just scores.
     popen = subprocess.Popen(args, stdout=subprocess.PIPE); # passes command to console
     popen.wait(); # waits?
     output = popen.stdout.read(); # get console output
@@ -81,7 +89,9 @@ Returns on-target score based on desired method.
 '''
 def onTargetScore(pSeq,onTargetMethod):
     score = 0; # stores return score (0-100% format)
-    if onTargetMethod == "ruleset2": # if using Rule Set 2 (Doench et al., 2016)
+    if onTargetMethod == "azimuth": # if using Azimuth (Doench et al., 2016)
+        score = onTargetScoreAzimuth(pSeq); # use it
+    elif onTargetMethod == "ruleset2": # if using Rule Set 2 (Doench et al., 2016)
         score = onTargetScoreRS2(pSeq); # use it
     elif onTargetMethod == "cindel": # if using CINDEL (Kim et al., 2017)
         score = onTargetScoreCINDEL(pSeq[0:27]); # use it
@@ -104,7 +114,30 @@ def onTargetScoreRS2(pSeq,aa_cut=-1,per_peptide=-1):
         model = model2
 
     if seq[25:27] == 'GG':
-        score = model_comparison.predict(seq, aa_cut, per_peptide, model=model)*100 # Normalized to 0-100 scale
+        score = RS2.predict(seq, aa_cut, per_peptide, model=model)*100 # Normalized to 0-100 scale
+        return score
+    else:
+        print >> sys.stderr, 'Calculates on-target scores for sgRNAs with NGG PAM only.'
+
+'''
+Receives on-target gRNA string (4-mer prefix, 20-mer gRNA, 3-mer PAM, 3-mer
+suffix). Returns on-target score using Azimuth software
+https://github.com/MicrosoftResearch/Azimuth
+based on Doench et al. (2016). This method is adapted from the Doench original
+code and accesses the Azimuth source provided by MicrosoftResearch on GitHub.
+'''
+def onTargetScoreAzimuth(pSeq,aa_cut=-1,per_peptide=-1):
+    seq = pSeq.upper();
+    if len(seq)!=30:
+        print "Please enter a 30mer sequence."
+
+    if (aa_cut == -1) or (per_peptide == -1):
+        model = model1
+    else:
+        model = model2
+
+    if seq[25:27] == 'GG':
+        score = azimuth.predict( np.array([pSeq]),np.array([aa_cut]),np.array([per_peptide]) )[0] * 100 # Normalized to 0-100 scale
         return score
     else:
         print >> sys.stderr, 'Calculates on-target scores for sgRNAs with NGG PAM only.'
@@ -173,3 +206,71 @@ def freeEnergy(seq, binExecPath="./gRNAScores/RNAfold/RNAfoldBin"):
     score = float(output[numberIndex:numberIndex+4]); # extracts free energy (kcal/mol) from output
 
     return score;
+
+
+'''
+Calculates individual hit score of a given on-target gRNA and a given off-target
+gRNA as per Zhang lab procedure (Hsu et al., 2013; http://crispr.mit.edu/about).
+The mean pairwise distance d is calculated as specified in the Haeussler et al.
+(2016) algorithm, as opposed to the one proposed in this Zhang Lab online tool
+forum thread (https://groups.google.com/forum/#!searchin/crispr/algorithm|sort:relevance/crispr/fkhX7FU3r-I/9Nc14v_j3XgJ)
+Both methods are numerically equivalent. NAG weight taken from Hsu et al. (2013)
+paper ("approximately five times less than NAG").
+Both gRNAs must be same-sense 20-mers, with the PAM type and sequence specified
+as parameters.
+'''
+def pairScoreHsu(gOn,gOff,pamSeq,pamType):
+    HsuMatrix = [0,0,0.014,0,0,0.395,0.317,0,0.389,0.079,0.445,0.508,0.613,0.851,0.732,0.828,0.615,0.804,0.685,0.583]; # Hsu score matrix
+    score = 1; # stores score
+    modifier = 1; # stores multiplicative score modifier
+    if pamType == "NGG": # if PAM is NGG
+        modifier = 1# - (1-0.2)*(pamSeq[1] == 'A'); # stores factor modifying score in case of NAG PAM or multiple mismatches (Hsu et al. 2013)
+    elif pamType == "TTTV": # if PAM is TTTV
+        modifier = 1# - (1-0.2)*(pamSeq[0] == 'C'); # stores factor modifying score in case of NAG PAM or multiple mismatches (estimated from Kim et al., 2017)
+
+    sumD = 0; # stores sum of distances between mismatches
+    prevMM = 0; # stores number of mismatches
+    numMM = 0; # stores previous mismatch's index, used for calculating distance between mismatches
+    for i in range(20): # iterate through first 20 positions
+        if gOn[i] != gOff[i]: # if there is a mismatch at this position,
+            score *= 1-HsuMatrix[i]; # multiply score by the mismatch weight at this position from the weight matrix
+            sumD = (sumD + i - prevMM) * (prevMM != 0); # add the distance between this mismatch and previous mismatch to the sum of distances. Note that the first mismatch does not contribute to sum.
+            prevMM = i; # set this index as the new previous mismatch index.
+            numMM += 1; # advance mismatch counter
+
+
+    if numMM > 1: # if there are multiple mismatches,
+        d = sumD/float(numMM-1); # calculate mean pairwise distance based on sum and number of distances
+        modifier *= 1.0/((19.0-d)/19 * 4 + 1) * 1.0/(numMM**2); # modify modifier according to Zhang lab algorithm (http://crispr.mit.edu/about)
+
+    score *= modifier * 100; # calculate final hit score, set scale to 0-100
+
+    return score;
+
+
+'''
+Calculates individual hit score of a given on-target gRNA and a given off-target
+gRNA as per CFD scores (Doench et al., 2016). Code based off of original Doench
+et al. (2016) code in supplementary material.
+Both gRNAs must be same-sense 20-mers, with the PAM type and sequence specified
+as parameters.
+'''
+def pairScoreCFD(gOn,gOff,pamSeq,pamType):
+    wt_list = list(gOn); # convert strings to lists
+    s_list = list(gOff);
+    pam = pamSeq;
+    score = 1;
+    for i,sl in enumerate(s_list): # for every base in the off-target gRNA,
+        if wt_list[i] == sl: # if bases are equal,
+            score *= 1; # don't modify score
+        else: # if not,
+            key = 'r'+wt_list[i]+':d'+revcom(sl)+','+str(i+1); # construct a key to access score penalty at this position for this mismatch
+            score *= mm_scores[key]; # modify score
+
+
+    if pamType == "NGG": # if PAM is NGG form
+        score *= pam_scores[pam]; # use CFD module to modify score
+    elif pamType == "TTTV": # if PAM is TTTV form
+        score *= 1 - (1-0.2)*(pamSeq[0] == 'C'); # modify score in case of CTTV PAM (estimated from Kim et al., 2017)
+
+    return (score*100);

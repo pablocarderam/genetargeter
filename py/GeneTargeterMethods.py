@@ -9,6 +9,7 @@ Lab at MIT tagged designed to deliver the regulatory element 3' UTR payload to a
 specific gene, given as a parameter.
 @author: Pablo the awesome molecular jedi
 """
+
 #### Libraries ####
 from copy import deepcopy; # Import object copying methods for deep copies
 from BioUtils import *; # Imports utils
@@ -75,7 +76,7 @@ HRannotated is true if the GenBank file given as input includes manual LHR and
 filterCutSites is a list of strings containing cut sequences to be filtered if
     user provides LHR and RHR.
 """
-def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="ruleset2", minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG"): # cfd, 0.5, 35; hsu, 75, 5
+def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="azimuth", minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG"): # cfd, 0.5, 35; hsu, 75, 5
     outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":""}; # dictionary containing keys to all values being returned
     outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid pSN054_V5 **** \n\n"; # starts message log to file
 
@@ -158,7 +159,7 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
 
 
 
-            recoded = chooseRecodeRegion(geneGB, gene, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling); # defines region to be recoded, returns recoded sequence
+            recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling); # defines region to be recoded, returns recoded sequence
             outputDic["logFileStr"] = outputDic["logFileStr"] + recoded["log"]; # add logs
             recoded = recoded["out"]; # saves actual data
 
@@ -304,8 +305,8 @@ end indexes, counted with the last bp in the gene's stop codon as index 0.
 side3Prime is false if PAM sequence is at the 5' end of gRNA, true if at 3'.
 gRNA: guide RNA used by CRISPR enzyme.
 """
-def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True, minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="ruleset2", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
-    log = ""; # init log
+def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True, minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
+    log = "Choosing gRNA with PAM sequence " + PAM + " for use with enzyme " + enzyme; # init log
     gene = geneGB.findAnnsLabel(gene.label)[0]; # stores gene annotation
     gRNAs = []; # list of GenBankAnn objects for gRNAs.
     backupGRNAs = []; # stores gRNAs that fail off-target score as possible backups
@@ -317,12 +318,10 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
     pamIndexes = []; # stores indexes of PAM sequences within extended gRNA
 
     if enzyme == "Cas9": # if enzyme is Cas9,
-        #pamSeqs = ["AGG","TGG","CGG","GGG"]; # Cas9 PAM with no N.
         extGRNASeqIndexes = [-24,6,-3,27]; # Start and end indexes for NNNN-gRNA 20mer-PAM 3mer-NNN extended sequence relative to PAM start position. Second two numbers are for rev comp strand.
         realGRNASeqIndexes = [4,24]; # Start and end indexes for gRNA 20mer sequence within extended sequence.
         pamIndexes = [24,24+len(PAM)]; # Stores PAM seq indexes, including Ns and Vs
     elif enzyme == "Cpf1": # if enzyme is Cpf1,
-        #pamSeqs = ["ATTT","CTTT","GTTT"]; # Cpf1 PAM (TTTV) with no V.
         extGRNASeqIndexes = [0,30,-26,4]; # Start and end indexes for PAM 4mer-gRNA 23mer extended sequence relative to PAM start position. Second two numbers are for rev comp strand.
         realGRNASeqIndexes = [len(PAM),23+len(PAM)]; # Start and end indexes for PAM gRNA 23mer sequence within extended sequence.
         pamIndexes = [0,len(PAM)]; # Stores PAM seq indexes, including Ns and Vs
@@ -357,7 +356,9 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
                         newGRNA.onTarget = onTarget; # Add on-target score as attribute
                         newGRNA.offTarget = offTargetScores; # Add off-target scores as attribute
                         newGRNA.gc = gc; # Add gc content as attribute
-                        if offTargetScores[0] > minOffTargetScore and offTargetScores[1] < maxOffTargetHitScore: # if total off-target score and max hit score are passable
+                        newGRNA.microhomology = ( findFirst(gRNASeq,"AAAA") < 0 and findFirst(gRNASeq,"TTTT") < 0 and findFirst(gRNASeq,"CCCC") < 0 and findFirst(gRNASeq,"GGGG") ); # 4-homopolymers are bad https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-017-1581-4
+                        newGRNA.tripleT = (findFirst(gRNASeq,"AAAA") < 0); # Triple Ts (triple Us) are bad because they're an RNApol stop codon https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-017-1581-4
+                        if offTargetScores[0] > minOffTargetScore and offTargetScores[1] < maxOffTargetHitScore and : # if total off-target score and max hit score are passable
                             gRNAs.append(newGRNA); # add this gRNA's information to list.
                         else: # if failed off-target score culling.
                             newGRNA.label = newGRNA.label + "(backup)"; # notify backup on label
@@ -402,7 +403,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
                     gRNAUpstream = g; # set this gRNA as most upstream
 
 
-            log = log + "\n" + str(len(gRNAs)) + " acceptable gRNAs were selected automatically on gene " + gene.label + ". \ngRNA 1 has GC content of " + str(bestGRNA.gc*100) + "%, on-target score of " + str(bestGRNA.onTarget)  + ", \nand aggregated off-target score of " + str(bestGRNA.offTarget[0]) + " (Method: " + offTargetMethod + ", Max. Hit Score: " + str(bestGRNA.offTarget[1]) + ", Num. hits: " + str(bestGRNA.offTarget[2]) + "."; # add warning to log
+            log = log + "\n" + str(len(gRNAs)) + " acceptable gRNAs were selected automatically on gene " + gene.label + ". \ngRNA 1 has GC content of " + str(bestGRNA.gc*100) + "%, on-target score of " + str(bestGRNA.onTarget)  + ", \nand aggregated off-target score of " + str(bestGRNA.offTarget[0]) + " (Method: " + offTargetMethod + ", Max. Hit Score: " + str(bestGRNA.offTarget[1]) + ", Num. hits: " + str(bestGRNA.offTarget[2]) + ")."; # add warning to log
 
 
     geneGB.features = geneGB.features + gRNAs; # add gRNAs to gene GenBank object features list
@@ -691,10 +692,15 @@ which it should go. GenBank object given as argument should contain one gene
 with geneName included in its label, and at least one annotation with "LHR" in
 its label. Also needs all gRNAs to be annotated in the file. Returns empty
 region if LHR end is at or downstream of gene stop codon. Checks against
-restriction sites given as parameters.
+restriction sites given as parameters. Checks that gRNA recoded sequence has a
+pairwise off-target score lower than the given threshold with respect to the
+original gRNA.
 """
-def chooseRecodeRegion(geneGB, gene, orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], codonSampling=False):
-    #TODO: debug
+def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], codonSampling=False, offScoreThreshold=5):
+    #TODO: debug, especially off-target score threshold
+    if offTargetMethod == "hsu": # if off-target scoring with Hsu scores
+        offScoreThreshold = 1; # set threshold to 1%
+
     log = ""; # init log
     LHR = geneGB.findAnnsLabel("LHR")[0]; # LHR annotation object
 
@@ -705,42 +711,52 @@ def chooseRecodeRegion(geneGB, gene, orgCodonTable=codonUsage(), filterCutSites=
         frame = (endRecode-startRecode) % 3; # stores reading frame, index from start of sequence to be recoded
         startRecode += frame; # modify recode start site according to reading frame
         recodeSeq = geneGB.origin[startRecode:endRecode]; # get sequence to be recoded
-
-        gRNAs = geneGB.findAnnsLabel("gRNA 1", True); # List of all gRNAs
-        gRNAUpstream = GenBankAnn(); # init var to hold gRNA
-        if len(gRNAs) == 0: # if no gRNAs found
-            gRNAs = geneGB.findAnnsLabel("gRNA"); # List of all gRNAs
-            gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
-            for g in gRNAs: # loops across gRNAs
-                if g.index[0] < gRNAUpstream.index[0]: # if more upstream
-                    gRNAUpstream = g; # replace as most upstream
-
-
-        else: # if gRNAs found,
-            gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
+        gRNAs = geneGB.findAnnsLabel("gRNA", True); # List of all gRNAs
 
         cutSeqs = filterCutSites + [g.seq for g in gRNAs]; # list of all cut seqs. all gRNAs in gene are to be included as cut sequences
         cutCheck = 0; # variable used to check if cut sequences are present. Initially greater than -1*len(cutSeqs) since all gRNAs are present.
+        offScore = 1; # stores off-target score. Default is one due to the fact that gRNA sequence is the same.
         count = 0; # iteration counter
         recodedSeq = recodeSeq; # assign recoded sequence to same as original
         if len(recodeSeq) > 2: # if recodeSeq contains at least one codon,
-            while cutCheck > -2*len(cutSeqs): # while cutCheck is greater than what you would expect for no hits in all cut sequences plus the gRNAs on both positive and comp strands,
+            while cutCheck > -2*len(cutSeqs) and offScore > offScoreThreshold: # while cutCheck is greater than what you would expect for no hits in all cut sequences plus the gRNAs on both positive and comp strands, and the pairwise off-target score is underneath the threshold,
                 cutCheck = 0; # reset cutCheck
                 recodedSeq = optimizeCodons(recodeSeq,orgCodonTable,codonSampling=codonSampling); # optimize codons.
+                for g in gRNAs: # for every gRNA candidate within recoded region,
+                    gOnSeq = g.seq; # get original gRNA sequence
+                    gOffSeq = recodedSeq[g.indexes[0]-startRecode:g.indexes[1]-startRecode]; # get recoded sequence that used to be gRNA
+                    gNewPAM = ""; # will store new PAM sequence
+                    if pamType == "NGG": # if using NGG PAM,
+                        if not g.comp: # if on positive strand,
+                            gNewPAM = recodedSeq[g.indexes[1]-startRecode:g.indexes[1]-startRecode+3]; # retrieve PAM downstream of gRNA sequence
+                        else: # if on negative strand,
+                            gNewPAM = revComp(recodedSeq[g.indexes[0]-startRecode-3:g.indexes[0]-startRecode]); # retrieve PAM upstream of gRNA sequence, on comp strand
+
+                    elif pamType == "TTTV": # if using TTTV PAM,
+                        if not g.comp: # if on positive strand,
+                            gNewPAM = recodedSeq[g.indexes[0]-startRecode-4:g.indexes[0]-startRecode]; # retrieve PAM upstream of gRNA sequence
+                        else: # if on negative strand,
+                            gNewPAM = revComp(recodedSeq[g.indexes[1]-startRecode:g.indexes[1]-startRecode+4]); # retrieve PAM downstream of gRNA sequence, on comp strand
+
+                    if offTargetMethod == "cfd": # if using cfd,
+                        offScore = pairScoreCFD(gOnSeq,gOffSeq,gNewPAM,pamType); # calculate pairwise off-target score
+                    elif offTargetMethod == "hsu": # if using hsu,
+                        offScore = pairScoreHsu(gOnSeq,gOffSeq,gNewPAM,pamType); # calculate pairwise off-target score
+
+
                 for site in cutSeqs: # for every cut site being filtered,
                     cutCheck += findFirst(site,recodedSeq); # Find cut site, register in cutCheck
                     cutCheck += findFirst(revComp(site),recodedSeq); # Find cut site in comp strand, register in cutCheck
 
                 count += 1; # advances iteration counter
                 if count > 10000: # if out of iteration limit,
-                    log = log + "\nWarning: Recoded region for gene " + gene.label + " contains at least one of the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
+                    log = log + "\nWarning: Recoded region for gene " + gene.label + " could not reshuffle gRNA cut sites enough to fulfill the maximum off-target score threshold, or contains at least one of the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
                     break; # escape loop
 
 
 
         recodedSeq = geneGB.origin[LHR.index[1]:LHR.index[1]+frame] + recodedSeq; # adds initial bases from reading frame adjustment
-        # creates var to store finished recodedSeq as annotation
-        annRecoded = GenBankAnn(gene.label + " Recoded", "misc_feature", recodedSeq, False, [startRecode,endRecode]); # creates GenBankAnn object to hold RHR
+        annRecoded = GenBankAnn(gene.label + " Recoded", "misc_feature", recodedSeq, False, [startRecode,endRecode]); # creates var to store finished recodedSeq as annotation
         log = log + "\nRecoded region for gene " + gene.label + " selected.\n\n"; # logs this process finished
 
     else: # if no recoded region necessary,

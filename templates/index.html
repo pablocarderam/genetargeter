@@ -23,7 +23,7 @@
 		<link rel="shortcut icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
 
 		<link rel="stylesheet" href="static/css/style_v2.css">
-		<script src="static/js/main_v4.js"></script>
+		<script src="static/js/main_v5.js"></script>
 		<script src="static/js/EPPZScroll.js"></script>
 	</head>
 
@@ -254,7 +254,8 @@
 										tipTxt="Doench et al. (2016) scores obtained from gradient-boosted regression trees of SpCas9 data. Kim et al. (2017) scores determined through logistic regression of AsCpf1 data.">
 										scoring method</a>:
 											<select id="gRNAOnTargetMethod" onchange="changeOnScoringMethod()">
-												<option value="ruleset2" selected="selected">Rule Set 2 (Doench et al., 2016)</option>
+												<option value="azimuth" selected="selected">Azimuth (Doench et al., 2016)</option>
+												<option value="ruleset2">Rule Set 2 (Doench et al., 2016)</option>
 												<option value="cindel">CINDEL (Kim et al., 2017)</option>
 											</select> <br>
 									Minimum on-target score: &nbsp<input class="txtInput" type="number" id="gRNAOnTargetCutoff" value="35"> % <br>
@@ -265,8 +266,8 @@
 												<option value="cfd" selected="selected">CFD (Doench et al., 2016)</option>
 												<option value="hsu">Zhang Lab (Hsu et al. 2013)</option>
 											</select> <br>
-									Minimum off-target total score: </a>&nbsp<input class="txtInput" type="number" id="minOffTargetScore" value="0.35"> %<br>
-									Maximum single hit off-target score:</a>&nbsp<input class="txtInput" type="number" id="maxOffTargetHitScore" value="30"> %<br>
+									Minimum off-target total score: </a>&nbsp<input class="txtInput" type="number" id="minOffTargetScore" value="20"> %<br>
+									Maximum single hit off-target score:</a>&nbsp<input class="txtInput" type="number" id="maxOffTargetHitScore" value="50"> %<br>
 								</p>
 								<br><br>
 							</div>

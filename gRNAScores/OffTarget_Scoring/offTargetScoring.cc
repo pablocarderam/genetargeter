@@ -31,12 +31,13 @@
 //
 // Compilation: g++ -o offTargetScoringBin offTargetScoring.cc
 //
-// Usage: ./offTargetScoringBin "TTGTGTTCTCCATATATCGA" "gListCas9.txt" "cfd" "Cas9" "TGG" "NGG" "yes"
+// Usage: ./offTargetScoringBin "TTGTGTTCTCCATATATCGA" "gListCas9.txt" "cfd" "TGG" "NGG" "4" "yes"
 //
 
 /*/ ---  --- /*/
 
 // Imports
+#include <stdlib.h>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -56,9 +57,9 @@ struct Score { // struct to store multiple return values of offScore function
 };
 
 // Function declarations
-double pairScoreHsu(string gOn, string gOff, string pamSeq, string pamType);
-double pairScoreCFD(string gOn, string gOff, string pamSeq, string pamType);
-Score offScore(string gRNA, string gListFilePath, string pamSeq, string method, string pamType);
+double pairScoreHsu(string gOn, string gOff, string pamSeq, string pamType, int maxMismatches);
+double pairScoreCFD(string gOn, string gOff, string pamSeq, string pamType, int maxMismatches);
+Score offScore(string gRNA, string gListFilePath, string pamSeq, string method, string pamType, int maxMismatches);
 
 // Main
 int main (int argc, char* argv[]) { // receive arguments
@@ -72,12 +73,13 @@ int main (int argc, char* argv[]) { // receive arguments
     string method = argv[3]; // string defining method
     string pamSeq = argv[4]; // PAM sequence of gRNA
     string pamType = argv[5]; // type of PAM sequence being used
+    int maxMismatches = atoi(argv[6]); // Maximum number of mismatches before defaulting pair score to zero
     string explainOutput = "yes"; // stores whether or not output will be printed with format explanation. Default is it will.
-    if (argv[6]) { // if there is a sixth argument in call,
-        explainOutput = argv[6]; // set the output parameter to it.
+    if (argv[7]) { // if there is a seventh argument in call,
+        explainOutput = argv[7]; // set the output parameter to it.
     }
 
-    Score score = offScore(gRNA,gListFilePath,pamSeq,method,pamType); // scoring function call
+    Score score = offScore(gRNA,gListFilePath,pamSeq,method,pamType,maxMismatches); // scoring function call
 
     if (explainOutput == "yes") {
         printf( "Total Score: %f, Max. Hit Score: %f, Num. Hits: %d, gRNA found in DB: %d\n", score.totalScore, score.maxScore, score.numHits, score.foundInList ); // output format
@@ -96,15 +98,16 @@ Returns off-target score.
 Will read off-target list every time function is called because function reads
 file line by line and performs comparison without storing whole list in memory,
 since the list file is too large to load.
+Hsu scores vary from Benchling's possibly due to rounding?
 */
-Score offScore(string gRNA, string gListFilePath, string pamSeq, string method, string pamType) {
+Score offScore(string gRNA, string gListFilePath, string pamSeq, string method, string pamType, int maxMismatches) {
     double threshold = 0; // sets threshold under which scores will be ignored.
-    double (*pairScore) (string gOn, string gOff, string pamSeq, string pamType); // function pointer for individual hit scoring
+    double (*pairScore) (string gOn, string gOff, string pamSeq, string pamType, int maxMismatches); // function pointer for individual hit scoring
     if (method == "hsu") { // if Hsu method is chosen,
         pairScore = &pairScoreHsu; // set scoring function accordingly.
-        threshold = 0.05; // threshold based on Benchling's precision in CRISPR guide designing process, or at least what it shows us
+        threshold = 0.0; // threshold based on Benchling's precision in CRISPR guide designing process, or at least what it shows us
     }
-    else if (method == "cfd") {// if CFD method is chosen,
+    else if (method == "cfd") { // if CFD method is chosen,
         pairScore = &pairScoreCFD; // set scoring function accordingly.
         threshold = 2.3; // cutoff determined by Haeussler et al. (2016) https://genomebiology.biomedcentral.com/articles/10.1186/s13059-016-1012-2
     }
@@ -119,7 +122,7 @@ Score offScore(string gRNA, string gListFilePath, string pamSeq, string method, 
     ifstream gListFile (gListFilePath.c_str()); // file stream to off-target gRNA list
     if (gListFile.is_open()) { // if file is open,
         while (getline (gListFile,offG)) { // loop while there is a new gRNA to compare (new line in file). Stores next line in file (next off-target gRNA) in variable offG.
-            singleScore = pairScore(gRNA,offG,pamSeq,pamType); // score on-target gRNA with this particular off-target gRNA
+            singleScore = pairScore(gRNA,offG,pamSeq,pamType,maxMismatches); // score on-target gRNA with this particular off-target gRNA
             if (singleScore == 100 && !foundMatch) { // if an exact match is found and is the first one,
                 foundMatch = true;
             }
@@ -149,17 +152,19 @@ The mean pairwise distance d is calculated as specified in the Haeussler et al.
 (2016) algorithm, as opposed to the one proposed in this Zhang Lab online tool
 forum thread (https://groups.google.com/forum/#!searchin/crispr/algorithm|sort:relevance/crispr/fkhX7FU3r-I/9Nc14v_j3XgJ)
 Both methods are numerically equivalent. NAG weight taken from Hsu et al. (2013)
-paper ("approximately five times less than NAG").
-Both gRNAs must be same-sense 23-mers, with the 3-mer (NGG or NAG) PAM sequence at the end.
+paper ("approximately five times less than NAG"). Specify maximum number of
+mismatches before defaulting score to zero.
+Both gRNAs must be same-sense 23-mers, with the 3-mer (NGG or NAG) PAM sequence
+at the end.
 */
-double pairScoreHsu(string gOn, string gOff, string pamSeq, string pamType) {
+double pairScoreHsu(string gOn, string gOff, string pamSeq, string pamType, int maxMismatches) {
 		double score = 1; // stores hit score
     double modifier = 1; // modifier due to PAM sequence
     if (pamType == "NGG") { // if PAM is NGG
-        modifier = 1 - (1-0.2)*(pamSeq[1] == 'A'); // stores factor modifying score in case of NAG PAM or multiple mismatches (Hsu et al. 2013)
+        //TODO: fix:  modifier = 1 - (1-0.2)*(pamSeq[1] == 'A'); // stores factor modifying score in case of NAG PAM or multiple mismatches (Hsu et al. 2013)
     }
     else if (pamType == "TTTV") { // if PAM is TTTV
-        modifier = 1 - (1-0.2)*(pamSeq[0] == 'C'); // stores factor modifying score in case of NAG PAM or multiple mismatches (estimated from Kim et al., 2017)
+        //TODO: fix: modifier = 1 - (1-0.2)*(pamSeq[0] == 'C'); // stores factor modifying score in case of CTTV PAM (estimated from Kim et al., 2017)
     }
 
 		int sumD = 0; // stores sum of distances between mismatches
@@ -175,8 +180,13 @@ double pairScoreHsu(string gOn, string gOff, string pamSeq, string pamType) {
 		}
 
 		if (numMM > 1) { // if there are multiple mismatches,
-        double d = (double)(sumD)/(double)(numMM-1); // calculate mean pairwise distance based on sum and number of distances
-        modifier = modifier * 1.0/((19.0-d)/19.0 * 4.0 + 1.0) * 1.0/pow((double)numMM, 2.0); // modify modifier according to Zhang lab algorithm (http://crispr.mit.edu/about)
+        if (numMM > maxMismatches) { // if more than maxMismatches mismatches,
+            modifier = 0; // modifier is zero
+        }
+        else { // if less than four but more than one mismatch,
+            double d = (double)(sumD)/(double)(numMM-1); // calculate mean pairwise distance based on sum and number of distances
+            modifier = modifier * 1.0/((19.0-d)/19.0 * 4.0 + 1.0) * 1.0/pow((double)numMM, 2.0); // modify modifier according to Zhang lab algorithm (http://crispr.mit.edu/about)
+        }
 		}
 
     score = score * modifier * 100.0; // calculate final hit score, set scale to 0-100
@@ -197,12 +207,14 @@ are accesed from this list based on their order, instead of the Python
 dictionary originally used. Off-target bases are reverse-complemented, as in
 original algorithm! Only NAG PAM weights are included (other than NGG,
 weighted as 1), to keep database size down. Score is on a 0-100 scale instead of
-the original 0-1 scale used by the authors.
+the original 0-1 scale used by the authors. Specify maximum number of mismatches
+before defaulting score to zero.
 Both gRNAs must be same-sense 23-mers, with the 3-mer PAM sequence at the end.
 */
-double pairScoreCFD(string gOn, string gOff, string pamSeq, string pamType) {
+double pairScoreCFD(string gOn, string gOff, string pamSeq, string pamType, int maxMismatches) {
     double score = 1; // hit score
     double modifier = 1; // modifier for PAM mismatches
+    int numMM = 0; // stores number of mismatches
     if (pamType == "NGG") { // if PAM is NGG
         modifier = 1 - (1-0.25925925899999996)*(pamSeq[1] == 'A'); // modifier for NAG PAM (Doench et al., 2016)
     }
@@ -232,6 +244,13 @@ double pairScoreCFD(string gOn, string gOff, string pamSeq, string pamType) {
               break;
           case 'G': offBase = 3;
               break;
+        }
+        if (gOn[i] != gOff[i]) { // if there is a mismatch,
+            ++numMM; // advance mismatch counter
+            if (numMM > maxMismatches) { // if more than maxMismatches mismatches,
+                score = 0; // set score to zero
+                break; // exit loop
+            }
         }
         score = score * cfdMatrix[16*i + 4*onBase + offBase]; // multiply score by the weight of this particular mismatch (or match) at this specific position. cfdMatrix is 320 (20*4*4) weights long, and is sorted by position first, on-target base identity second and reverse-complemented off-target base identity last.
 		}

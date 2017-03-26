@@ -1,6 +1,8 @@
 /* JS Document */
 /* Main js */
 
+//TODO: make javascript store all incoming message files and query server once all have been received.
+
 var backToTopShown = true; // used to control back-to-top button appearance and disappearance
 var currentOutput = []; // saves current output array to download multiple times if desired
 var fileCounter = 0; // used in coloring output file lines
@@ -377,13 +379,13 @@ function changeOffScoringMethod() {
         document.getElementById('maxOffTargetHitScore').value = 5;
     }
     else if (document.getElementById('gRNAOffTargetMethod').value === 'cfd') {
-        document.getElementById('minOffTargetScore').value = 0.35;
-        document.getElementById('maxOffTargetHitScore').value = 30;
+        document.getElementById('minOffTargetScore').value = 20;
+        document.getElementById('maxOffTargetHitScore').value = 50;
     }
 }
 
 function changeOnScoringMethod() {
-    if (document.getElementById('gRNAOnTargetMethod').value === 'ruleset2') {
+    if (document.getElementById('gRNAOnTargetMethod').value === 'azimuth') {
         document.getElementById('gRNAOnTargetCutoff').value = 35;
     }
     else if (document.getElementById('gRNAOnTargetMethod').value === 'cindel') {
@@ -393,7 +395,7 @@ function changeOnScoringMethod() {
 
 function changeEnzyme() {
     if (document.getElementById('enzymeType').value === 'Cas9') {
-        document.getElementById('gRNAOnTargetMethod').value = "ruleset2";
+        document.getElementById('gRNAOnTargetMethod').value = "azimuth";
         document.getElementById('gRNAOffTargetMethod').value = "cfd";
         document.getElementById('PAMSequence').value = "NGG";
     }

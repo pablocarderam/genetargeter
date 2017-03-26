@@ -11,7 +11,7 @@ in case.
 """
 from py.BioUtils import *;
 from gRNAScores.Rule_Set_2_scoring_v1.analysis.rs2_score_calculator import *; # Import Doench et al. (2016) on-target scoring module
-from gRNAScores.CFD_Scoring.cfd_score_calculator import *; # Import Doench et al. (2016) on-target scoring module
+from gRNAScores.CFD_Scoring.cfd_score_calculator import *; # Import Doench et al. (2016) off-target scoring module
 import subprocess;
 
 mm_scores,pam_scores = get_mm_pam_scores_remote();
@@ -62,6 +62,9 @@ def exportCFDMatrix(scoreDict):
 '''
 def buildPfalGRNADB(pathToGenome,enzyme="Cas9"):
     PfalGenome = loadFastas(pathToGenome);
+    PfalGenome.pop('M76611 | organism=Plasmodium_falciparum_3D7 | version=2013-03-01 | length=5967 | SO=mitochondrial_chromosome',None);
+    PfalGenome.pop('PFC10_API_IRAB | organism=Plasmodium_falciparum_3D7 | version=2013-03-01 | length=34242 | SO=apicoplast_chromosome',None);
+
     PfalGRNAs = [];
     if enzyme == "Cas9":
         PfalGRNAs = buildGRNADB(PfalGenome,"GG",[-21,2]);
@@ -164,7 +167,7 @@ def offScoreHsu(pGRNA,gList,threshold=0):
     scores.sort(reverse=True);
     maxScore = scores[0]; # stores max score
     numScores = len(scores); # stores number of scores above threshold
-    return [specificityScore,maxScore,numScores]; # return max value, make call based on that and score. TODO: Explore cutoffs and metrics. Cutoffs: single hit: 0.5, cumulative: 60 (Hsu) (75 percentile).
+    return [specificityScore,maxScore,numScores]; # return max value, make call based on that and score. 
 
 
 def offScoreCFD(pGRNA,guideListList,threshold=2.3):
@@ -190,7 +193,7 @@ def offScoreCFD(pGRNA,guideListList,threshold=2.3):
     scores.sort(reverse=True);
     maxScore = scores[0]; # stores max score
     numScores = len(scores); # stores number of scores above threshold
-    return [specificityScore,maxScore,numScores]; # return max value, make call based on that and score. TODO: Explore Cutoffs: single hit: 0.5, cumulative: 0.25 (CFD) (75 percentile). CFD metrics: # above 0.023, 0.2 and 0.5 thresholds, max score.
+    return [specificityScore,maxScore,numScores]; # return max value, make call based on that and score. Explore Cutoffs: single hit: 0.5, cumulative: 0.25 (CFD) (75 percentile). CFD metrics: # above 0.2, 0.2 and 0.5 thresholds, max score.
 
 
 '''
@@ -296,6 +299,9 @@ gList = buildPfalGRNADB("./input/genomes/PlasmoDB-28_Pfalciparum3D7_Genome.fasta
 g="ATAACATCTGCTTTAAATTCTGG"
 offScoreHsu(g,gList);
 n,s=offScore(g,guideListList,calc_cfd_basic);
+
+outStr = "\n".join(gList);
+output(outStr,'nuclearGListCas9.txt');
 
 from gRNAScores.gRNADBBuilder import *
 guideListList = buildPfalGRNADB("./input/genomes/PlasmoDB-28_Pfalciparum3D7_Genome.fasta");
