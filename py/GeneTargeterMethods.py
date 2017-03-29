@@ -312,6 +312,8 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
     backupGRNAs = []; # stores gRNAs that fail off-target score as possible backups
     gRNAUpstream = GenBankAnn(); # will store gRNA most upstream
 
+    searchRange[0] = max(searchRange[0],-1*len(geneGB.origin)); # adjusts search range in case it goes beyond the total length of the gene
+
     pamSeqs = ambiguousSeqs(PAM); # store actual PAM sequences
     extGRNASeqIndexes = []; # stores indexes of extended gRNA sequence (NNNN-gRNA 20mer-PAM 3mer-NNN for Cas9, PAM 4mer-gRNA 23mer-NNN for Cpf1) relative to PAM start point.
     realGRNASeqIndexes = []; # stores indexes of actual gRNA sequence (gRNA 20mer for Cas9, gRNA 23mer for Cpf1) relative to PAM start point.
@@ -371,7 +373,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
             i -= 1; # advance indexer
 
         if len(gRNAs) == 0: # if no gRNAs found,
-            log = log + "\nWarning: no acceptable gRNA with at least " + str(minGCContent*100) + "% GC content, " + str(minOnTargetScore) + " on-target score and " + str(minOffTargetScore) + " off-target total score found on gene " + gene.label + ".\n" + "Will use backup gRNA with highest GC content, if there are any backups."; # add warning to log
+            log = log + "\nWarning: no acceptable gRNA with at least " + str(minGCContent*100) + "% GC content, " + str(minOnTargetScore) + " on-target score, " + str(minOffTargetScore) + " off-target total score, no 4-homopolymer sequences, and no TTT sequences found on gene " + gene.label + ".\n" + "Will use backup gRNA with highest GC content, if there are any backups."; # add warning to log
         else: # if gRNAs found,
             newList = []; # new list will only contain gRNAs within acceptable range
             if gRNAs[0].index[0] > gene.index[1]-3: # if most downstream gRNA starts after start of stop codon,
@@ -719,8 +721,10 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
         count = 0; # iteration counter
         recodedSeq = recodeSeq; # assign recoded sequence to same as original
         if len(recodeSeq) > 2: # if recodeSeq contains at least one codon,
-            while cutCheck > -2*len(cutSeqs) and offScore > offScoreThreshold: # while cutCheck is greater than what you would expect for no hits in all cut sequences plus the gRNAs on both positive and comp strands, and the pairwise off-target score is underneath the threshold,
+            tricky = False; # True if suspected to be hard to synthesize
+            while cutCheck > -2*len(cutSeqs) and offScore > offScoreThreshold and not tricky: # while cutCheck is greater than what you would expect for no hits in all cut sequences plus the gRNAs on both positive and comp strands, and while the pairwise off-target score is underneath the threshold, and while there are no difficult-to-synthesize structures in the recoded region,
                 cutCheck = 0; # reset cutCheck
+                tricky = False; # reset tricky Boolean
                 recodedSeq = optimizeCodons(recodeSeq,orgCodonTable,codonSampling=codonSampling); # optimize codons.
                 for g in gRNAs: # for every gRNA candidate within recoded region,
                     gOnSeq = g.seq; # get original gRNA sequence
@@ -748,9 +752,26 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
                     cutCheck += findFirst(site,recodedSeq); # Find cut site, register in cutCheck
                     cutCheck += findFirst(revComp(site),recodedSeq); # Find cut site in comp strand, register in cutCheck
 
+                if findFirst("TATATATATATATATATATA", gBlockSeq) > -1: # if 10 TA repeats found,
+                    tricky = True; # it's tricky
+                elif findFirst("GCGCGCGCGCGCGC", gBlockSeq) > -1: # if 7 GC repeats found,
+                    tricky = True; # it's tricky
+                elif findFirst("AAAAAAAAAAAAA", gBlockSeq) > -1: # if 13 A repeats found,
+                    tricky = True; # it's tricky
+                elif findFirst("TTTTTTTTTTTTT", gBlockSeq) > -1: # if 13 T repeats found,
+                    tricky = True; # it's tricky
+                elif findFirst("GGGGGGGGG", gBlockSeq) > -1: # if 9 G repeats found,
+                    tricky = True; # it's tricky
+                elif findFirst("CCCCCCCCC", gBlockSeq) > -1: # if 9 C repeats found,
+                    tricky = True; # it's tricky
+
                 count += 1; # advances iteration counter
                 if count > 10000: # if out of iteration limit,
-                    log = log + "\nWarning: Recoded region for gene " + gene.label + " could not reshuffle gRNA cut sites enough to fulfill the maximum off-target score threshold, or contains at least one of the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
+                    if tricky: # if failed because of tricky synthesis,
+                        log = log + "\nWarning: Recoded region for gene " + gene.label + " contains difficult to synthesize structures."; # log warning
+                    else: # if due to different error,
+                        log = log + "\nWarning: Recoded region for gene " + gene.label + " could not reshuffle gRNA cut sites enough to fulfill the maximum off-target score threshold, or contains at least one of the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
+
                     break; # escape loop
 
 
@@ -770,20 +791,20 @@ Creates list with GenBankAnn objects for forward and reverse primers for
 obtaining part given. Poor design, user should check with other tools
 afterwards.
 """
-def createPrimers(plasmid, part, rangeSize=[18,20,50], rangeMeltTemp=[59,60,65], maxTempDif=3): #TODO: this code is crap.
+def createPrimers(plasmid, part, rangeSize=[18,22,50], rangeMeltTemp=[55,62,65], maxTempDif=3): #TODO: this code is a little crap.
     log = ""; # init log
     startPF = part.index[0]; # Rev primer preferred start position
     endPF = part.index[0] + rangeSize[1]; # Rev primer preferred end position
     primFwdSeq = plasmid.origin[startPF:endPF]; # Fwd primer sequence
 
-    if meltingTemp(primFwdSeq) < rangeMeltTemp[0] or meltingTemp(primFwdSeq) > rangeMeltTemp[2]: # if out of Tm range
+    if meltingTemp(primFwdSeq) < rangeMeltTemp[0] or meltingTemp(primFwdSeq) > rangeMeltTemp[2] or not primFwdSeq[len(primFwdSeq)-1].upper().replace("G","C") == "C": # if out of Tm range or no GC clamp
         endPF = part.index[0] + rangeSize[0]; # Smallest fwd primer end position
         primFwdSeq = plasmid.origin[startPF:endPF]; # Fwd primer sequence
         maxIndexes = [startPF, endPF]; # store start and end positions of best primer in search range
-        while (meltingTemp(primFwdSeq) < rangeMeltTemp[0] or meltingTemp(primFwdSeq) > rangeMeltTemp[2]) and rangeSize[0] <= len(primFwdSeq) <= rangeSize[2]: # while still no suitable Tm found and still within length parameters,
+        while (meltingTemp(primFwdSeq) < rangeMeltTemp[0] or meltingTemp(primFwdSeq) > rangeMeltTemp[2] or not primFwdSeq[len(primFwdSeq)-1].upper().replace("G","C") == "C") and rangeSize[0] <= len(primFwdSeq) <= rangeSize[2]: # while still no suitable Tm found or no gc clamp and still within length parameters,
             endPF = endPF + 1; # shift primer start position upstream
             primFwdSeq = plasmid.origin[startPF:endPF]; # Fwd primer sequence
-            if meltingTemp(primFwdSeq)-rangeMeltTemp[1] > meltingTemp(plasmid.origin[maxIndexes[0]:maxIndexes[1]])-rangeMeltTemp[1]: # if this primer has Tm closer to the preferred Tm,
+            if meltingTemp(primFwdSeq)-rangeMeltTemp[1] > meltingTemp(plasmid.origin[maxIndexes[0]:maxIndexes[1]])-rangeMeltTemp[1] and primFwdSeq[len(primFwdSeq)-1].upper().replace("G","C") == "C": # if this primer has Tm closer to the preferred Tm, and has gc clamp
                 maxIndexes = [startPF, endPF]; # store start and end positions of this primer as best
 
         if meltingTemp(primFwdSeq) < rangeMeltTemp[0] or meltingTemp(primFwdSeq) > rangeMeltTemp[2]: # if still no use
@@ -797,14 +818,14 @@ def createPrimers(plasmid, part, rangeSize=[18,20,50], rangeMeltTemp=[59,60,65],
     endPR = part.index[1]; # Rev primer end position
     primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
 
-    if meltingTemp(primRevSeq) < rangeMeltTemp[0] or meltingTemp(primRevSeq) > rangeMeltTemp[2] or meltingTemp(primRevSeq)-meltingTemp(primFwdSeq) > maxTempDif: # if out of Tm range
+    if meltingTemp(primRevSeq) < rangeMeltTemp[0] or meltingTemp(primRevSeq) > rangeMeltTemp[2] or meltingTemp(primRevSeq)-meltingTemp(primFwdSeq) > maxTempDif or not primRevSeq[len(primRevSeq)-1].upper().replace("G","C") == "C": # if out of Tm range or no gc clamp
         startPR = part.index[1] - rangeSize[0]; # Smallest rev primer end position
         primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
         maxIndexes = [startPR, endPR]; # store start and end positions of best primer in search range
-        while (meltingTemp(primRevSeq) < rangeMeltTemp[0] or meltingTemp(primRevSeq) > rangeMeltTemp[2] or meltingTemp(primRevSeq)-meltingTemp(primFwdSeq) > maxTempDif) and len(primRevSeq) <= rangeSize[2] <= len(primRevSeq): # while still no suitable Tm found and still within length parameters,
+        while (meltingTemp(primRevSeq) < rangeMeltTemp[0] or meltingTemp(primRevSeq) > rangeMeltTemp[2] or meltingTemp(primRevSeq)-meltingTemp(primFwdSeq) > maxTempDif) and len(primRevSeq) <= rangeSize[2] <= len(primRevSeq) or not primRevSeq[len(primRevSeq)-1].upper().replace("G","C") == "C": # while still no suitable Tm found o no gc clamp, and still within length parameters,
             startPR = startPR - 1; # shift primer start position upstream
             primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
-            if meltingTemp(primRevSeq)-meltingTemp(primFwdSeq) > meltingTemp(plasmid.origin[maxIndexes[0]:maxIndexes[1]])-meltingTemp(primFwdSeq): # if this primer has Tm closer to the fwd primer's,
+            if meltingTemp(primRevSeq)-meltingTemp(primFwdSeq) > meltingTemp(plasmid.origin[maxIndexes[0]:maxIndexes[1]])-meltingTemp(primFwdSeq) and primRevSeq[len(primRevSeq)-1].upper().replace("G","C") == "C": # if this primer has Tm closer to the fwd primer's,
                 maxIndexes = [startPR, endPR]; # store start and end positions of this primer as best
 
         if meltingTemp(primRevSeq) < rangeMeltTemp[0] or meltingTemp(primRevSeq) > rangeMeltTemp[2]: # if still no use and it's the reverse primer's fault,
@@ -837,17 +858,17 @@ def createGibsonPrimers(plasmid, part, rangeHom=[30,40,50], minMeltTemp=68, maxT
     endPF = part.index[0] + rangeHom[1]; # Fwd primer preferred end position
     primFwdSeq = plasmid.origin[startPF:endPF]; # Fwd primer sequence
 
-    if meltingTemp(primFwdSeq) < minMeltTemp: # if still no use
+    if meltingTemp(primFwdSeq) < minMeltTemp or not primFwdSeq[len(primFwdSeq)-1].upper().replace("G","C") == "C": # if still no use
         startPF = part.index[0] - rangeHom[0]; # Smallest fwd primer start position
         endPF = part.index[0] + rangeHom[0]; # Smallest fwd primer end position
         primFwdSeq = plasmid.origin[startPF:endPF]; # Fwd primer sequence
 
         maxIndexes = [startPF, endPF]; # store start and end positions of best primer in search range
-        while meltingTemp(primFwdSeq) < minMeltTemp and rangeHom[0] <= len(primFwdSeq) <= rangeHom[2]: # while still no suitable Tm found and still within length parameters,
+        while (meltingTemp(primFwdSeq) < minMeltTemp or not primFwdSeq[len(primFwdSeq)-1].upper().replace("G","C") == "C") and rangeHom[0] <= len(primFwdSeq)/2 <= rangeHom[2]: # while still no suitable Tm found and still within length parameters,
             startPF = startPF - 1; # shift primer start position upstream
             endPF = endPF + 1; # shift primer start position upstream
             primFwdSeq = plasmid.origin[startPF:endPF]; # Fwd primer sequence
-            if meltingTemp(primFwdSeq) > meltingTemp(plasmid.origin[maxIndexes[0]:maxIndexes[1]]): # if this primer has higher Tm than the max,
+            if meltingTemp(primFwdSeq) > meltingTemp(plasmid.origin[maxIndexes[0]:maxIndexes[1]]) and primFwdSeq[len(primFwdSeq)-1].upper().replace("G","C") == "C": # if this primer has higher Tm than the max, and has a gc clamp
                 maxIndexes = [startPF, endPF]; # store start and end positions of this primer
 
         startPF = maxIndexes[0]; # Fwd primer default start position
@@ -861,17 +882,17 @@ def createGibsonPrimers(plasmid, part, rangeHom=[30,40,50], minMeltTemp=68, maxT
     endPR = part.index[1] + rangeHom[1]; # Rev primer end position
     primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
 
-    if meltingTemp(primRevSeq) < minMeltTemp or meltingTemp(primRevSeq)-meltingTemp(primFwdSeq) > maxTempDif: # if still no use
+    if meltingTemp(primRevSeq) < minMeltTemp or meltingTemp(primRevSeq)-meltingTemp(primFwdSeq) > maxTempDif or not primRevSeq[len(primRevSeq)-1].upper().replace("G","C") == "C": # if still no use
         startPR = part.index[1] - rangeHom[0]; # Smallest fwd primer start position
         endPR = part.index[1] + rangeHom[0]; # Smallest fwd primer end position
         primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
 
         maxIndexes = [startPR, endPR]; # store start and end positions of best primer in search range
-        while (meltingTemp(primRevSeq) < minMeltTemp or meltingTemp(primRevSeq)-meltingTemp(primFwdSeq) > maxTempDif) and rangeHom[0] <= len(primRevSeq) <= rangeHom[2]: # while still no suitable Tm found and still within length parameters,
+        while (meltingTemp(primRevSeq) < minMeltTemp or meltingTemp(primRevSeq)-meltingTemp(primFwdSeq) > maxTempDif or not primRevSeq[len(primRevSeq)-1].upper().replace("G","C") == "C") and rangeHom[0] <= len(primRevSeq)/2 <= rangeHom[2]: # while still no suitable Tm found and still within length parameters,
             startPR = startPR - 1; # shift primer start position upstream
             endPR = endPR + 1; # shift primer start position upstream
             primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
-            if meltingTemp(primRevSeq) > meltingTemp(plasmid.origin[maxIndexes[0]:maxIndexes[1]]): # if this primer has higher Tm than the max,
+            if meltingTemp(primRevSeq) > meltingTemp(plasmid.origin[maxIndexes[0]:maxIndexes[1]]) and primRevSeq[len(primRevSeq)-1].upper().replace("G","C") == "C": # if this primer has higher Tm than the max and has gc clamp,
                 maxIndexes = [startPR, endPR]; # store start and end positions of this primer
 
         startPR = maxIndexes[0]; # Rev primer default start position
@@ -892,7 +913,8 @@ def createGibsonPrimers(plasmid, part, rangeHom=[30,40,50], minMeltTemp=68, maxT
 """
 Returns gBlock GenBankAnn object in plasmid given for part (a GenBankAnn object)
 to be synthesized and inserted via Gibson in plasmid. Will give a warning if it
-suspects the gBlock won't be able to be synthesized by IDT.
+suspects the gBlock won't be able to be synthesized by IDT, reverse-engineering
+from the IDT gene synthesis webpage.
 """
 def createGBlock(plasmid, part):
     log = ""; # init log
@@ -900,11 +922,22 @@ def createGBlock(plasmid, part):
     endGBlock = part.index[1] + 40; # gBlock end position
     gBlockSeq = plasmid.origin[startGBlock:endGBlock]; # gBlock sequence
     tricky = False; # True if suspected to be hard to synthesize
+    '''
     for i in range(0,len(gBlockSeq)-20):
         if gcContent(gBlockSeq[i:i+20]) < 0.05: # If gc content of 20 bp gBlock window is too low or tricky sequences are present
-            tricky = True; # might be tricky
+            tricky = True; # might be tricky'''
 
-    if findFirst("TATATATATATATATATA", gBlockSeq) > -1: # if 9 TA repeats found,
+    if findFirst("TATATATATATATATATATA", gBlockSeq) > -1: # if 10 TA repeats found,
+        tricky = True; # it's tricky
+    elif findFirst("GCGCGCGCGCGCGC", gBlockSeq) > -1: # if 7 GC repeats found,
+        tricky = True; # it's tricky
+    elif findFirst("AAAAAAAAAAAAA", gBlockSeq) > -1: # if 13 A repeats found,
+        tricky = True; # it's tricky
+    elif findFirst("TTTTTTTTTTTTT", gBlockSeq) > -1: # if 13 T repeats found,
+        tricky = True; # it's tricky
+    elif findFirst("GGGGGGGGG", gBlockSeq) > -1: # if 9 G repeats found,
+        tricky = True; # it's tricky
+    elif findFirst("CCCCCCCCC", gBlockSeq) > -1: # if 9 C repeats found,
         tricky = True; # it's tricky
 
     if tricky: # if sequence seems tricky
