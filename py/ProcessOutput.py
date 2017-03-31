@@ -104,6 +104,11 @@ def createOutputSummaryTable(dirPath):
                         results[enzymeMod+3] = "Error";
                     elif l.find("gRNA") > -1:
                         results[enzymeMod+4] = "Error";
+                    elif l.find("No gene annotations") > -1:
+                        results[enzymeMod+1] = "Error";
+                        results[enzymeMod+2] = "Error";
+                        results[enzymeMod+3] = "Error";
+                        results[enzymeMod+4] = "Error";
 
 
             geneResults[geneName] = results;

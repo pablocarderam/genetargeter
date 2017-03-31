@@ -18,3 +18,7 @@ def processFastas(fastaFilepath):
         gene.features.append(geneAnn);
 
         gene.save("gb/"+geneName+".gb",True);
+
+        if "WARNING:" in f:
+            print "WARNING in seq " + geneName;
+            
