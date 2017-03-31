@@ -628,7 +628,6 @@ def chooseRHR(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40
 
     # search for end downstream
     while meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds and endRHR-startRHR <= lengthRHR[2] and endRHR < len(geneGB.origin)-1: # while no suitable end region found, still within max length of RHR, and still inside gene file,
-        print [endRHR, len(geneGB.origin)]
         endRHR += 1; # shift endRHR downstream
 
     # if not found downstream
