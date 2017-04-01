@@ -47,6 +47,8 @@ def processErrorFiles(dirPath):
 for file in *.txt; do echo ':::' >> "$file"; done
 cat Mess* >> msgs.txt
 ###
+for f in *.txt; do mv -- "$f" "${f%.txt}_Cas9.txt"; done
+###
 from py.ProcessOutput import *
 o=createOutputSummaryTable('msgs/')
 '''

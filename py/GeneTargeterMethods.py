@@ -548,16 +548,16 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
     # Now we optimize the resulting LHR by adjusting start sequence around the given range
     searchIndexes = [int(startLHR+optimizeRange[0]), int(startLHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better start point.
     for i in range(searchIndexes[0], searchIndexes[1]): # iterates across optimization range
-        if meltingTemp(geneGB.origin[i:(i+endsLength)]) > meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) and lengthLHR[0] >= endLHR-i >= lengthLHR[2]: # if this start point has a better Tm and is still within bounds,
-            startLHR = i; # make this the starting position
+        if i >= endsLength: # if inside gene file,
+            if meltingTemp(geneGB.origin[i:(i+endsLength)]) > meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) and lengthLHR[0] >= endLHR-i >= lengthLHR[2]: # if this start point has a better Tm and is still within bounds,
+                startLHR = i; # make this the starting position
 
 
 
     searchIndexesEnd = [int(endLHR+optimizeRange[0]), int(endLHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better end point.
     for i in range(searchIndexesEnd[0], searchIndexesEnd[1]): # iterates across optimization range
-        if i >= endsLength: # if inside gene file,
-            if meltingTemp(geneGB.origin[(i-endsLength):i]) > meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) and lengthLHR[2] >= i-startLHR >= lengthLHR[0] and i < gRNAUpstream.index[0]: # if this start point has a better Tm and is still within bounds and before gRNA,
-                startRHR = i; # make this the starting position
+        if meltingTemp(geneGB.origin[(i-endsLength):i]) > meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) and lengthLHR[2] >= i-startLHR >= lengthLHR[0] and i < gRNAUpstream.index[0]: # if this start point has a better Tm and is still within bounds and before gRNA,
+            endLHR = i; # make this the ending position
 
 
 
