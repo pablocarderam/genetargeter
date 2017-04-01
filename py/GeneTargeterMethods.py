@@ -516,25 +516,39 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
         failSearchEnd = True; # changes failSearchEnd status
         log = log + "\nWarning: No LHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the last " + str(endsLength) + " bp of LHR, \nwith a max distance of " + str(maxDistanceFromGRNA) + " bp between end of LHR and gRNA. \nDefaulted to ending right before start of gRNA most upstream." + "\n"; # give a warning
 
-    # Then search for start region; modify end region if necessary
-    while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and gRNAUpstream.index[0]-endLHR <= maxDistanceFromGRNA: # if no start region has been found and still within max distance from gRNA,
-        # find new end region if necessary
-        while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR <= maxDistanceFromGRNA and not failSearchEnd: # while no suitable end region found, still within max distance from gRNA, and the search for a suitable end region hasn't failed yet,
+    # search for start upstream
+    while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR <= lengthLHR[2] and startLHR > 0: # while no suitable end region found, still within max length of LHR, and still inside gene file,
+        startLHR -= 1; # shift startLHR upstream
+
+    # if not found downstream
+    if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR > lengthLHR[2]: # if no end region found this way,
+        startLHR = endLHR - lengthLHR[1]; # return to preferred position
+        # search downstream
+        while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR >= lengthLHR[0]: # while no suitable start region found and still within min length of LHR,
+            startLHR += 1; # shift startLHR downstream
+
+
+    if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and gRNAUpstream.index[0]-endLHR <= maxDistanceFromGRNA: # if still not found and within bounds,
+        # Then modify start region, search for end region;
+        while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and gRNAUpstream.index[0]-endLHR <= maxDistanceFromGRNA: # if no start region has been found and still within max distance from gRNA,
             endLHR -= 1; # shift endLHR upstream
 
-        # search for starts upstream
-        while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR <= lengthLHR[2] and startLHR > 0: # while no suitable start region found and still within max length of LHR and inside gene file,
-            startLHR -= 1; # shift startLHR upstream
+            # find new end region if necessary
+            while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR <= maxDistanceFromGRNA and not failSearchEnd: # while no suitable end region found, still within max distance from gRNA, and the search for a suitable end region hasn't failed yet,
+                endLHR -= 1; # shift endLHR upstream
 
-        # if not found upstream
-        if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR > lengthLHR[2]: # if no start region found this way,
-            startLHR = endLHR - lengthLHR[1]; # return to preferred position
-            # search downstream
-            while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR >= lengthLHR[0]: # while no suitable start region found and still within min length of LHR,
-                startLHR += 1; # shift startLHR downstream
+            # search for starts upstream
+            while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR <= lengthLHR[2] and startLHR > 0: # while no suitable start region found and still within max length of LHR and inside gene file,
+                startLHR -= 1; # shift startLHR upstream
 
-        if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds: # if still not found
-            endLHR -= 1; # shifts end of LHR upstream
+            # if not found upstream
+            if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR > lengthLHR[2]: # if no start region found this way,
+                startLHR = endLHR - lengthLHR[1]; # return to preferred position
+                # search downstream
+                while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR >= lengthLHR[0]: # while no suitable start region found and still within min length of LHR,
+                    startLHR += 1; # shift startLHR downstream
+
+
 
 
     if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and gRNAUpstream.index[0]-endLHR > maxDistanceFromGRNA: # if no suitable start region found,
