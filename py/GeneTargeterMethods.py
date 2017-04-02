@@ -708,7 +708,7 @@ restriction sites given as parameters. Checks that gRNA recoded sequence has a
 pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
-def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], codonSampling=False, offScoreThreshold=5, minGCEnd5Prime=0.4):
+def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], codonSampling=False, offScoreThreshold=5, minGCEnd5Prime=0.375):
     #TODO: debug, especially off-target score threshold
     if offTargetMethod == "hsu": # if off-target scoring with Hsu scores
         offScoreThreshold = 1; # set threshold to 1%
@@ -733,17 +733,19 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
         if len(recodeSeq) > 2: # if recodeSeq contains at least one codon,
             tricky = False; # True if suspected to be hard to synthesize
             badStart = False; # True if first bases have low melting temp (important for Gibson assembly)
+            candidateFound = False; # signal possible candidate found
             bestRecodedSeq = recodedSeq; # will store best candidate sequence
             while cutCheck > -2*len(cutSeqs) or offScore > offScoreThreshold or tricky or badStart: # while cutCheck is greater than what you would expect for no hits in all cut sequences plus the gRNAs on both positive and comp strands, or while the pairwise off-target score is over the threshold, or while there are difficult-to-synthesize structures in the recoded region, or while the first 40 bp have a bad gc content
                 if count > 0: # if recoded region has failed checks once,
                     codonSampling = True; # forces codonSampling to true if so
 
                 cutCheck = 0; # reset cutCheck
+                offScore = 0; # reset offScore
                 tricky = False; # reset tricky Boolean
                 badStart = False; # reset badStart Boolean
                 recodedSeq = optimizeCodons(recodeSeq,orgCodonTable,codonSampling=codonSampling); # optimize codons.
                 for g in gRNAs: # for every gRNA candidate within recoded region,
-                    if g.index[0] >= startRecode and g.index[1] < endRecode: # if grna is inside recoded region
+                    if g.index[0] >= startRecode and g.index[1] <= endRecode: # if grna is inside recoded region
                         gOnSeq = g.seq; # get original gRNA sequence
                         gOffSeq = recodedSeq[g.index[0]-startRecode:g.index[1]-startRecode]; # get recoded sequence that used to be gRNA
                         gNewPAM = ""; # will store new PAM sequence
@@ -760,11 +762,15 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
                                 gNewPAM = revComp(recodedSeq[g.index[1]-startRecode:g.index[1]-startRecode+4]); # retrieve PAM downstream of gRNA sequence, on comp strand
 
                         if offTargetMethod == "cfd": # if using cfd,
-                            offScore = pairScoreCFD(gOnSeq,gOffSeq,gNewPAM,pamType); # calculate pairwise off-target score
+                            offScore = max(offScore,pairScoreCFD(gOnSeq,gOffSeq,gNewPAM,pamType)); # calculate pairwise off-target score
                         elif offTargetMethod == "hsu": # if using hsu,
-                            offScore = pairScoreHsu(gOnSeq,gOffSeq,gNewPAM,pamType); # calculate pairwise off-target score
+                            offScore = max(offScore,pairScoreHsu(gOnSeq,gOffSeq,gNewPAM,pamType)); # calculate pairwise off-target score
 
-                        #print [gOnSeq,gOffSeq,offScore]#REMOVE
+                        print [gOnSeq,gOffSeq,offScore]#REMOVE
+
+                    else: # if gRNA is not entirely contained,
+                        offScore = max(offScore,0); # assume recoded
+
 
                 for site in cutSeqs: # for every cut site being filtered,
                     cutCheck += findFirst(site,recodedSeq); # Find cut site, register in cutCheck
@@ -786,12 +792,17 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
                 if gcContent(recodedSeq[0:40]) < minGCEnd5Prime: # if the first bases don't have enough gc content
                     badStart = True;
 
-                if not tricky and offScore < offScoreThreshold and cutCheck <= -2*len(cutSeqs) and gcContent(recodedSeq[0:40]) > gcContent(bestRecodedSeq[0:40]): # if parameters other than badStart are ok and this sequence has better start than previous best,
-                    bestRecodedSeq = recodedSeq; # make this new best
+                if not tricky and offScore <= offScoreThreshold and cutCheck <= -2*len(cutSeqs): # if parameters other than badStart are ok and this sequence has better start than previous best,
+                    if not candidateFound: # if no candidate found until now,
+                        bestRecodedSeq = recodedSeq; # make this new best
+                    elif gcContent(recodedSeq[0:40]) > gcContent(bestRecodedSeq[0:40]):
+                        bestRecodedSeq = recodedSeq; # make this new best
+
+                    candidateFound = True; # signal possible candidate found
 
                 count += 1; # advances iteration counter
                 if count > 10000: # if out of iteration limit,
-                    if not tricky and not badStart: # if due to different error,
+                    if not candidateFound: # if no candidate without cut sequences found,
                         log = log + "\nWarning: Recoded region for gene " + gene.label + " could not reshuffle gRNA cut sites enough to fulfill the maximum off-target score threshold, or contains at least one of the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
 
                     break; # escape loop
