@@ -110,7 +110,6 @@ def createOutputSummaryTable(dirPath):
                         results[enzymeMod+1] = "-";
                         results[enzymeMod+2] = "-";
                         results[enzymeMod+3] = "-";
-                        results[enzymeMod+4] = "-";
                         results[enzymeMod+5] = "0";
                     elif l.find("No gene annotations") > -1:
                         results[enzymeMod+1] = "Error";
