@@ -258,13 +258,13 @@ as parameters.
 def pairScoreCFD(gOn,gOff,pamSeq,pamType):
     wt_list = list(gOn); # convert strings to lists
     s_list = list(gOff);
-    pam = pamSeq;
+    pam = pamSeq[1:3];
     score = 1;
     for i,sl in enumerate(s_list): # for every base in the off-target gRNA,
         if wt_list[i] == sl: # if bases are equal,
             score *= 1; # don't modify score
-        else: # if not,
-            key = 'r'+wt_list[i]+':d'+revcom(sl)+','+str(i+1); # construct a key to access score penalty at this position for this mismatch
+        elif i < 20: # if not,
+            key = 'r'+transcribe(wt_list[i])+':d'+revcom(sl)+','+str(i+1); # construct a key to access score penalty at this position for this mismatch
             score *= mm_scores[key]; # modify score
 
 

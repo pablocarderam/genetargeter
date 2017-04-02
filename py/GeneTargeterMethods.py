@@ -708,7 +708,7 @@ restriction sites given as parameters. Checks that gRNA recoded sequence has a
 pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
-def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], codonSampling=False, offScoreThreshold=5, minGCEnd5Prime=0.375):
+def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375):
     #TODO: debug, especially off-target score threshold
     if offTargetMethod == "hsu": # if off-target scoring with Hsu scores
         offScoreThreshold = 1; # set threshold to 1%
@@ -730,6 +730,7 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
         offScore = 100; # stores off-target score. Default is 100% due to the fact that gRNA sequence is the same.
         count = 0; # iteration counter
         recodedSeq = recodeSeq; # assign recoded sequence to same as original
+        bestRecodedSeq = recodedSeq; # will store best candidate sequence
         if len(recodeSeq) > 2: # if recodeSeq contains at least one codon,
             tricky = False; # True if suspected to be hard to synthesize
             badStart = False; # True if first bases have low melting temp (important for Gibson assembly)
@@ -750,23 +751,38 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
                         gOffSeq = recodedSeq[g.index[0]-startRecode:g.index[1]-startRecode]; # get recoded sequence that used to be gRNA
                         gNewPAM = ""; # will store new PAM sequence
                         if pamType == "NGG": # if using NGG PAM,
-                            if not g.comp: # if on positive strand,
-                                gNewPAM = recodedSeq[g.index[1]-startRecode:g.index[1]-startRecode+3]; # retrieve PAM downstream of gRNA sequence
-                            else: # if on negative strand,
-                                gNewPAM = revComp(recodedSeq[g.index[0]-startRecode-3:g.index[0]-startRecode]); # retrieve PAM upstream of gRNA sequence, on comp strand
+                            if  (g.index[1]+3 >= endRecode and not g.comp) or (g.index[0]-3 >= startRecode and g.comp): # if PAM is within recoded region,
+                                if not g.comp: # if on positive strand,
+                                    gNewPAM = recodedSeq[g.index[1]-startRecode:g.index[1]-startRecode+3]; # retrieve PAM downstream of gRNA sequence
+                                else: # if on negative strand,
+                                    gNewPAM = revComp(recodedSeq[g.index[0]-startRecode-3:g.index[0]-startRecode]); # retrieve PAM upstream of gRNA sequence, on comp strand
+
+                            else: # if outside recoded region,
+                                if not g.comp: # if on positive strand,
+                                    gNewPAM = geneGB.origin[g.index[1]:g.index[1]+3]; # will store new PAM sequence
+                                else: # if on comp strand,
+                                    gNewPAM = revComp(geneGB.origin[g.index[0]-3:g.index[0]]); # will store new PAM sequence
+
 
                         elif pamType == "TTTV": # if using TTTV PAM,
-                            if not g.comp: # if on positive strand,
-                                gNewPAM = recodedSeq[g.index[0]-startRecode-4:g.index[0]-startRecode]; # retrieve PAM upstream of gRNA sequence
-                            else: # if on negative strand,
-                                gNewPAM = revComp(recodedSeq[g.index[1]-startRecode:g.index[1]-startRecode+4]); # retrieve PAM downstream of gRNA sequence, on comp strand
+                            if (g.index[1]+4 >= endRecode and g.comp) or (g.index[0]-4 >= startRecode and not g.comp): # if PAM is inside recoded region,
+                                if not g.comp: # if on positive strand,
+                                    gNewPAM = recodedSeq[g.index[0]-startRecode-4:g.index[0]-startRecode]; # retrieve PAM upstream of gRNA sequence
+                                else: # if on negative strand,
+                                    gNewPAM = revComp(recodedSeq[g.index[1]-startRecode:g.index[1]-startRecode+4]); # retrieve PAM downstream of gRNA sequence, on comp strand
+
+                            else: # if outside recoded region,
+                                if g.comp: # if on comp strand,
+                                    gNewPAM = geneGB.origin[g.index[1]:g.index[1]+3]; # will store new PAM sequence
+                                else: # if on positive strand,
+                                    gNewPAM = revComp(geneGB.origin[g.index[0]-3:g.index[0]]); # will store new PAM sequence
+
 
                         if offTargetMethod == "cfd": # if using cfd,
                             offScore = max(offScore,pairScoreCFD(gOnSeq,gOffSeq,gNewPAM,pamType)); # calculate pairwise off-target score
                         elif offTargetMethod == "hsu": # if using hsu,
                             offScore = max(offScore,pairScoreHsu(gOnSeq,gOffSeq,gNewPAM,pamType)); # calculate pairwise off-target score
 
-                        print [gOnSeq,gOffSeq,offScore]#REMOVE
 
                     else: # if gRNA is not entirely contained,
                         offScore = max(offScore,0); # assume recoded
@@ -801,7 +817,7 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
                     candidateFound = True; # signal possible candidate found
 
                 count += 1; # advances iteration counter
-                if count > 10000: # if out of iteration limit,
+                if count > 6000: # if out of iteration limit,
                     if not candidateFound: # if no candidate without cut sequences found,
                         log = log + "\nWarning: Recoded region for gene " + gene.label + " could not reshuffle gRNA cut sites enough to fulfill the maximum off-target score threshold, or contains at least one of the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
 
