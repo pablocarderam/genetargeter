@@ -63,7 +63,7 @@ def createOutputSummaryTable(dirPath):
         for f in filenames:
             geneName = f[13:26];
             msg = "\n".join(loadSeqs(dirPath+f));
-            results = [""]*10;
+            results = [""]*12;
             if geneName in geneResults:
                 results = geneResults[geneName];
 
@@ -71,7 +71,7 @@ def createOutputSummaryTable(dirPath):
             if msg.find("Cas9") > -1:
                 enzymeMod = 0;
             elif msg.find("Cpf1") > -1:
-                enzymeMod = 5;
+                enzymeMod = 6;
 
 
             status = "Success";
@@ -83,6 +83,7 @@ def createOutputSummaryTable(dirPath):
             results[enzymeMod] = status;
             for i in range(4):
                 results[i+enzymeMod+1] = "Success";
+                results[enzymeMod+5] = "0";
 
             lines = msg.split("\n");
             for l in lines:
@@ -106,25 +107,42 @@ def createOutputSummaryTable(dirPath):
                         results[enzymeMod+3] = "Error";
                     elif l.find("gRNA") > -1:
                         results[enzymeMod+4] = "Error";
+                        results[enzymeMod+1] = "-";
+                        results[enzymeMod+2] = "-";
+                        results[enzymeMod+3] = "-";
+                        results[enzymeMod+4] = "-";
+                        results[enzymeMod+5] = "0";
                     elif l.find("No gene annotations") > -1:
                         results[enzymeMod+1] = "Error";
                         results[enzymeMod+2] = "Error";
                         results[enzymeMod+3] = "Error";
                         results[enzymeMod+4] = "Error";
+                        results[enzymeMod+5] = "0";
+
+
+                if l.find("Recoded region with size ") > -1:
+                    results[enzymeMod+5] = l[l.find("Recoded region with size ")+len("Recoded region with size "):l.find(" for gene ")];
+                elif l.find("Recoded region not deemed necessary") > -1:
+                    results[enzymeMod+5] = "0";
 
 
             geneResults[geneName] = results;
 
 
-    tabStr = "Gene_ID,Cas9_Status,Cas9_LHR,Cas9_gBlock,Cas9_RHR,Cas9_gRNA,Cpf1_Status,Cpf1_LHR,Cpf1_gBlock,Cpf1_RHR,Cpf1_gRNA,Enzyme_recommended\n";
+    tabStr = "Gene_ID,Cas9_Status,Cas9_LHR,Cas9_gBlock,Cas9_RHR,Cas9_gRNA,Cas9_gBlock_size,Cpf1_Status,Cpf1_LHR,Cpf1_gBlock,Cpf1_RHR,Cpf1_gRNA,Cpf1_gBlock_size,Enzyme_recommended\n";
     for g in geneResults:
         bestOption = "Cas9";
-        if geneResults[g][0:4].count("Error") > 0 and geneResults[g][4:8].count("Error") > 0:
+        if geneResults[g][0:5].count("Error") > 0 and geneResults[g][6:11].count("Error") > 0:
             bestOption = "None";
-        elif geneResults[g][0:4].count("Success") < geneResults[g][4:8].count("Success") and geneResults[g][4:8].count("Error") == 0:
+        elif geneResults[g][0:5].count("Success") < geneResults[g][6:11].count("Success") and geneResults[g][6:11].count("Error") == 0:
             bestOption = "Cpf1";
-        elif geneResults[g][0:4].count("Success") == geneResults[g][4:8].count("Success"):
-            bestOption = "Either";
+        elif geneResults[g][0:5].count("Success") == geneResults[g][6:11].count("Success"):
+            if int(geneResults[g][5]) < int(geneResults[g][11]):
+                bestOption = "Cas9";
+            elif int(geneResults[g][5]) > int(geneResults[g][11]):
+                bestOption = "Cpf1";
+            else:
+                bestOption = "Either";
 
         geneResults[g].append(bestOption);
         tabStr = tabStr + g + "," + ",".join(geneResults[g]) + "\n";

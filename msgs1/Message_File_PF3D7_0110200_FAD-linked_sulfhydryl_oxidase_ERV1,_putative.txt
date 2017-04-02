@@ -1,0 +1,39 @@
+ **** Message log for PF3D7_0110200_FAD-linked_sulfhydryl_oxidase_ERV1,_putative-targeting construct based on plasmid pSN054_V5 **** 
+
+Choosing gRNA with PAM sequence NGG for use with enzyme Cas9
+2 acceptable gRNAs were selected automatically on gene PF3D7_0110200_FAD-linked_sulfhydryl_oxidase_ERV1,_putative. 
+gRNA 1 has GC content of 35.0%, on-target score of 44.4788535351, 
+and aggregated off-target score of 85.469223 (Method: cfd, Max. Hit Score: 17.001181, Num. hits: 1).
+4 backup gRNAs with possible off-target effects annotated.
+
+LHR for gene PF3D7_0110200_FAD-linked_sulfhydryl_oxidase_ERV1,_putative selected.
+
+RHR for gene PF3D7_0110200_FAD-linked_sulfhydryl_oxidase_ERV1,_putative selected.
+
+
+Warning: Recoded region for gene PF3D7_0110200_FAD-linked_sulfhydryl_oxidase_ERV1,_putative could not reshuffle gRNA cut sites enough to fulfill the maximum off-target score threshold, or contains at least one of the following cut sequences: 
+['ggccggcc', 'gcgatcgc', 'ctctcttaaggtagc', 'attaccctgttatcccta', u'GATCAACCAAGAAATTGGTA', u'AACATGATCAACCAAGAAAT', u'TAAGGACCTTTTCCCATGTC', u'TCGTTTGTATATCCTGACAT', u'GTATATCCTGACATGGGAAA', u'AAAGGTCCTTACCAATTTCT']
+
+
+Recoded region with size 179 for gene PF3D7_0110200_FAD-linked_sulfhydryl_oxidase_ERV1,_putative selected.
+
+gBlock for part PF3D7_0110200_FAD-linked_sulfhydryl_oxidase_ERV1,_putative Recoded Region selected.
+
+Primers for part PF3D7_0110200_FAD-linked_sulfhydryl_oxidase_ERV1,_putative Recoded Region gBlock selected.
+
+
+Warning: Best Gibson rev primer for sequence PF3D7_0110200_FAD-linked_sulfhydryl_oxidase_ERV1,_putative LHR under given constraints has a Tm of 61.6756293447, below the given threshold of 65.0
+Gibson primers for part PF3D7_0110200_FAD-linked_sulfhydryl_oxidase_ERV1,_putative LHR selected.
+
+Gibson primers for part PF3D7_0110200_FAD-linked_sulfhydryl_oxidase_ERV1,_putative RHR selected.
+
+Klenow oligos for part PF3D7_0110200_FAD-linked_sulfhydryl_oxidase_ERV1,_putative gRNA selected.
+
+
+Found LHR annotation for locus editing.
+
+Found RHR annotation for locus editing.
+
+Edited locus (genomic context) file built.
+
+Vector constructed and written to file. End of process.
