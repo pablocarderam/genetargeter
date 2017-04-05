@@ -824,6 +824,7 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
                     break; # escape loop
 
 
+                #print [gOnSeq+"NGG",gOffSeq+gNewPAM,pairScoreCFD(gOnSeq,gOffSeq,gNewPAM,pamType),pairScoreHsu(gOnSeq,gOffSeq,gNewPAM,pamType)]
 
         recodedSeq = geneGB.origin[LHR.index[1]:LHR.index[1]+frame] + bestRecodedSeq; # adds initial bases from reading frame adjustment to best candidate
         annRecoded = GenBankAnn(gene.label + " Recoded", "misc_feature", recodedSeq, False, [startRecode,endRecode]); # creates var to store finished recodedSeq as annotation

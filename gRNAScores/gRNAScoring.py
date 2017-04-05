@@ -256,9 +256,9 @@ Both gRNAs must be same-sense 20-mers, with the PAM type and sequence specified
 as parameters.
 '''
 def pairScoreCFD(gOn,gOff,pamSeq,pamType):
-    wt_list = list(gOn); # convert strings to lists
-    s_list = list(gOff);
-    pam = pamSeq[1:3];
+    wt_list = list(gOn.upper()); # convert strings to lists
+    s_list = list(gOff.upper());
+    pam = pamSeq[1:3].upper();
     score = 1;
     for i,sl in enumerate(s_list): # for every base in the off-target gRNA,
         if wt_list[i] == sl: # if bases are equal,
