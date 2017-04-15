@@ -15,6 +15,7 @@ from copy import deepcopy; # Import object copying methods for deep copies
 from BioUtils import *; # Imports utils
 from GenBankToolbox import *; # Imports utils
 import os; # needed for file handling
+import operator; # Needed for sorting
 from gRNAScores.gRNAScoring import * # import methods for gRNA scoring
 
 #### Constants ####
@@ -24,8 +25,10 @@ cut_AsiSI = "gcgatcgc"; # AsiSI cut site
 cut_IPpoI = "ctctcttaaggtagc"; # I-PpoI cut site
 cut_ISceI = "attaccctgttatcccta"; # I-SceI cut site
 # Plasmids
-pSN054_V5 = GenBank();
-pSN054_V5.load("input/plasmids/psn054-updated_v5-tagged-jn_final.gb",loadFromFile=True); # load plasmid sequence from GenBank format
+pSN054_V5_Cas9 = GenBank();
+pSN054_V5_Cas9.load("input/plasmids/psn054-updated_v5-tagged-jn_final.gb",loadFromFile=True); # load Cas9 plasmid sequence from GenBank format
+pSN054_V5_Cpf1 = GenBank();
+pSN054_V5_Cpf1.load("input/plasmids/psn054_v5ha-tags_lbcpf1.gb",loadFromFile=True); # load Cpf1 plasmid sequence from GenBank format
 # Codon usage tables
 codonUsageTables = {
     'P. falciparum 3D7': codonUsage('input/codonUsageTables/Pfalciparum3D7.txt'),
@@ -78,7 +81,7 @@ filterCutSites is a list of strings containing cut sequences to be filtered if
 """
 def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="azimuth", minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG"): # cfd, 0.5, 35; hsu, 75, 5
     outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":""}; # dictionary containing keys to all values being returned
-    outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid pSN054_V5 **** \n\n"; # starts message log to file
+    outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid pSN054_V5_"+ enzyme +" **** \n\n"; # starts message log to file
 
     geneGB = GenBank(); # initializes variable to hold gene GenBank object
     if useFileStrs: # if we are using file strings,
@@ -102,7 +105,7 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
 
 
 
-        if HRannotated: # if not using manual annotations
+        if HRannotated: # if using manual annotations
             gRNA = findGRNA(geneGB, gene); # finds gRNA most upstream annotated manually.
             if len(gRNA["out"].label) == 0: # if no manual annotation found,
                 gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme); # chooses gRNA.
@@ -111,6 +114,7 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
             gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme); # chooses gRNA.
 
         outputDic["logFileStr"] = outputDic["logFileStr"] + gRNA["log"]; # add logs
+        outputDic["gRNATable"] = gRNA["gRNATable"]; # saves gRNA output values
         gRNA = gRNA["out"]; # saves actual data
 
         if len(gRNA.label) > 0: # if gRNA found,
@@ -159,11 +163,18 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
 
 
 
-            recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling); # defines region to be recoded, returns recoded sequence
+            recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"]); # defines region to be recoded, returns recoded sequence
             outputDic["logFileStr"] = outputDic["logFileStr"] + recoded["log"]; # add logs
+            outputDic["gRNATable"] = recoded["gRNATable"]; # saves gRNA output values
             recoded = recoded["out"]; # saves actual data
 
-            pSN054_ARMED = insertTargetingElementsPSN054(pSN054_V5, gene.label, gRNA.seq, LHR.seq, recoded.seq, RHR.seq); # inserts targeting elements
+            plasmid = pSN054_V5_Cas9; # stores plasmid map variable
+            if enzyme == "Cas9": # if Cas9,
+                plasmid = pSN054_V5_Cas9; # set plasmid
+            elif enzyme == "Cpf1": # if Cpf1,
+                plasmid = pSN054_V5_Cpf1; # set plasmid
+
+            pSN054_ARMED = insertTargetingElementsPSN054(pSN054_V5_Cas9, gene.label, gRNA.seq, LHR.seq, recoded.seq, RHR.seq); # inserts targeting elements
 
             gRNAOnPlasmid = pSN054_ARMED.findAnnsLabel(gene.label + " gRNA")[0]; # saves gRNA annotation actually on plasmid
             if len(recoded.seq) > 0: # if there actually is a recoded region,
@@ -188,7 +199,7 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
 
                 primerString = primerString + "\n" + geneName + " gBlock primer (fwd)," + primGBlock[0].seq + "\n" + geneName + " gBlock primer (rev)," + primGBlock[1].seq; # write primers to output string
             elif len(recoded.seq) >= gibsonHomRange[0]/2: # if length of recoded region greater or equal to half of minimum size of homology region,
-                outputDic["logFileStr"] = outputDic["logFileStr"] + "\ngBlock deemed not feasible for recoded region of construct targeting gene " + geneName + ", used Klenow instead.\n"; # say so
+                outputDic["logFileStr"] = outputDic["logFileStr"] + "gBlock deemed not feasible for recoded region of construct targeting gene " + geneName + ", used Klenow instead.\n"; # say so
                 klenowRecoded = createKlenowOligos(pSN054_ARMED, recodedOnPlasmid, gibsonHomRange[1]); # creates Klenow oligos
                 outputDic["logFileStr"] = outputDic["logFileStr"] + klenowRecoded["log"]; # add logs
                 klenowRecoded = klenowRecoded["out"]; # saves actual data
@@ -225,11 +236,11 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
             outputDic["logFileStr"] += editedLocus["log"]; # add logs
             editedLocus = editedLocus["out"]; # saves actual data
 
-            outputDic["logFileStr"] = outputDic["logFileStr"] + "\n\nVector constructed and written to file. End of process.\n"; # saves message log to file
+            outputDic["logFileStr"] = outputDic["logFileStr"] + "\nVector constructed and written to file. End of process.\n"; # saves message log to file
             pSN054_ARMED.definition = (pSN054_ARMED.definition + "  " + outputDic["logFileStr"]).replace("\n","   "); # save logs to file definition to be viewed in benchling
 
             outputDic["geneFileStr"] = geneGB.save(path + "/" + geneName + "_Locus_Pre-editing.gb", saveToFile=(not useFileStrs)); # saves annotated gene
-            outputDic["plasmidFileStr"] = pSN054_ARMED.save(path + "/" +  "pSN054_V5_targeting" + geneName, saveToFile=(not useFileStrs)); # saves plasmid
+            outputDic["plasmidFileStr"] = pSN054_ARMED.save(path + "/" +  "pSN054_V5_Cas9_targeting" + geneName, saveToFile=(not useFileStrs)); # saves plasmid
             outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + geneName+"_Locus_Post-editing.gb", saveToFile=(not useFileStrs)); # saves edited locus
             outputDic["oligoFileStr"] = primerString; # saves primers to file
             outputDic["newPlasmid"] = pSN054_ARMED; # saves new plasmid to output dictionary
@@ -249,7 +260,7 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
 
 
 """
-Inserts targeting elements given as arguments into pSN054_V5 at predetermined
+Inserts targeting elements given as arguments into pSN054_V5_Cas9 at predetermined
 sites. Elements given as arguments must be strings, not GenBankAnn objects.
 The gRNA, LHR and RHR given must be in 5' to 3' sense and in the
 positive strand and must not contain RE cut sites cut_FseI, cut_AsiSI,
@@ -307,6 +318,7 @@ gRNA: guide RNA used by CRISPR enzyme.
 """
 def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True, minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
     log = "Choosing gRNA with PAM sequence " + PAM + " for use with enzyme " + enzyme; # init log
+    gRNATable = []; # will store information on each gRNA evaluated. Format: Label, Status, Enzyme, Position, Strand, GC_content, On-target_score, On-target_method, Aggregated_off-target_score, Max_pairwise_off-target_score, Off-target_method, >9_consecutive_A/T, Homopolymer, Triple_T, Sequence, Recoded_sequence, Recoded_sequence_pairwise_off-target_score
     gene = geneGB.findAnnsLabel(gene.label)[0]; # stores gene annotation
     gRNAs = []; # list of GenBankAnn objects for gRNAs.
     backupGRNAs = []; # stores gRNAs that fail off-target score as possible backups
@@ -350,21 +362,50 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
                 pamSeq = extGRNASeq[pamIndexes[0]:pamIndexes[1]]; # stores PAM sequence
                 gRNASeq = extGRNASeq[realGRNASeqIndexes[0]:realGRNASeqIndexes[1]]; # store actual gRNA seq without PAM
                 gc = gcContent(gRNASeq); # store gc content
+                strandString = '+'; # stores string denoting strand orientation
+                if comp: # if on opposite strand,
+                    strandString = '-'; # save that info
+
+                gRNATable.append(['Unlabeled','Rejected (low GC content)',enzyme,str(gRNAIndexes).replace(',',' to'),strandString,str(gc),'Not evaluated',onTargetMethod,'Not evaluated','Not evaluated',offTargetMethod,str(findFirst(gRNASeq.replace('T','A'),"AAAAAAAAAA") > -1),'Not evaluated','Not evaluated',gRNASeq,'Not recoded','-']); # starts storing info
                 if gc >= minGCContent and findFirst(gRNASeq.replace('T','A'),"AAAAAAAAAA") < 0: # if gc content is acceptable and does not contain 10 or more consecutive As or Ts,
                     onTarget = onTargetScore(extGRNASeq,onTargetMethod); # store on-target score
+                    gRNATable[len(gRNATable)-1][1] = 'Rejected (low on-target score)'; # Edit this gRNA's status
+                    gRNATable[len(gRNATable)-1][6] = str(onTarget); # Edit this gRNA's on-target score
                     if onTarget > minOnTargetScore: # if on-target score is passable,
                         offTargetScores = offTargetScore(gRNASeq,offTargetMethod,enzyme,pamSeq,PAM); # store off-target score
+
                         newGRNA = GenBankAnn(gene.label + " " + enzyme + " gRNA ","misc",gRNASeq,comp,gRNAIndexes); # create annotation object with gRNA information
                         newGRNA.onTarget = onTarget; # Add on-target score as attribute
                         newGRNA.offTarget = offTargetScores; # Add off-target scores as attribute
                         newGRNA.gc = gc; # Add gc content as attribute
-                        newGRNA.homopolymer = ( findFirst(gRNASeq,"AAAA") > 0 or findFirst(gRNASeq,"TTTT") > 0 or findFirst(gRNASeq,"CCCC") > 0 or findFirst(gRNASeq,"GGGG") > 0 ); # 4-homopolymers are bad https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-017-1581-4
+                        newGRNA.homopolymer = (findFirst(gRNASeq,"AAAA") > 0 or findFirst(gRNASeq,"TTTT") > 0 or findFirst(gRNASeq,"CCCC") > 0 or findFirst(gRNASeq,"GGGG") > 0 ); # 4-homopolymers are bad https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-017-1581-4
                         newGRNA.tripleT = (findFirst(gRNASeq,"TTT") > 0); # Triple Ts (triple Us) are bad because they're an RNApol stop codon https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-017-1581-4
+
+                        gRNATable[len(gRNATable)-1][1] = 'Possible backup (low aggregate off-target)'; # Edit this gRNA's status
+                        gRNATable[len(gRNATable)-1][8] = str(offTargetScores[0]); # Edit this gRNA's aggregate off-target score
+                        gRNATable[len(gRNATable)-1][9] = str(offTargetScores[1]); # Edit this gRNA's max pairwise off-target score
+                        gRNATable[len(gRNATable)-1][12] = str(newGRNA.homopolymer); # Edit this gRNA's homopolymer
+                        gRNATable[len(gRNATable)-1][13] = str(newGRNA.tripleT); # Edit this gRNA's tripleT
+                        gRNATable[len(gRNATable)-1][15] = 'No recoded region necessary'; # Edit this gRNA's recoded status
+
                         if offTargetScores[0] >= minOffTargetScore and offTargetScores[1] <= maxOffTargetHitScore and not newGRNA.homopolymer and not newGRNA.tripleT: # if total off-target score and max hit score are passable, and if no homopolymer or triple T
                             gRNAs.append(newGRNA); # add this gRNA's information to list.
+                            gRNATable[len(gRNATable)-1][1] = 'Valid'; # Edit this gRNA's status
                         else: # if failed off-target score culling.
                             newGRNA.label = newGRNA.label + "(backup)"; # notify backup on label
                             backupGRNAs.append(newGRNA); # add this gRNA's information to backup list.
+                            if offTargetScores[1] > maxOffTargetHitScore: # if failed max pairwise off-target check,
+                                gRNATable[len(gRNATable)-1][1] = 'Possible backup (high max pairwise off-target)'; # Edit this gRNA's status
+                            elif newGRNA.homopolymer: # if failed max pairwise off-target check,
+                                gRNATable[len(gRNATable)-1][1] = 'Possible backup (homopolymer)'; # Edit this gRNA's status
+                            elif newGRNA.tripleT: # if failed max pairwise off-target check,
+                                gRNATable[len(gRNATable)-1][1] = 'Possible backup (triple T)'; # Edit this gRNA's status
+
+
+
+                elif gc > minGCContent : # if rejected due to low gc,
+                        gRNATable.append(['Unlabeled','Rejected (>9 consecutive A/Ts)',enzyme,str(gRNAIndexes).replace(',',' to'),strandString,str(gc),'Not evaluated',onTargetMethod,'Not evaluated','Not evaluated',offTargetMethod,str(findFirst(gRNASeq.replace('T','A'),"AAAAAAAAAA") > -1),'Not evaluated','Not evaluated',gRNASeq,'Not recoded','-']); # starts storing info
+
 
 
 
@@ -372,20 +413,23 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
 
             i -= 1; # advance indexer
 
+        inUTR = False; # will be used to explain status in table
+
         if len(gRNAs) == 0: # if no gRNAs found,
             log = log + "\nWarning: no acceptable gRNA with at least " + str(minGCContent*100) + "% GC content, " + str(minOnTargetScore) + " on-target score, " + str(minOffTargetScore) + " off-target total score, no 4-homopolymer sequences, and no TTT sequences found on gene " + gene.label + ".\n" + "Will use backup gRNA with highest GC content, if there are any backups."; # add warning to log
         else: # if gRNAs found,
             newList = []; # new list will only contain gRNAs within acceptable range
             if gRNAs[0].index[0] > gene.index[1]-3: # if most downstream gRNA starts after start of stop codon,
+                inUTR = True; # note downstream gRNA is in UTR
                 for g in gRNAs: # loop through gRNAs
-                    if g.index[0] > gene.index[1]-3 and gRNAs[0].index[0] - g.index[0] < maxDistanceBetweenGRNAS: # if this gRNA is still in the 3' UTR or stop codon and is within the max distance from the most downstream gRNA,
+                    if g.index[0] > gene.index[1]-3: # if this gRNA is still in the 3' UTR or stop codon,
                         newList.append(g); # add it to the new list
 
 
 
             else: # if most downstream gRNA is upstream of stop codon,
                 for g in gRNAs: # loop through gRNAs
-                    if gRNAs[0].index[0] - g.index[0] < maxDistanceBetweenGRNAS: # if this gRNA is within the max distance from the most downstream gRNA
+                    if gRNAs[0].index[0] - g.index[0] <= maxDistanceBetweenGRNAS: # if this gRNA is within the max distance from the most downstream gRNA
                         newList.append(g); # add it to the new list
 
 
@@ -410,10 +454,12 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
 
     geneGB.features = geneGB.features + gRNAs; # add gRNAs to gene GenBank object features list
     countBackups = 0; # counts how many backup gRNAs are included
+    allGRNAS = gRNAs; # will store both valid and backup gRNAs
     if len(gRNAs) > 0: # if there is at least one gRNA
         for g in backupGRNAs: # for every possible backupGRNAs
             if g.index[0] > gRNAUpstream.index[0]: # if this backup is downstream of most upstream gRNA,
                 geneGB.features.append(g); # add to features list
+                allGRNAS.append(g); # add to full gRNA list
                 countBackups +=1; # advances counter
 
 
@@ -421,17 +467,85 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
         maxGC = 0; # will track max gc content of gRNA
         for g in backupGRNAs: # for every possible backupGRNAs
             geneGB.features.append(g); # add to features list
+            allGRNAS.append(g); # add to full gRNA list
             countBackups +=1; # advances counter
             if g.gc >= maxGC: # if this gRNA has a greater or equal GC content,
                 gRNAUpstream = g; # set as most upstream gRNA
 
 
 
+    for gArr in gRNATable: # loop over all gRNAs in table
+        found = False; # determine whether the gRNA is in labeled list
+        for g in allGRNAS: # loop over list of labeled gRNAs
+            if gArr[14] == g.seq: # if not included in annotations
+                found = True; # set found to True
+                break; # break inner loop
+
+
+        if not found: # if not included in annotations
+            gArr[15] = 'Not recoded'; # Edit this gRNA's recoded status
+            if gArr[1][0:8] == "Rejected": # if status is rejected,
+                gArr[1] = gArr[1] + " unlabeled (due to rejection)"; # Add unlabeled explanation to status
+            else: # if not rejected,
+                if inUTR: # if downstream gRNA in UTR
+                    gArr[1] = gArr[1] + " unlabeled (lead gRNA in UTR and this one in gene)"; # Add unlabeled explanation to status
+                else: # if downstream gRNA in gene,
+                    gArr[1] = gArr[1] + " unlabeled (more than " + str(maxDistanceBetweenGRNAS) + " bp upstream of lead gRNA)"; # Add unlabeled explanation to status
+
+
+
+
+    for g in allGRNAS: # for every gRNA annotated
+        for gArr in gRNATable: # find this gRNA in table
+            if g.seq == gArr[14]: # if the sequence is the same,
+                gArr[0] = g.label.replace(',',' '); # add this label to this row
+
+
+
+
+    gRNATableNew = []; # will store new ordered list
+    for g in gRNATable: # loop over list,
+        if g[1][0:5] == "Valid": # if status is valid
+            gRNATableNew.append(g); # add to new list
+
+
+    gRNATableNew = sorted(gRNATableNew,key=operator.itemgetter(0)); # sort according to name (gRNA priority)
+    for g in gRNATable: # loop over list,
+        if g[1][0:14] == "Kept as backup": # if status is Kept as backup
+            gRNATableNew.append(g); # add to new list
+
+
+    for g in gRNATable: # loop over list,
+        if g[1][0:15] == "Possible backup": # if status is Possible backup
+            gRNATableNew.append(g); # add to new list
+
+
+    for g in gRNATable: # loop over list,
+        if g[1][0:23] == "Rejected (low on-target": # if status is Rejected due to on-target
+            gRNATableNew.append(g); # add to new list
+
+
+    for g in gRNATable: # loop over list,
+        if g[1][0:12] == "Rejected (>9": # if status is Rejected due to >9 consecutive A/Ts
+            gRNATableNew.append(g); # add to new list
+
+
+    for g in gRNATable: # loop over list,
+        if g[1][0:16] == "Rejected (low GC": # if status is Rejected due to gc content
+            gRNATableNew.append(g); # add to new list
+
+
+    gRNATableString = "\n".join([",".join(g) for g in gRNATableNew]); # join array into csv string
+    gRNATableString = "Values for rejected gRNAs, Rejected, "+enzyme+", "+str(searchRange[0]+gene.index[side3Prime])+" to "+str(searchRange[1]+gene.index[side3Prime])+", +/-, <" + str(minGCContent) + ", <"+str(minOnTargetScore)+", "+onTargetMethod+", Not evaluated, Not evaluated, -, True, Not evaluated, Not evaluated, -, Not recoded, -\n" + gRNATableString; # Add rejected threshold
+    gRNATableString = "Values for backup gRNAs, Backup, "+enzyme+", "+str(searchRange[0]+gene.index[side3Prime])+" to "+str(searchRange[1]+gene.index[side3Prime])+", +/-, >=" + str(minGCContent) + ", >="+str(minOnTargetScore)+", "+onTargetMethod+", <"+str(minOffTargetScore)+", <"+str(maxOffTargetHitScore)+", "+offTargetMethod+", False, True, True, -, Recoded if upstream of stop codon, >=threshold\n" + gRNATableString; # Add backup threshold
+    gRNATableString = "Values for valid gRNAs, Valid, "+enzyme+", "+str(searchRange[0]+gene.index[side3Prime])+" to "+str(searchRange[1]+gene.index[side3Prime])+", +/-, >=" + str(minGCContent) + ", >="+str(minOnTargetScore)+", "+onTargetMethod+", >="+str(minOffTargetScore)+", >="+str(maxOffTargetHitScore)+", "+offTargetMethod+", False, False, False, -, Recoded if upstream of stop codon, >=threshold\n" + gRNATableString; # Add valid threshold
+    gRNATableString = "Label, Status, Enzyme, Position, Strand, GC_content, On-target_score, On-target_method, Aggregated_off-target_score, Max_pairwise_off-target_score, Off-target_method, >9_consecutive_A/T, Homopolymer, Triple_T, Sequence, Recoded_sequence, Recoded_sequence_pairwise_off-target_score\n" + gRNATableString; # Add column heads
+
     log = log + "\n" + str(countBackups) + " backup gRNAs with possible off-target effects annotated.\n\n"
     if len(backupGRNAs) + len(gRNAs) == 0: # If there were absolutely no gRNAs under these settings,
         log = log + "\n" + "ERROR: no gRNAs found. Please modify your criteria or select and annotate one manually.\n\n"; # say so
 
-    return {"out":gRNAUpstream, "log":log}; # returns gRNA and log
+    return {"out":gRNAUpstream, "log":log, "gRNATable":gRNATableString}; # returns gRNA and log
 
 
 """
@@ -469,8 +583,9 @@ def findGRNA(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISce
         gRNAUpstream.label = gene.label + " gRNA"; # renames gRNA according to this program's convention
 
         log = log + "gRNA for gene " + gene.label + " found on gene.\n\n"; # logs this process finished
+        gRNATableString = "gRNAs not evaluated if they are user-defined.\nIf you want to check their scores, run the gene in automatic mode!\n"; # add disclaimer
 
-    return {"out":gRNAUpstream, "log":log}; # returns gRNA and log
+    return {"out":gRNAUpstream, "log":log, "gRNATable":gRNATableString}; # returns gRNA and log
 
 
 
@@ -708,8 +823,11 @@ restriction sites given as parameters. Checks that gRNA recoded sequence has a
 pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
-def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375):
-    #TODO: debug, especially off-target score threshold
+def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString=""):
+    #TODO: debug, especially off-target score threshold #TODO: Recoded if upstream of stop codon add recode values to table
+    gRNATable = gRNATableString.split('\n'); # split string into lines
+    gRNATable = [g.split(',') for g in gRNATable]; # split each line into values
+
     if offTargetMethod == "hsu": # if off-target scoring with Hsu scores
         offScoreThreshold = 1; # set threshold to 1%
 
@@ -746,9 +864,10 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
                 badStart = False; # reset badStart Boolean
                 recodedSeq = optimizeCodons(recodeSeq,orgCodonTable,codonSampling=codonSampling); # optimize codons.
                 for g in gRNAs: # for every gRNA candidate within recoded region,
-                    if g.index[0] >= startRecode and g.index[1] <= endRecode: # if grna is inside recoded region
+                    if g.index[0] >= startRecode-frame and g.index[1] <= endRecode: # if grna is inside recoded region
                         gOnSeq = g.seq; # get original gRNA sequence
-                        gOffSeq = recodedSeq[g.index[0]-startRecode:g.index[1]-startRecode]; # get recoded sequence that used to be gRNA
+                        wholeRecSeq = geneGB.origin[LHR.index[1]:LHR.index[1]+frame] + recodedSeq; # add initial bases
+                        gOffSeq = wholeRecSeq[g.index[0]-startRecode+frame:g.index[1]-startRecode+frame]; # get recoded sequence that used to be gRNA
                         gNewPAM = ""; # will store new PAM sequence
                         if pamType == "NGG": # if using NGG PAM,
                             if  (g.index[1]+3 >= endRecode and not g.comp) or (g.index[0]-3 >= startRecode and g.comp): # if PAM is within recoded region,
@@ -782,6 +901,12 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
                             offScore = max(offScore,pairScoreCFD(gOnSeq,gOffSeq,gNewPAM,pamType)); # calculate pairwise off-target score
                         elif offTargetMethod == "hsu": # if using hsu,
                             offScore = max(offScore,pairScoreHsu(gOnSeq,gOffSeq,gNewPAM,pamType)); # calculate pairwise off-target score
+
+                        for g in gRNATable: # find this gRNA in table
+                            if g[14] == gOnSeq: # if found,
+                                g[15] = gOffSeq; # store recoded sequence
+                                g[16] = str(offScore); # store recoded sequence's pair score
+
 
 
                     else: # if gRNA is not entirely contained,
@@ -828,12 +953,14 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
 
         recodedSeq = geneGB.origin[LHR.index[1]:LHR.index[1]+frame] + bestRecodedSeq; # adds initial bases from reading frame adjustment to best candidate
         annRecoded = GenBankAnn(gene.label + " Recoded", "misc_feature", recodedSeq, False, [startRecode,endRecode]); # creates var to store finished recodedSeq as annotation
-        log = log + "\nRecoded region with size " + str(len(recodedSeq)) + " for gene " + gene.label + " selected.\n\n"; # logs this process finished
+        log = log + "Recoded region with size " + str(len(recodedSeq)) + " for gene " + gene.label + " selected.\n\n"; # logs this process finished
 
     else: # if no recoded region necessary,
-        log = log + "\nRecoded region not deemed necessary for gene " + gene.label + ".\n\n"; # logs this process finished
+        log = log + "Recoded region not deemed necessary for gene " + gene.label + ".\n\n"; # logs this process finished
 
-    return {"out":annRecoded, "log":log}; # returns recoded region GenBankAnn object
+    gRNATableString = "\n".join([",".join(g) for g in gRNATable]); # Creates string from grna array
+    gRNATableString = gRNATableString.replace(">=threshold",">="+str(offScoreThreshold)); # adds pairwise recoded threshold values
+    return {"out":annRecoded, "log":log, "gRNATable":gRNATableString}; # returns recoded region GenBankAnn object
 
 
 """
@@ -1067,12 +1194,12 @@ def editLocus(geneName, gene, construct):
 
     if len(LHRlist) == 1: # if LHR found,
         LHR = LHRlist[0]; # save first LHR annotation as LHR
-        log = log + "\nFound LHR annotation for locus editing." + "\n"; # add warning to log
+        log = log + "Found LHR annotation for locus editing." + "\n"; # add warning to log
     elif len(LHRlist) == 0: # if no LHR found,
-        log = log + "\nERROR: Did not find LHR annotations, genomic context file could not be built." + "\n"; # add warning to log
+        log = log + "ERROR: Did not find LHR annotations, genomic context file could not be built." + "\n"; # add warning to log
     else:
         LHR = LHRlist[0]; # save first LHR annotation as RHR
-        log = log + "\nWarning: Found multiple LHR annotations, genomic context file built with the first one found." + "\n"; # add warning to log
+        log = log + "Warning: Found multiple LHR annotations, genomic context file built with the first one found." + "\n"; # add warning to log
 
     RHRlistAll = construct.findAnnsLabel("RHR"); # saves RHR annotation
     RHRlist = []; # contain only exact matches
@@ -1083,12 +1210,12 @@ def editLocus(geneName, gene, construct):
 
     if len(RHRlist) == 1: # if LHR found,
         RHR = RHRlist[0]; # save first RHR annotation as RHR
-        log = log + "\nFound RHR annotation for locus editing." + "\n"; # add warning to log
+        log = log + "Found RHR annotation for locus editing." + "\n"; # add warning to log
     elif len(RHRlist) == 0: # if no LHR found,
-        log = log + "\nERROR: Did not find RHR annotations, genomic context file could not be built." + "\n"; # add warning to log
+        log = log + "ERROR: Did not find RHR annotations, genomic context file could not be built." + "\n"; # add warning to log
     else:
         RHR = RHRlist[0]; # save first RHR annotation as RHR
-        log = log + "\nWarning: Found multiple RHR annotations, genomic context file built with the first one found." + "\n"; # add warning to log
+        log = log + "Warning: Found multiple RHR annotations, genomic context file built with the first one found." + "\n"; # add warning to log
 
     startInsertChrom = findFirst(gene.origin, LHR.seq); # find index of insertion start in the chromosomal DNA given
     endInsertChrom = findFirst(gene.origin, RHR.seq) + len(RHR.seq); # find index of insertion end in the chromosomal DNA given
@@ -1110,7 +1237,7 @@ def editLocus(geneName, gene, construct):
             editedLocus.features.append(editedAnn); # adds annotation to edited locus
 
 
-    log += "\nEdited locus (genomic context) file built."; # add log entry
+    log += "Edited locus (genomic context) file built.\n"; # add log entry
 
     return {"out":editedLocus, "log":log}; # return dictionary
 

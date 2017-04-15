@@ -23,7 +23,7 @@
 		<link rel="shortcut icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
 
 		<link rel="stylesheet" href="static/css/style_v2.css">
-		<script src="static/js/main_v5.js"></script>
+		<script src="static/js/main_v6.js"></script>
 		<script src="static/js/EPPZScroll.js"></script>
 	</head>
 
@@ -109,6 +109,15 @@
 								Orientation refers to forward (F) and reverse (R) primers.">format:</a><br>
 
 								Seven Digit Gene Identifier_Oligo type_Orientation
+						</li>
+						<li>
+							<b>a CSV file</b> comparing different possible sgRNAs evaluated
+							by GeneTargeter before making a choice according to a variety of
+							scoring metrics, as well as the corresponding
+							<a class="tooltip"
+							tipTxt="sgRNAs are either excluded or recoded through codon
+							switching in the final design to avoid CRISPR enzyme recutting.">
+							recoded sgRNA</a> for each in the final design.
 						</li>
 						<li>
 							<b>a text file</b> containing a message log and warnings

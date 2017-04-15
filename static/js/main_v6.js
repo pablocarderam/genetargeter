@@ -324,12 +324,13 @@ function displayGeneOutput(files) {
 
 function downloadOutput() {
     var geneName = currentOutput[0];
-    var fileTypes = ["Locus_Pre-editing _","pSN054_V5_","Locus_Post-editing_","Oligos_","Message_File_"];
-    var fileExt = [".gb",".gb",".gb",".csv",".txt"];
+    var fileTypes = ["Locus_Pre-editing _","pSN054_V5_","Locus_Post-editing_","Oligos_","sgRNA_Table_","Message_File_"];
+    var enzyme = document.getElementById('enzymeType').value;
+    var fileExt = [".gb",".gb",".gb",".csv",".csv",".txt"];
     for (var j = 1; j < currentOutput.length; j++) {
         var file = currentOutput[j];
         var data = 'data:text/plain;charset=utf-8,' + encodeURIComponent(file);
-        saveAs(data,fileTypes[j-1]+geneName+fileExt[j-1]);
+        saveAs(data,fileTypes[j-1]+geneName+"_"+enzyme+fileExt[j-1]);
     }
 }
 
