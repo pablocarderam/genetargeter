@@ -117,6 +117,12 @@ def createOutputSummaryTable(dirPath):
                         results[enzymeMod+3] = "Error";
                         results[enzymeMod+4] = "Error";
                         results[enzymeMod+5] = "0";
+                    elif l.find("protein-coding sequence") > -1:
+                        results[enzymeMod+1] = "NA";
+                        results[enzymeMod+2] = "NA";
+                        results[enzymeMod+3] = "NA";
+                        results[enzymeMod+4] = "NA";
+                        results[enzymeMod+5] = "NA";
 
 
                 if l.find("Recoded region with size ") > -1:
