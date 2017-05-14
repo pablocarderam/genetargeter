@@ -74,7 +74,7 @@ class GenBank(object):
         i = 0; # indexes through lines
         w = d[i].split(); # splits line into words
 
-        while w[0] != "LOCUS" and i < len(d): # iterates until LOCUS found or end of document reached
+        while len(w) == 0 or w[0] != "LOCUS" and i < len(d): # iterates until LOCUS found or end of document reached
             i = i+1; # advance counter
             w = d[i].split(); # splits line into words
 
@@ -118,20 +118,28 @@ class GenBank(object):
             i = i+1; # advance counter
             w = d[i].split(); # splits line into words
             while w[0] != "ORIGIN" and i < len(d): # iterates until ORIGIN found or end of document reached, assuming ORIGIN comes after features...
-                if d[i].lstrip()[0] != "/": # if the line does not start with "/", it means it's a new annotation. lstrip() removes left whitespace.
-                    newAnn = GenBankAnn("","","",False,[]); # resets newAnn variable
-                    newAnn.type = w[0]; # stores annotation type
+                if d[i].lstrip()[0] != "/" and len(w) == 2: # if the line does not start with "/" and contains two strings separated by spaces, it means it might be a new annotation. lstrip() removes left whitespace.
                     posRawString = w[1].split("("); # splits second word in w by "(" to see if on complementary strand
                     posString = posRawString[0]; # assigns posString to the indexes string in the case that the annotation is on the positive strand
                     if len(posRawString) > 1: # if split into more than one piece, it means it's on the complementary strand
-                        newAnn.comp = True; # set comp to true
                         posString = posRawString[1][:(len(posRawString[1])-1)]; # extracts index information from raw string
 
-                    newAnn.index = [int(index) for index in posString.split("..")]; # takes the index string, splits it into two strings separated by ".." and converts them both to ints.
-                    newAnn.index[0] = newAnn.index[0] - 1; # changes to Python indexing. Upper limit does not have to be changed since Python does not include it in indexing, while GenBank does.
-                else:
+                    if posString.split("..")[0].isdigit(): # if index information is actually a number (avoids cases of continuing description lines)
+                        newAnn = GenBankAnn("","","",False,[]); # resets newAnn variable
+                        newAnn.type = w[0]; # stores annotation type
+
+                        if len(posRawString) > 1: # if split into more than one piece, it means it's on the complementary strand
+                            newAnn.comp = True; # set comp to true
+
+                        newAnn.index = [int(index) for index in posString.split("..")]; # takes the index string, splits it into two strings separated by ".." and converts them both to ints.
+                        if len(newAnn.index) == 1: # if only one index found (just one bp annotated),
+                            newAnn.index.append(newAnn.index[0]); # duplicate the index
+
+                        newAnn.index[0] = newAnn.index[0] - 1; # changes to Python indexing. Upper limit does not have to be changed since Python does not include it in indexing, while GenBank does.
+
+                elif d[i].find('=') > 0: # if line contains = character, it means it's a new property
                     p = d[i].lstrip().split("="); # splits line into a property's name and value
-                    if p[0] == "/gene" or p[0] == "/label": # if the property is a gene or label...
+                    if p[0] == "/gene" or p[0] == "/label" or p[0] == "/ID": # if the property is a gene or label...
                         newAnn.label = p[1][1:(len(p[1])-1)]; # assigns the label (extracting the label from string p)
                         if newAnn.comp: # if on complementary strand,
                             newAnn.seq = revComp(self.origin[(newAnn.index[0]):newAnn.index[1]]); # assigns the sequence of the annotated region to the complement. To find the sequence of the annotated region, indexes in the full sequence according to the position previously extracted.
@@ -140,7 +148,10 @@ class GenBank(object):
 
 
 
-                if len(newAnn.label)*len(newAnn.type)*len(newAnn.seq)*len(newAnn.index) != 0: # if all propoerties in newAnn have been filled in,
+                else: # if line does not contain = character, it's a continuation of the previous line.
+                    pass; # do nothing since we're not loading descriptions anyway. Keep your labels short. Sorry.
+
+                if len(newAnn.label)*len(newAnn.type)*len(newAnn.seq)*len(newAnn.index) != 0: # if all properties in newAnn have been filled in,
                     self.features.append(newAnn); # adds the new annotation
                     newAnn = GenBankAnn("","","",False,[]); # resets newAnn variable
 
@@ -288,11 +299,12 @@ class GenBank(object):
     """
     def revComp(self):
         r = deepcopy(self); # initialize return variable
-        r.comp = not r.comp; # switch orientation
         r.origin = revComp(r.origin); # revComps the main sequence
         r.definition = "Reverse complement of " + r.definition; # Adds mark to sequence definition
+        r.definition.replace("Reverse complement of Reverse complement of ",""); # in case the object had been flipped previously
         for ann in r.features: # iterates over features list
-            ann.index = [len(r.origin)-r.index[0]-1, len(r.origin)-r.index[1]-1]; # adjusts annotation indexes according to new orientation
+            ann.comp = not ann.comp; # switch orientation
+            ann.index = [len(r.origin)-ann.index[1], len(r.origin)-ann.index[0]]; # adjusts annotation indexes according to new orientation
 
         return r; # returns variable
 
@@ -327,3 +339,26 @@ class GenBank(object):
             print "ERROR: Annotations with '" + searchTerm + "' in type not found in sequence " + self.name; # Report error
 
         return annList; # returns list
+
+    """
+    Returns true if given index is inside a gene exon (assuming either exons or
+    introns are annotated)
+    """
+    def checkInExon(self,pIndex): # checks if pIndex is inside an exon in gene
+        insideGene = False; # Boolean stores whether pIndex is inside a gene
+        insideExon = False; # Boolean stores whether pIndex is inside an exon
+        exonsAnnotated = False; # stores whether introns are annotated in this GB file
+        for ann in self.features: # loop through all annotations
+            if  ann.type == "gene" and ann.index[0] <= pIndex <= ann.index[1]: # if this annotation is a gene and pIndex is inside this gene,
+                insideGene = True; # set inside this gene
+            elif ann.type == "exon": # if this annotation is an exon,
+                exonsAnnotated = True; # exons are annotated
+                if ann.index[0] <= pIndex <= ann.index[1]: # if pIndex is inside this exon,
+                    insideExon = True; # sets insideExon
+
+
+
+        if insideGene and not exonsAnnotated: # if inside gene with no exons annotated,
+            insideExon = True; # Assume inside exon
+
+        return insideExon; # return Boolean

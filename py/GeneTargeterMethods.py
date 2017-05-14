@@ -84,6 +84,7 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
     outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid pSN054_V5_"+ enzyme +" **** \n\n"; # starts message log to file
 
     geneGB = GenBank(); # initializes variable to hold gene GenBank object
+    geneOrientationNegative = False; # used to flip GenBank objects at end if originally on comp strand
     if useFileStrs: # if we are using file strings,
         geneGB.load(geneFileName, loadFromFile=False); # load gene from file string
         path = ""; # sets an empty path, needed for save functions of class GenBank
@@ -101,6 +102,14 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
         for a in geneAnns: # loops through found annotations
             if a.type == "gene": # if this annotation's type is gene,
                 gene = a; # keep it as the gene annotation
+                if a.comp: # if gene is on complementary strand,
+                    geneOrientationNegative = True; # used to flip GenBank objects at end
+                    geneGB = geneGB.revComp(); # flip whole GenBank object for processing
+                    newAnns = geneGB.findAnnsLabel(a.label); # search new GenBank object for gene annotations
+                    for newA in newAnns: # loop through search products
+                        if a.label == newA.label and newA.type == "gene": # if this annotation has the exact same name as the original and is a gene,
+                            gene = newA; # save it as the gene annotation object
+
                 break; # stop loop
 
 
@@ -240,6 +249,10 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
                 outputDic["logFileStr"] = outputDic["logFileStr"] + "\nVector constructed and written to file. End of process.\n"; # saves message log to file
                 pSN054_ARMED.definition = (pSN054_ARMED.definition + "  " + outputDic["logFileStr"]).replace("\n","   "); # save logs to file definition to be viewed in benchling
 
+                if geneOrientationNegative: # if gene was originally on comp strand,
+                    geneGB = geneGB.revComp(); # flip pre-editing locus
+                    editedLocus = editedLocus.revComp(); # flip post-editing locus
+
                 outputDic["geneFileStr"] = geneGB.save(path + "/" + geneName + "_Locus_Pre-editing.gb", saveToFile=(not useFileStrs)); # saves annotated gene
                 outputDic["plasmidFileStr"] = pSN054_ARMED.save(path + "/" +  "pSN054_V5_Cas9_targeting" + geneName, saveToFile=(not useFileStrs)); # saves plasmid
                 outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + geneName+"_Locus_Post-editing.gb", saveToFile=(not useFileStrs)); # saves edited locus
@@ -260,6 +273,7 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
 
 
     else: # if no gene found,
+        outputDic["gRNATable"] = "ERROR: No gene annotations found in this file with name " + geneName + "\nProcess terminated.\n";
         outputDic["logFileStr"] = outputDic["logFileStr"] + "\nERROR: No gene annotations found in this file with name " + geneName + "\nProcess terminated.\n";
 
     return outputDic; # returns output dictionary
@@ -325,7 +339,18 @@ gRNA: guide RNA used by CRISPR enzyme.
 def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True, minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
     log = "Choosing gRNA with PAM sequence " + PAM + " for use with enzyme " + enzyme; # init log
     gRNATable = []; # will store information on each gRNA evaluated. Format: Label, Status, Enzyme, Position, Strand, GC_content, On-target_score, On-target_method, Aggregated_off-target_score, Max_pairwise_off-target_score, Off-target_method, >9_consecutive_A/T, 4-Homopolymer, Triple_T, Sequence, Recoded_sequence, Recoded_sequence_pairwise_off-target_score
-    gene = geneGB.findAnnsLabel(gene.label)[0]; # stores gene annotation
+    geneList = geneGB.findAnnsLabel(gene.label); # stores gene annotation
+    gene = geneList[0]; # stores gene annotation
+    for g in geneList: # search for right gene
+        if g.type == "gene": # if found,
+            gene = g; # save it
+
+
+    for g in geneList: # search for right gene
+        if g.label == gene.label and g.type == "gene": # if found,
+            gene = g; # save it
+
+
     gRNAs = []; # list of GenBankAnn objects for gRNAs.
     backupGRNAs = []; # stores gRNAs that fail off-target score as possible backups
     gRNAUpstream = GenBankAnn(); # will store gRNA most upstream
@@ -625,22 +650,29 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
         gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
 
     endLHR = min(gRNAUpstream.index[0],gene.index[1]-3); # saves end index of LHR as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon) (in Python indexing, i.e. not included in LHR).
+
+    while not geneGB.checkInExon(endLHR) and endLHR > lengthLHR[2]: # Loop as long as the end of LHR is not in an exon and the end of the LHR is inside the max length
+        endLHR -= 1; # shift LHR end upstream one bp
+
     startLHR = max(endLHR - lengthLHR[1],0); # stores LHR start index according to preferred length, or 0 if not enough space before gene
     failSearchEnd = False; # true if no suitable LHR end region is found within given parameters.
 
     # First search for end region
-    while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchEnd: # while no suitable end region found, still within max distance from gRNA, and the search for a suitable end region hasn't failed yet,
+    while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
         endLHR -= 1; # shift endLHR upstream
 
-    if meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR >= maxDistanceFromGRNA: # if no suitable end region found,
+    if meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds: # if no suitable end region found,
         endLHR = min(gRNAUpstream.index[0],gene.index[1]-3); # saves end index of LHR by default as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon)
+        while not geneGB.checkInExon(endLHR) and endLHR > lengthLHR[2]: # Loop as long as the end of LHR is not in an exon and the end of the LHR is inside the max length
+            endLHR -= 1; # shift LHR end upstream one bp
+
         failSearchEnd = True; # changes failSearchEnd status
         log = log + "\nWarning: No LHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the last " + str(endsLength) + " bp of LHR, \nwith a max distance of " + str(maxDistanceFromGRNA) + " bp between end of LHR and gRNA. \nDefaulted to ending right before start of gRNA most upstream." + "\n"; # give a warning
 
     # Then search for start region; modify end region if necessary
-    while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and gRNAUpstream.index[0]-endLHR <= maxDistanceFromGRNA: # if no start region has been found and still within max distance from gRNA,
+    while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and (gRNAUpstream.index[0]-endLHR <= maxDistanceFromGRNA and geneGB.checkInExon(endLHR-1)): # if no start region has been found, and still within max distance from gRNA and inside exon,
         # find new end region if necessary
-        while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR <= maxDistanceFromGRNA and not failSearchEnd: # while no suitable end region found, still within max distance from gRNA, and the search for a suitable end region hasn't failed yet,
+        while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
             endLHR -= 1; # shift endLHR upstream
 
         # search for starts upstream
@@ -654,14 +686,17 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
             while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR >= lengthLHR[0]: # while no suitable start region found and still within min length of LHR,
                 startLHR += 1; # shift startLHR downstream
 
-        if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds: # if still not found
+        if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and geneGB.checkInExon(endLHR-1): # if still not found and still inside exon,
             endLHR -= 1; # shifts end of LHR upstream
 
 
 
-    if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and gRNAUpstream.index[0]-endLHR > maxDistanceFromGRNA: # if no suitable start region found,
+    if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds: # if no suitable start region found,
         endLHR = gRNAUpstream.index[0]; # resets endLHR
-        while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR <= maxDistanceFromGRNA and not failSearchEnd: # while no suitable end region found, still within max distance from gRNA, and the search for a suitable end region hasn't failed yet,
+        while not geneGB.checkInExon(endLHR) and endLHR > lengthLHR[2]: # Loop as long as the end of LHR is not in an exon and the end of the LHR is inside the max length
+            endLHR -= 1; # shift LHR end upstream one bp
+
+        while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
             endLHR -= 1; # shift endLHR upstream
 
         startLHR = endLHR - lengthLHR[1]; # stores LHR start index according to preferred length by default
@@ -678,7 +713,7 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
 
     searchIndexesEnd = [int(endLHR+optimizeRange[0]), int(endLHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better end point.
     for i in range(searchIndexesEnd[0], searchIndexesEnd[1]): # iterates across optimization range
-        if meltingTemp(geneGB.origin[(i-endsLength):i]) > meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) and lengthLHR[2] >= i-startLHR >= lengthLHR[0] and i < gRNAUpstream.index[0]: # if this start point has a better Tm and is still within bounds and before gRNA,
+        if meltingTemp(geneGB.origin[(i-endsLength):i]) > meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) and lengthLHR[2] >= i-startLHR >= lengthLHR[0] and i < gRNAUpstream.index[0] and geneGB.checkInExon(i): # if this start point has a better Tm, and is still within bounds, before gRNA and within exon,
             endLHR = i; # make this the ending position
 
 
@@ -830,7 +865,8 @@ pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
 def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString=""):
-    #TODO: debug, especially off-target score threshold #TODO: Recoded if upstream of stop codon add recode values to table
+    #TODO: debug #TODO: Recoded if upstream of stop codon add recode values to table
+    gRNAs = geneGB.findAnnsLabel("gRNA", True); # List of all gRNAs
     gRNATable = gRNATableString.split('\n'); # split string into lines
     gRNATable = [g.split(',') for g in gRNATable]; # split each line into values
 
@@ -843,11 +879,59 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
     annRecoded = GenBankAnn(); # creates GenBankAnn object to hold recoded region
     if LHR.index[1] < gene.index[1]: # if end of LHR is inside gene
         startRecode = LHR.index[1]; # start of recode region (start of gRNA most upstream)
+        while not geneGB.checkInExon(startRecode): # while recode region start is in intron,
+            startRecode += 1; # shift downstream
+
+        intronStartIndices = []; # stores start indexes of introns starting after recode sequence start
+        intronEndIndices = []; # stores end indexes of introns starting after recode sequence start
+        for ann in geneGB.features: # loop through all annotations
+            if ann.type == "exon": # if annotation is exon
+                if gene.index[1] > ann.index[1] > startRecode: # if annotation is an exon ending before gene end and after recode start,
+                    intronStartIndices.append(ann.index[1]); # add this intron start index
+                if gene.index[1] > ann.index[0] > startRecode: # if annotation is an exon starting after recode start,
+                    intronEndIndices.append(ann.index[0]); # add this intron end index
+
+
+            elif ann.type == "intron": # if annotation is intron,
+                if ann.index[0] > startRecode: # if annotation is an intron starting after recode start,
+                    intronStartIndices.append(ann.index[0]); # add this intron start index
+                    intronEndIndices.append(ann.index[1]); # add this intron start index
+
+
+
+        intronIndices = []; # will contain final indexes of introns downstream of recode start (introns to be removed from recoded region)
+        intronStartIndices = sorted(intronStartIndices); # sort
+        intronEndIndices = sorted(intronEndIndices); # sort
+        for i in range(len(intronEndIndices)): # for every intron end,
+            if intronEndIndices[i] >= LHR.index[1]: # if after LHR end,
+                start = 0; # will store corresponding intron start (largest underneath intron end)
+                for startIndex in intronStartIndices: # loop through starts
+                    if startIndex > intronEndIndices[i]: # if start surpasses this end,
+                        break; # stop loop
+                    else: # if not,
+                        start = startIndex; # set as start
+
+
+                intronIndices.append([start,intronEndIndices[i]]); # add these coordinates to intron splice list
+            #for g in gRNAs: # for every gRNA,
+                #if not (intronStartIndices[i] >= g.index[1] or intronEndIndices[i] <= g.index[0]): # if intron and gRNA overlap,
+                    #intronIndices.append([intronStartIndices[i],intronEndIndices[i]]); # add these coordinates to intron splice list
+
+
+
         endRecode = gene.index[1] - 3; # end of recode region (end of gene, exclude stop codon)
-        frame = (endRecode-startRecode) % 3; # stores reading frame, index from start of sequence to be recoded
+        recodeSeq = geneGB.origin[startRecode:endRecode]; # will contain sequence to be recorded
+        if len(intronIndices) > 0: # if there are introns,
+            recodeSeq = geneGB.origin[startRecode:intronIndices[0][0]]; # get recode sequence until first intron
+            for i in range(len(intronIndices)-1): # for every intron except last one,
+                recodeSeq = recodeSeq + geneGB.origin[intronIndices[i][1]:intronIndices[i+1][0]]; # add next exon to recode seq
+
+            recodeSeq = recodeSeq + geneGB.origin[intronIndices[len(intronIndices)-1][1]:endRecode]; # get rest of recode sequence until endRecode
+
+        frame = len(recodeSeq) % 3; # stores reading frame, index from start of sequence to be recoded
         startRecode += frame; # modify recode start site according to reading frame
-        recodeSeq = geneGB.origin[startRecode:endRecode]; # get sequence to be recoded
-        gRNAs = geneGB.findAnnsLabel("gRNA", True); # List of all gRNAs
+        nonRecodedStart = recodeSeq[0:frame]; # stores 0, 1 or 2 nucleotides not recoded due to reading frame
+        recodeSeq = recodeSeq[frame:len(recodeSeq)]; # adjust recode region
 
         cutSeqs = filterCutSites + [g.seq for g in gRNAs]; # list of all cut seqs. all gRNAs in gene are to be included as cut sequences
         cutCheck = 0; # variable used to check if cut sequences are present. Initially greater than -1*len(cutSeqs) since all gRNAs are present.
@@ -872,35 +956,64 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
                 for g in gRNAs: # for every gRNA candidate within recoded region,
                     if g.index[0] >= startRecode-frame and g.index[1] <= endRecode: # if grna is inside recoded region
                         gOnSeq = g.seq; # get original gRNA sequence
-                        wholeRecSeq = geneGB.origin[LHR.index[1]:LHR.index[1]+frame] + recodedSeq; # add initial bases
-                        gOffSeq = wholeRecSeq[g.index[0]-startRecode+frame:g.index[1]-startRecode+frame]; # get recoded sequence that used to be gRNA
+                        wholeRecSeq = nonRecodedStart + recodedSeq; # add initial bases
+                        gOffSeq = "";
+                        if geneGB.checkInExon(g.index[0]) or geneGB.checkInExon(g.index[1]): # if the gRNA hasn't been completely excised,
+                            if pamType == "NGG" and g.comp or pamType == "TTTV" and not g.comp: # if PAM is to the left of the rest of the gRNA sequence (on whichever strand),
+                                anchor = g.index[0]-startRecode+frame; # stores index of gRNA bp most to the left (whichever strand)
+                                for intron in intronIndices: # for every intron,
+                                    if g.index[0] > intron[1]: # if anchor after end of intron,
+                                        anchor -= intron[1]-intron[0]; # substract intron length from anchor index
+                                    elif intron[0] >= g.index[0] >= intron[1]: # if anchor inside intron,
+                                        anchor -= g.index[0] - intron[0]; # substract distance between intron start and anchor from anchor
+
+
+                                gOffSeq = wholeRecSeq[anchor:anchor+len(g.seq)]; # get recoded sequence that used to be gRNA
+                                if g.comp: # if on comp strand
+                                    gOffSeq = revComp(gOffSeq); # save as reverse complement
+
+                            else: # if PAM is to the right,
+                                anchor = g.index[1]-startRecode+frame; # stores index of gRNA bp most to the right (whichever strand)
+                                for intron in intronIndices: # for every intron,
+                                    if g.index[1] > intron[1]: # if anchor after end of intron,
+                                        anchor -= intron[1]-intron[0]; # substract intron length from anchor index
+                                    elif intron[0] >= g.index[1] >= intron[1]: # if anchor inside intron,
+                                        anchor -= g.index[1] - intron[0]; # substract distance between intron start and anchor from anchor
+
+
+                                gOffSeq = wholeRecSeq[anchor-len(g.seq):anchor]; # get recoded sequence that used to be gRNA
+                                if g.comp: # if on comp strand
+                                    gOffSeq = revComp(gOffSeq); # save as reverse complement
+
+
+
                         gNewPAM = ""; # will store new PAM sequence
                         if pamType == "NGG": # if using NGG PAM,
                             if  (g.index[1]+3 >= endRecode and not g.comp) or (g.index[0]-3 >= startRecode and g.comp): # if PAM is within recoded region,
                                 if not g.comp: # if on positive strand,
-                                    gNewPAM = recodedSeq[g.index[1]-startRecode:g.index[1]-startRecode+3]; # retrieve PAM downstream of gRNA sequence
+                                    gNewPAM = wholeRecSeq[anchor+len(g.seq):anchor+len(g.seq)+3]; # retrieve PAM downstream of gRNA sequence
                                 else: # if on negative strand,
-                                    gNewPAM = revComp(recodedSeq[g.index[0]-startRecode-3:g.index[0]-startRecode]); # retrieve PAM upstream of gRNA sequence, on comp strand
-
-                            else: # if outside recoded region,
-                                if not g.comp: # if on positive strand,
-                                    gNewPAM = geneGB.origin[g.index[1]:g.index[1]+3]; # will store new PAM sequence
-                                else: # if on comp strand,
-                                    gNewPAM = revComp(geneGB.origin[g.index[0]-3:g.index[0]]); # will store new PAM sequence
-
-
-                        elif pamType == "TTTV": # if using TTTV PAM,
-                            if (g.index[1]+4 >= endRecode and g.comp) or (g.index[0]-4 >= startRecode and not g.comp): # if PAM is inside recoded region,
-                                if not g.comp: # if on positive strand,
-                                    gNewPAM = recodedSeq[g.index[0]-startRecode-4:g.index[0]-startRecode]; # retrieve PAM upstream of gRNA sequence
-                                else: # if on negative strand,
-                                    gNewPAM = revComp(recodedSeq[g.index[1]-startRecode:g.index[1]-startRecode+4]); # retrieve PAM downstream of gRNA sequence, on comp strand
+                                    gNewPAM = revComp(wholeRecSeq[anchor+len(g.seq)-3:anchor+len(g.seq)]); # retrieve PAM upstream of gRNA sequence, on comp strand
 
                             else: # if outside recoded region,
                                 if g.comp: # if on comp strand,
                                     gNewPAM = geneGB.origin[g.index[1]:g.index[1]+3]; # will store new PAM sequence
                                 else: # if on positive strand,
                                     gNewPAM = revComp(geneGB.origin[g.index[0]-3:g.index[0]]); # will store new PAM sequence
+
+
+                        elif pamType == "TTTV": # if using TTTV PAM,
+                            if (g.index[1]+4 >= endRecode and g.comp) or (g.index[0]-4 >= startRecode and not g.comp): # if PAM is inside recoded region,
+                                if not g.comp: # if on positive strand,
+                                    gNewPAM = wholeRecSeq[anchor+len(g.seq)-4:anchor+len(g.seq)]; # retrieve PAM upstream of gRNA sequence
+                                else: # if on negative strand,
+                                    gNewPAM = revComp(wholeRecSeq[anchor+len(g.seq):anchor+len(g.seq)+4]); # retrieve PAM downstream of gRNA sequence, on comp strand
+
+                            else: # if outside recoded region,
+                                if g.comp: # if on comp strand,
+                                    gNewPAM = geneGB.origin[g.index[1]:g.index[1]+4]; # will store new PAM sequence
+                                else: # if on positive strand,
+                                    gNewPAM = revComp(geneGB.origin[g.index[0]-4:g.index[0]]); # will store new PAM sequence
 
 
                         if offTargetMethod == "cfd": # if using cfd,
@@ -957,7 +1070,7 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
 
                 #print [gOnSeq+"NGG",gOffSeq+gNewPAM,pairScoreCFD(gOnSeq,gOffSeq,gNewPAM,pamType),pairScoreHsu(gOnSeq,gOffSeq,gNewPAM,pamType)]
 
-        recodedSeq = geneGB.origin[LHR.index[1]:LHR.index[1]+frame] + bestRecodedSeq; # adds initial bases from reading frame adjustment to best candidate
+        recodedSeq = nonRecodedStart + bestRecodedSeq; # adds initial bases from reading frame adjustment to best candidate
         annRecoded = GenBankAnn(gene.label + " Recoded", "misc_feature", recodedSeq, False, [startRecode,endRecode]); # creates var to store finished recodedSeq as annotation
         log = log + "Recoded region with size " + str(len(recodedSeq)) + " for gene " + gene.label + " selected.\n\n"; # logs this process finished
 
@@ -1223,11 +1336,11 @@ def editLocus(geneName, gene, construct):
         RHR = RHRlist[0]; # save first RHR annotation as RHR
         log = log + "Warning: Found multiple RHR annotations, genomic context file built with the first one found." + "\n"; # add warning to log
 
-    startInsertChrom = findFirst(gene.origin, LHR.seq); # find index of insertion start in the chromosomal DNA given
-    endInsertChrom = findFirst(gene.origin, RHR.seq) + len(RHR.seq); # find index of insertion end in the chromosomal DNA given
+    startInsertChrom = findFirst(gene.origin, LHR.seq) + len(LHR.seq); # find index of insertion start in the chromosomal DNA given
+    endInsertChrom = findFirst(gene.origin, RHR.seq); # find index of insertion end in the chromosomal DNA given
 
-    startInsertConst = findFirst(construct.origin, LHR.seq); # find index of insertion start in the chromosomal DNA given
-    endInsertConst = findFirst(construct.origin, RHR.seq) + len(RHR.seq); # find index of insertion end in the chromosomal DNA given
+    startInsertConst = findFirst(construct.origin, LHR.seq) + len(LHR.seq); # find index of insertion start in the chromosomal DNA given
+    endInsertConst = findFirst(construct.origin, RHR.seq); # find index of insertion end in the chromosomal DNA given
     insert = construct.origin[startInsertConst:endInsertConst]; # saves string containing insert
 
     editedLocus = deepcopy(gene); # var will contain the edited locus
