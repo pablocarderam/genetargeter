@@ -80,7 +80,7 @@ filterCutSites is a list of strings containing cut sequences to be filtered if
     user provides LHR and RHR.
 """
 def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="azimuth", minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG"): # cfd, 0.5, 35; hsu, 75, 5
-    outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":""}; # dictionary containing keys to all values being returned
+    outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":"", "gRNATable":""}; # dictionary containing keys to all values being returned
     outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid pSN054_V5_"+ enzyme +" **** \n\n"; # starts message log to file
 
     geneGB = GenBank(); # initializes variable to hold gene GenBank object
@@ -273,7 +273,6 @@ def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannota
 
 
     else: # if no gene found,
-        outputDic["gRNATable"] = "ERROR: No gene annotations found in this file with name " + geneName + "\nProcess terminated.\n";
         outputDic["logFileStr"] = outputDic["logFileStr"] + "\nERROR: No gene annotations found in this file with name " + geneName + "\nProcess terminated.\n";
 
     return outputDic; # returns output dictionary
