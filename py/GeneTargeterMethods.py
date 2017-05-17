@@ -1062,9 +1062,9 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
 
 
                         offScore = max(offScore,0); # assume recoded
-                        if offTargetMethod == "cfd" and len(gOffSeq) > 0: # if using cfd and gRNA not completely excised,
+                        if offTargetMethod == "cfd" and len(gOffSeq) > 22: # if using cfd and gRNA not completely excised,
                             offScore = max(offScore,pairScoreCFD(gOnSeq,gOffSeq,gNewPAM,pamType)); # calculate pairwise off-target score
-                        elif offTargetMethod == "hsu" and len(gOffSeq) > 0: # if using hsu and gRNA not completely excised,
+                        elif offTargetMethod == "hsu" and len(gOffSeq) > 22: # if using hsu and gRNA not completely excised,
                             offScore = max(offScore,pairScoreHsu(gOnSeq,gOffSeq,gNewPAM,pamType)); # calculate pairwise off-target score
 
                         for g in gRNATable: # find this gRNA in table
