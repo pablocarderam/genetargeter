@@ -23,7 +23,7 @@
 		<link rel="shortcut icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
 
 		<link rel="stylesheet" href="static/css/style_v2.css">
-		<script src="static/js/main_v6.js"></script>
+		<script src="static/js/main_v7.js"></script>
 		<script src="static/js/EPPZScroll.js"></script>
 	</head>
 
@@ -50,7 +50,7 @@
 		<div id="App" class="app" onload="init()">
 			<script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/0.9.16/socket.io.min.js"></script>
 			<!--FALLBACK SOCKET.IO LOCAL <script type="text/javascript" src="static/js/socket.io.min.js"></script> -->
-			<script src="static/js/socketHandler_v2.js"></script>
+			<script src="static/js/socketHandler_v3.js"></script>
 			<!--script src="static/js/app.js"></script-->
 			<p>
 				Upload a
@@ -71,7 +71,7 @@
 				</p>
 
 				<p>
-					For every gene uploaded, GeneTargeter outputs
+					For every possible mRNA transcript within the gene uploaded, GeneTargeter outputs:
 					<ul>
 						<li>
 							<b>a GenBank file</b> containing the given gene annotated with

@@ -43,6 +43,56 @@ codonUsageTables = {
 
 
 #### Methods ####
+
+"""
+Accepts GenBank string possibly with multiple mRNA splice forms.
+Returns dictionary of GenBank objects with only one mRNA and its exons/introns
+annotated. Keys are transcript names.
+"""
+def preprocessInputFile(geneName, geneFileStr, useFileStrs=False):
+    gbDict = {}; # will store GenBank objects to be returned
+
+    geneGB = GenBank(); # initializes variable to hold gene GenBank object
+    if useFileStrs: # if we are using file strings,
+        geneGB.load(geneFileStr, loadFromFile=False); # load gene from file string
+        path = ""; # sets an empty path, needed for save functions of class GenBank
+    else: # If we're using files,
+        geneGB.load(geneFileStr, loadFromFile=True); # load gene file
+        path = "output/" + geneName; # string with path to this gene's directory in output folder
+        if not os.path.exists(path): # if a directory for this gene does not exist already,
+            os.mkdir(path); # makes new directory
+
+
+    geneList = geneGB.findAnnsLabel(geneName); # search for annotations with gene name
+    if len(geneList) > 0: # if genes found,
+        gene = geneList[0]; # stores gene annotation
+        geneAnns = geneGB.findAnnsLabel(geneName); # stores all gene annotations with gene name in them
+        for a in geneAnns: # loops through found annotations
+            if a.type == "gene": # if this annotation's type is gene,
+                gene = a; # keep it as the gene annotation
+                break; # stop loop
+
+        mRNAs = geneGB.findAnnsType("mRNA"); # list of all mRNAs in GB file
+        for mRNA in mRNAs: # loop over all mRNAs
+            if gene.index[0] <= mRNA.index[0] < mRNA.index[1] <= gene.index[1]: # if mRNA is inside gene,
+                newGB = deepcopy(geneGB); # copy original GB object,
+                newMRNAs = newGB.findAnnsType("mRNA"); # list of all mRNAs in new GB file
+                for newMRNA in newMRNAs: # loop over mRNAs of new GB file
+                    if gene.index[0] <= newMRNA.index[0] < newMRNA.index[1] <= gene.index[1] and mRNA.label != newMRNA.label: # if inside gene and different from current mRNA,
+                        newGB.features.remove(newMRNA); # remove newMRNA from new GB file
+
+
+                newGB.name = mRNA.label; # set new GB object's name to mRNA name
+                gbDict[mRNA.label] = newGB; # saves new GB object to output dictionary
+
+
+
+    if len(gbDict) == 0: # if no output saved until now,
+        gbDict[geneName] = geneGB; # save original gb file as output
+
+    return gbDict;
+
+
 """
 Inserts targeting elements into pSN054 in order to target it to the given gene
 through CRISPR homologous recombination. Input: Gene and gRNAs
@@ -63,7 +113,7 @@ in the Cas9 RNA sequence, thus making the recoded region necessarily longer),
 annotate all gRNAs in order of preferrence ("gRNA 1", "gRNA 2", etc.).
 
 geneName is a string with the exact label of the gene to be annotated.
-geneFileName is the name of the .gb file (including ".gb") containing the gene
+TODO: update geneFileName is the name of the .gb file (including ".gb") containing the gene
     to be targeted. The file must be within the input folder. Alternatively, it
     can contain the raw data of an already read file, if useFileStrs is True.
 gibsonHomRange is a list of three parameters [min, preferred, max] defining the
@@ -79,35 +129,31 @@ HRannotated is true if the GenBank file given as input includes manual LHR and
 filterCutSites is a list of strings containing cut sequences to be filtered if
     user provides LHR and RHR.
 """
-def pSN054TargetGene(geneName, geneFileName, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="azimuth", minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG"): # cfd, 0.5, 35; hsu, 75, 5
+def pSN054TargetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="azimuth", minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG"): # cfd, 0.5, 35; hsu, 75, 5
     outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":"", "gRNATable":""}; # dictionary containing keys to all values being returned
     outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid pSN054_V5_"+ enzyme +" **** \n\n"; # starts message log to file
 
-    geneGB = GenBank(); # initializes variable to hold gene GenBank object
-    geneOrientationNegative = False; # used to flip GenBank objects at end if originally on comp strand
     if useFileStrs: # if we are using file strings,
-        geneGB.load(geneFileName, loadFromFile=False); # load gene from file string
         path = ""; # sets an empty path, needed for save functions of class GenBank
     else: # If we're using files,
-        geneGB.load(geneFileName, loadFromFile=True); # load gene file
         path = "output/" + geneName; # string with path to this gene's directory in output folder
         if not os.path.exists(path): # if a directory for this gene does not exist already,
             os.mkdir(path); # makes new directory
 
-
+    geneOrientationNegative = False; # used to flip GenBank objects at end if originally on comp strand
     geneList = geneGB.findAnnsLabel(geneName); # search for annotations with gene name
     if len(geneList) > 0: # if genes found,
         gene = geneList[0]; # stores gene annotation
         geneAnns = geneGB.findAnnsLabel(geneName); # stores all gene annotations with gene name in them
         for a in geneAnns: # loops through found annotations
-            if a.type == "gene": # if this annotation's type is gene,
+            if a.label == geneName and (a.type == "gene" or a.type == "mRNA"): # if this annotation's type is gene or mRNA,
                 gene = a; # keep it as the gene annotation
                 if a.comp: # if gene is on complementary strand,
                     geneOrientationNegative = True; # used to flip GenBank objects at end
                     geneGB = geneGB.revComp(); # flip whole GenBank object for processing
                     newAnns = geneGB.findAnnsLabel(a.label); # search new GenBank object for gene annotations
                     for newA in newAnns: # loop through search products
-                        if a.label == newA.label and newA.type == "gene": # if this annotation has the exact same name as the original and is a gene,
+                        if a.label == newA.label and (newA.type == "gene" or newA.type == "mRNA"): # if this annotation has the exact same name as the original and is a gene or mRNA,
                             gene = newA; # save it as the gene annotation object
 
                 break; # stop loop
