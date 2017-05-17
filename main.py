@@ -64,7 +64,6 @@ def gene_message(message):
     enzyme = msgList[26];
     PAM = msgList[27];
 
-    #TODO: preprocess input, call main method once per GB file generated
     geneGBs = preprocessInputFile(geneName, geneFileStr, useFileStrs=True); # obtain gb file(s) to be processed
     outMsg = queryNumber; # will store output message
     for gbName in geneGBs: # for every gb
