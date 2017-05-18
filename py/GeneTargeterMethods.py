@@ -1003,6 +1003,7 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
                         gOnSeq = g.seq; # get original gRNA sequence
                         wholeRecSeq = nonRecodedStart + recodedSeq; # add initial bases
                         gOffSeq = "";
+                        anchor = -1; # will store index of gRNA bp most to the left (whichever strand). Default to -1 to indicate excision
                         if geneGB.checkInExon(g.index[0]) or geneGB.checkInExon(g.index[1]): # if the gRNA hasn't been completely excised,
                             if pamType == "NGG" and g.comp or pamType == "TTTV" and not g.comp: # if PAM is to the left of the rest of the gRNA sequence (on whichever strand),
                                 anchor = g.index[0]-startRecode+frame; # stores index of gRNA bp most to the left (whichever strand)
@@ -1033,7 +1034,7 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
 
 
                         gNewPAM = ""; # will store new PAM sequence
-                        if pamType == "NGG": # if using NGG PAM,
+                        if pamType == "NGG" and anchor > -1: # if using NGG PAM and gRNA not completely excised,
                             if  (g.index[1]+3 >= endRecode and not g.comp) or (g.index[0]-3 >= startRecode and g.comp): # if PAM is within recoded region,
                                 if not g.comp: # if on positive strand,
                                     gNewPAM = wholeRecSeq[anchor+len(g.seq):anchor+len(g.seq)+3]; # retrieve PAM downstream of gRNA sequence
@@ -1047,7 +1048,7 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
                                     gNewPAM = revComp(geneGB.origin[g.index[0]-3:g.index[0]]); # will store new PAM sequence
 
 
-                        elif pamType == "TTTV": # if using TTTV PAM,
+                        elif pamType == "TTTV" and anchor > -1: # if using TTTV PAM and gRNA not completely excised,
                             if (g.index[1]+4 >= endRecode and g.comp) or (g.index[0]-4 >= startRecode and not g.comp): # if PAM is inside recoded region,
                                 if not g.comp: # if on positive strand,
                                     gNewPAM = wholeRecSeq[anchor+len(g.seq)-4:anchor+len(g.seq)]; # retrieve PAM upstream of gRNA sequence
@@ -1061,16 +1062,18 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
                                     gNewPAM = revComp(geneGB.origin[g.index[0]-4:g.index[0]]); # will store new PAM sequence
 
 
-                        offScore = max(offScore,0); # assume recoded
+                        newOffScore = 0; # Assume gRNA was excised
                         if offTargetMethod == "cfd" and len(gOffSeq) > 22: # if using cfd and gRNA not completely excised,
-                            offScore = max(offScore,pairScoreCFD(gOnSeq,gOffSeq,gNewPAM,pamType)); # calculate pairwise off-target score
+                            newOffScore = pairScoreCFD(gOnSeq,gOffSeq,gNewPAM,pamType); # calculate pairwise off-target score
                         elif offTargetMethod == "hsu" and len(gOffSeq) > 22: # if using hsu and gRNA not completely excised,
-                            offScore = max(offScore,pairScoreHsu(gOnSeq,gOffSeq,gNewPAM,pamType)); # calculate pairwise off-target score
+                            newOffScore = pairScoreHsu(gOnSeq,gOffSeq,gNewPAM,pamType); # calculate pairwise off-target score
+
+                        offScore = max(offScore,newOffScore); # set offscore for next iteration
 
                         for g in gRNATable: # find this gRNA in table
                             if g[14] == gOnSeq: # if found,
                                 g[15] = gOffSeq; # store recoded sequence
-                                g[16] = str(offScore); # store recoded sequence's pair score
+                                g[16] = str(newOffScore); # store recoded sequence's pair score
 
 
 
