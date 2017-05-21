@@ -1,10 +1,10 @@
 from py.BioUtils import *;
 from os import walk;
 
-#TODO: make function that processes string input of message files separated by :::
+#TODO: make function that processes string input of message files separated by ::: EDIT not anymore? just CLI?
 #TODO: make function that processes list of message file strings for each message file by splitting by lines,
 # searching for each design step's key words and then filling in success, error, warning or not achieved,
-# and returns string output of csv file containing results in tabular form. Link to designs?
+# and returns string output of csv file containing results in tabular form. DONE, I think. Link to designs?
 
 def resultsDict(filePath):
     lines = loadSeqs(filePath);
@@ -61,7 +61,7 @@ def createOutputSummaryTable(dirPath):
     geneResults = {};
     for (dirpath, dirnames, filenames) in walk(dirPath):
         for f in filenames:
-            geneName = f[13:26];
+            geneName = f[13:28];
             msg = "\n".join(loadSeqs(dirPath+f));
             results = [""]*12;
             if geneName in geneResults:
