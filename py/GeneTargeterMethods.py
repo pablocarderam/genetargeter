@@ -443,7 +443,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
 
                 gRNATable.append(['Unlabeled','Rejected (low GC content)',enzyme,str(gRNAIndexes).replace(',',' to'),strandString,str(gc),'Not evaluated',onTargetMethod,'Not evaluated','Not evaluated',offTargetMethod,str(findFirst(gRNASeq.replace('T','A'),"AAAAAAAAAA") > -1),'Not evaluated','Not evaluated',gRNASeq,'Not recoded','-']); # starts storing info
                 if gc >= minGCContent and findFirst(gRNASeq.replace('T','A'),"AAAAAAAAAA") < 0: # if gc content is acceptable and does not contain 10 or more consecutive As or Ts,
-                    gRNAInfo = getGRNAInfoFromDB(extGRNASeq); # access gRNA scores from DB
+                    gRNAInfo = getGRNAInfoFromDB(extGRNASeq,enzyme); # access gRNA scores from DB
                     onTarget = 0;
                     if len(gRNAInfo) == 0: # if not found in DB
                         onTarget = onTargetScore(extGRNASeq,onTargetMethod); # store on-target score
