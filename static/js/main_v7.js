@@ -5,6 +5,7 @@
 
 var backToTopShown = true; // used to control back-to-top button appearance and disappearance
 var currentOutput = []; // saves current output array to download multiple times if desired
+var nonCoding = ''; // tag if noncoding
 var fileCounter = 0; // used in coloring output file lines
 var numFilesUploaded = 0;
 var disconnected = false; // true when connection is lost in middle of operations
@@ -328,7 +329,7 @@ function downloadOutput() {
     var fileExt = [".gb",".gb",".gb",".csv",".csv",".txt"];
     for (var j = 1; j < currentOutput.length; j++) {
         if (j%(fileTypes.length+1) > 0) {
-            var geneName = currentOutput[Math.floor(j/(fileTypes.length+1))*7];
+            var geneName = currentOutput[Math.floor(j/(fileTypes.length+1))*7] + nonCoding;
             var file = currentOutput[j];
             var data = 'data:text/plain;charset=utf-8,' + encodeURIComponent(file);
             console.log([j,fileTypes[j%(fileTypes.length+1)-1],fileExt[j%(fileTypes.length+1)]]);
@@ -357,6 +358,13 @@ function decodeFileMsg(content) {
     // for (var i = 0; i < files.length; i++) {
     //     files[i] = files[i].split(sep);
     // }
+
+    if (content.data.search("Note: this gene appears not to be a protein-coding sequence") > 0) {
+        nonCoding = "_putative_ncRNA";
+    }
+    else {
+        nonCoding = "";
+    }
 
     files = content.data.split(sep);
     currentOutput = files.slice(1,files.length); // first file is actually number, not a file
