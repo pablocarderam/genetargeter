@@ -231,60 +231,59 @@ function run() {
         else {
             numFilesUploaded = x.files.length;
             document.getElementById("run").innerHTML = "Processing files...";
-            for (var i = fileCounter; i < x.files.length; i++) {
-                var file = x.files[i];
-                if (file.name.substr(file.name.length-3,file.name.length) === ".gb") {
-                    var fR = new FileReader();
-                    fR.fileName = document.getElementById('selectedFiles').children[i].children[0].value;
-                    var queryNumber = fileCounter;
-                    fR.readAsText(file, "UTF-8");
-                    fR.onload = function (evt) {
-                        var HRann = document.getElementById("HRannChkBox").checked;
-                        lengthLHR = [document.getElementById("LHRMin").value, document.getElementById("LHRPref").value, document.getElementById("LHRMax").value];
-                        lengthRHR = [document.getElementById("RHRMin").value, document.getElementById("RHRPref").value, document.getElementById("RHRMax").value];
-                        lengthGib = [document.getElementById("gibMin").value, document.getElementById("gibPref").value, document.getElementById("gibMax").value];
-                        optimLHR = [-1*document.getElementById("optLowLHR").value, document.getElementById("optHighLHR").value];
-                        optimRHR = [-1*document.getElementById("optLowRHR").value, document.getElementById("optHighRHR").value];
-                        endsLHR = document.getElementById("endsLHR").value;
-                        endsRHR = document.getElementById("endsRHR").value;
-                        endsTempLHR = document.getElementById("endsTempLHR").value;
-                        endsTempRHR = document.getElementById("endsTempRHR").value;
-                        gibTemp = document.getElementById("gibTemp").value;
-                        gibTDif = document.getElementById("gibTDif").value;
-                        maxDistLHR = document.getElementById("maxDistLHR").value;
-                        maxDistRHR = document.getElementById("maxDistRHR").value;
-                        minFragSize = document.getElementById('minFragSize').value;
-                        optimOrg = document.getElementById('codonOptimizeOrg').value;
-                        codonSampling = document.getElementById('codonOptimStrat').value;
-                        minGCContent = document.getElementById('gRNAGCContent').value;
-                        onTargetMethod = document.getElementById('gRNAOnTargetMethod').value;
-                        onTargetScore = document.getElementById('gRNAOnTargetCutoff').value;
-                        offTargetMethod = document.getElementById('gRNAOffTargetMethod').value;
-                        offTargetScore = document.getElementById('minOffTargetScore').value;
-                        offTargetHitScore = document.getElementById('maxOffTargetHitScore').value;
-                        enzyme = document.getElementById('enzymeType').value;
-                        pam = document.getElementById('PAMSequence').value;
+            var i = fileCounter;
+            var file = x.files[i];
+            if (file.name.substr(file.name.length-3,file.name.length) === ".gb") {
+                var fR = new FileReader();
+                fR.fileName = document.getElementById('selectedFiles').children[i].children[0].value;
+                var queryNumber = fileCounter;
+                fR.readAsText(file, "UTF-8");
+                fR.onload = function (evt) {
+                    var HRann = document.getElementById("HRannChkBox").checked;
+                    lengthLHR = [document.getElementById("LHRMin").value, document.getElementById("LHRPref").value, document.getElementById("LHRMax").value];
+                    lengthRHR = [document.getElementById("RHRMin").value, document.getElementById("RHRPref").value, document.getElementById("RHRMax").value];
+                    lengthGib = [document.getElementById("gibMin").value, document.getElementById("gibPref").value, document.getElementById("gibMax").value];
+                    optimLHR = [-1*document.getElementById("optLowLHR").value, document.getElementById("optHighLHR").value];
+                    optimRHR = [-1*document.getElementById("optLowRHR").value, document.getElementById("optHighRHR").value];
+                    endsLHR = document.getElementById("endsLHR").value;
+                    endsRHR = document.getElementById("endsRHR").value;
+                    endsTempLHR = document.getElementById("endsTempLHR").value;
+                    endsTempRHR = document.getElementById("endsTempRHR").value;
+                    gibTemp = document.getElementById("gibTemp").value;
+                    gibTDif = document.getElementById("gibTDif").value;
+                    maxDistLHR = document.getElementById("maxDistLHR").value;
+                    maxDistRHR = document.getElementById("maxDistRHR").value;
+                    minFragSize = document.getElementById('minFragSize').value;
+                    optimOrg = document.getElementById('codonOptimizeOrg').value;
+                    codonSampling = document.getElementById('codonOptimStrat').value;
+                    minGCContent = document.getElementById('gRNAGCContent').value;
+                    onTargetMethod = document.getElementById('gRNAOnTargetMethod').value;
+                    onTargetScore = document.getElementById('gRNAOnTargetCutoff').value;
+                    offTargetMethod = document.getElementById('gRNAOffTargetMethod').value;
+                    offTargetScore = document.getElementById('minOffTargetScore').value;
+                    offTargetHitScore = document.getElementById('maxOffTargetHitScore').value;
+                    enzyme = document.getElementById('enzymeType').value;
+                    pam = document.getElementById('PAMSequence').value;
 
-                        msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
-                          HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
-                          endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
-                          optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
-                          offTargetScore, offTargetHitScore, enzyme, pam]);
-                        sendMessageToServer('Sending requests...', "misc");
-                        sendMessageToServer(msg,'sendGeneFile');
-                        queryNumber += 1;
-                    }
-                    fR.onerror = function (evt) {
-                        var errMsg = "Error reading file ";
-                        if ('name' in file) {
-                            errMsg += file.name;
-                        }
-                        document.getElementById("outputLog").innerHTML = errMsg;
-                    }
+                    msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
+                      HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
+                      endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
+                      optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
+                      offTargetScore, offTargetHitScore, enzyme, pam]);
+                    sendMessageToServer('Sending requests...', "misc");
+                    sendMessageToServer(msg,'sendGeneFile');
+                    queryNumber += 1;
                 }
-                else if ('name' in file) {
-                    txt += "File " + file.name + " not a GenBank format file (.gb)";
+                fR.onerror = function (evt) {
+                    var errMsg = "Error reading file ";
+                    if ('name' in file) {
+                        errMsg += file.name;
+                    }
+                    document.getElementById("outputLog").innerHTML = errMsg;
                 }
+            }
+            else if ('name' in file) {
+                txt += "File " + file.name + " not a GenBank format file (.gb)";
             }
         }
     }
@@ -319,6 +318,9 @@ function displayGeneOutput(files) {
     fileCounter += 1;
     if (fileCounter == numFilesUploaded) {
         document.getElementById("run").innerHTML = "Completed!";
+    }
+    else {
+        run();
     }
 }
 
