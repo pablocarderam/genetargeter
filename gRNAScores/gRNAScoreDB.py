@@ -39,9 +39,9 @@ def getGRNAInfoFromDB(pExtSeq,enzyme):
     dbFilePaths = ['./gRNAScores/data/cas9Small.csv','./gRNAScores/data/cpf1Small.csv']
     fp='';
     if enzyme=='Cas9':
-        fp='./gRNAScores/cas9Small.csv';
+        fp='./gRNAScores/data/cas9Small.csv';
     elif enzyme == 'Cpf1':
-        fp='./gRNAScores/cpf1Small.csv';
+        fp='./gRNAScores/data/cpf1Small.csv';
 
     returnInfo = searchDB(searchSeq,fp);
     return returnInfo;
