@@ -841,10 +841,10 @@ def chooseRHR(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40
     failSearchStart = False; # true if no suitable RHR start region is found within given parameters.
 
     # First search for start region
-    while meltingTemp(geneGB.origin[startRHR:(startRHR+endsLength)]) < minTmEnds and startRHR - gene.index[1] <= maxDistanceFromGene and not checkInGene(startRHR): # while no suitable start region found, still within max distance from gene, and the search for a suitable start region hasn't failed yet,
+    while meltingTemp(geneGB.origin[startRHR:min(startRHR+endsLength,len(geneGB.origin))]) < minTmEnds and startRHR - gene.index[1] <= maxDistanceFromGene and startRHR + lengthRHR[0] < gene.index[1] and not checkInGene(startRHR): # while no suitable start region found, still within max distance from gene, not beyond the border of the chromosome, and the search for a suitable start region hasn't failed yet,
         startRHR += 1; # shift startRHR downstream
 
-    if meltingTemp(geneGB.origin[startRHR:(startRHR+endsLength)]) < minTmEnds and ( startRHR - gene.index[1] > maxDistanceFromGene or checkInGene(startRHR) ): # if no suitable start region found,
+    if meltingTemp(geneGB.origin[startRHR:(min(startRHR+endsLength,len(geneGB.origin))+endsLength)]) < minTmEnds and ( startRHR - gene.index[1] > maxDistanceFromGene or checkInGene(startRHR) ): # if no suitable start region found,
         startRHR = max(gene.index[1], gRNADownstream.index[1]); # saves start index of RHR as one bp after gene or 1 bp after most downstream gRNA by default
         failSearchStart = True; # changes failSearchStart status
         log = log + "\nWarning: No RHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the first " + str(endsLength) + " bp of RHR, \nwith a max distance of " + str(maxDistanceFromGene) + " bp between end of gene and start of RHR. \nDefaulted to starting right after end of gene." + "\n"; # give a warning
