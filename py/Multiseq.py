@@ -4,6 +4,8 @@ from py.GenBankToolbox import *
 from py.BioUtils import *
 from copy import deepcopy
 
+# use to process plasmoDB fasta download (no introns, use gff_to_genbank now
+# instead!)
 def processFastas(fastaFilepath):
     fastas = loadFastas(fastaFilepath);
     genes = [];
@@ -23,6 +25,8 @@ def processFastas(fastaFilepath):
         if "WARNING:" in f:
             print "WARNING in seq " + geneName;
 
+
+# Used to process gff_to_genbank output
 def processGenBank(gbFilePath):
     txt = open(gbFilePath); # Access given file
     d = txt.read(); # Read file

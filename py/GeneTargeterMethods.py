@@ -74,11 +74,11 @@ def preprocessInputFile(geneName, geneFileStr, useFileStrs=False):
                 gene = a; # keep it as the gene annotation
                 break; # stop loop
 
-        mRNAs = geneGB.findAnnsType("mRNA"); # list of all mRNAs in GB file
+        mRNAs = geneGB.findAnnsType("mRNA")+geneGB.findAnnsType("tRNA")+geneGB.findAnnsType("rRNA"); # list of all mRNAs in GB file. EDIT 11 oct 2017: Include rRNA and tRNA, not just mRNAs!
         for mRNA in mRNAs: # loop over all mRNAs
             if gene.index[0] <= mRNA.index[0] < mRNA.index[1] <= gene.index[1]: # if mRNA is inside gene,
                 newGB = deepcopy(geneGB); # copy original GB object,
-                newMRNAs = newGB.findAnnsType("mRNA"); # list of all mRNAs in new GB file
+                newMRNAs = newGB.findAnnsType("mRNA")+newGB.findAnnsType("tRNA")+newGB.findAnnsType("rRNA"); # list of all mRNAs in new GB file. EDIT 11 oct 2017: Include rRNA and tRNA, not just mRNAs!
                 for newMRNA in newMRNAs: # loop over mRNAs of new GB file
                     if gene.index[0] <= newMRNA.index[0] < newMRNA.index[1] <= gene.index[1] and mRNA.label != newMRNA.label: # if inside gene and different from current mRNA,
                         newGB.features.remove(newMRNA); # remove newMRNA from new GB file
@@ -148,14 +148,14 @@ def pSN054TargetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=Fa
         gene = geneList[0]; # stores gene annotation
         geneAnns = geneGB.findAnnsLabel(geneName); # stores all gene annotations with gene name in them
         for a in geneAnns: # loops through found annotations
-            if a.label == geneName and (a.type == "gene" or a.type == "mRNA"): # if this annotation's type is gene or mRNA,
+            if a.label == geneName and (a.type == "gene" or a.type == "mRNA" or a.type == "tRNA" or a.type == "rRNA"): # if this annotation's type is gene or mRNA, rRNA, or tRNA,
                 gene = a; # keep it as the gene annotation
                 if a.comp: # if gene is on complementary strand,
                     geneOrientationNegative = True; # used to flip GenBank objects at end
                     geneGB = geneGB.revComp(); # flip whole GenBank object for processing
                     newAnns = geneGB.findAnnsLabel(a.label); # search new GenBank object for gene annotations
                     for newA in newAnns: # loop through search products
-                        if a.label == newA.label and (newA.type == "gene" or newA.type == "mRNA"): # if this annotation has the exact same name as the original and is a gene or mRNA,
+                        if a.label == newA.label and (newA.type == "gene" or newA.type == "mRNA" or a.type == "tRNA" or a.type == "rRNA"): # if this annotation has the exact same name as the original and is a gene or mRNA, rRNA, or tRNA,
                             gene = newA; # save it as the gene annotation object
 
                 break; # stop loop
@@ -888,13 +888,13 @@ def chooseRHR(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40
         while meltingTemp(geneGB.origin[startRHR:(startRHR+endsLength)]) < minTmEnds and startRHR-gene.index[0] <= maxDistanceFromGene and not failSearchStart: # while no suitable start region found, still within max distance from gene, and the search for a suitable start region hasn't failed yet,
             startRHR += 1; # shift startRHR downstream
 
-        endRHR = startRHR + lengthRHR[1]; # stores RHR start index according to preferred length by default
+        endRHR = min([startRHR + lengthRHR[1],len(geneGB.origin)]); # stores RHR end index according to preferred length by default, or max length available if there is not enough sequence space on the chromosome after the gene end
         log = log + "\nWarning: No RHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the last " + str(endsLength) + " bp of RHR, \nwith a max distance of " + str(maxDistanceFromGene) + " bp between end of RHR and end of gene. \nDefaulted to ending at preferred size of " + str(lengthRHR[1]) + "\n"; # give a warning
 
     # Now we optimize the resulting RHR by adjusting start and stop sequences around the given range
     searchIndexesEnd = [int(endRHR+optimizeRange[0]), int(endRHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better end point.
     for i in range(searchIndexesEnd[1], searchIndexesEnd[0], -1): # iterates across optimization range in reverse
-        if meltingTemp(geneGB.origin[(i-endsLength):i]) > meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) and lengthRHR[2] >= i-startRHR >= lengthRHR[0]: # if this end point has a better Tm and is still within bounds,
+        if meltingTemp(geneGB.origin[ min([i-endsLength,len(geneGB.origin)-endsLength]):min([i,len(geneGB.origin)]) ]) > meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) and lengthRHR[2] >= i-startRHR >= lengthRHR[0]: # if this end point has a better Tm and is still within bounds,
             if i < len(geneGB.origin): # if inside gene file,
                 endRHR = i; # make this the ending position
 
@@ -906,6 +906,9 @@ def chooseRHR(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40
         if meltingTemp(geneGB.origin[i:(i+endsLength)]) > meltingTemp(geneGB.origin[startRHR:(startRHR+endsLength)]) and lengthRHR[2] >= endRHR-i >= lengthRHR[0] and i >= gRNADownstream.index[1] and not checkInGene(i): # if this start point has a better Tm and is still within bounds and after gRNA and not inside a gene,
             startRHR = i; # make this the starting position
 
+
+    if endRHR-startRHR < lengthRHR[0]+searchIndexesEnd[0]-searchIndexesEnd[1]: # if RHR is smaller than it should be (gene too close to the end of chromosome, for example)
+        log = log + "\nWarning: RHR found for gene " + geneGB.name + " \nis smaller than allowed by design, with a length of " + str(endRHR-startRHR) + " bp. Maybe gene was too close to start/end of chromosome?\n"; # give a warning
 
     for site in filterCutSites: # for every cut site being filtered
         if findFirst(site,geneGB.origin[startRHR:endRHR]) > -1 or findFirst(revComp(site),geneGB.origin[startRHR:endRHR]) > -1: # if cut site found,
