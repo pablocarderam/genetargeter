@@ -131,7 +131,7 @@ HRannotated is true if the GenBank file given as input includes manual LHR and
 filterCutSites is a list of strings containing cut sequences to be filtered if
     user provides LHR and RHR.
 """
-def pSN054TargetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AflII], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="azimuth", minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG"): # cfd, 0.5, 35; hsu, 75, 5
+def pSN054TargetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AflII], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="azimuth", minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG", gBlockDefault=gBlockDefault): # cfd, 0.5, 35; hsu, 75, 5
     outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":"", "gRNATable":""}; # dictionary containing keys to all values being returned
     outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid pSN054_V5_"+ enzyme +" **** \n\n"; # starts message log to file
 
@@ -182,7 +182,7 @@ def pSN054TargetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=Fa
             RHR = GenBankAnn(); # init RHR var
 
             # pick HRs first
-            LHR = chooseLHR(geneGB, gene, lengthLHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, optimizeRange=optimRangeLHR, maxDistanceFromGRNA=maxDistLHR); # chooses an LHR
+            LHR = chooseLHR(geneGB, gene, lengthLHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, optimizeRange=optimRangeLHR, maxDistanceFromGRNA=maxDistLHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize); # chooses an LHR
             RHR = chooseRHR(geneGB, gene, lengthRHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, optimizeRange=optimRangeRHR, maxDistanceFromGene=maxDistRHR); # chooses RHR
 
             if HRannotated: # if LHR and RHR are already annotated,
@@ -382,7 +382,7 @@ end indexes, counted with the last bp in the gene's stop codon as index 0.
 side3Prime is false if PAM sequence is at the 5' end of gRNA, true if at 3'.
 gRNA: guide RNA used by CRISPR enzyme.
 """
-def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True, minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
+def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True, minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", gBlockDefault=True, maxTier1GBlockSize="250", filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
     log = "Choosing gRNA with PAM sequence " + PAM + " for use with enzyme " + enzyme; # init log
     gRNATable = []; # will store information on each gRNA evaluated. Format: Label, Status, Enzyme, Position, Strand, GC_content, On-target_score, On-target_method, Aggregated_off-target_score, Max_pairwise_off-target_score, Off-target_method, >9_consecutive_A/T, 4-Homopolymer, Triple_T, Sequence, Recoded_sequence, Recoded_sequence_pairwise_off-target_score
     geneList = geneGB.findAnnsLabel(gene.label); # stores gene annotation
@@ -526,7 +526,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
 
             else: # if most downstream gRNA is upstream of stop codon,
                 for g in gRNAs: # loop through gRNAs
-                    if gRNAs[0].index[0] - g.index[0] <= maxDistanceBetweenGRNAS: # if this gRNA is within the max distance from the most downstream gRNA
+                    if (gRNAs[0].index[0] - g.index[0] <= maxDistanceBetweenGRNAS) or (gBlockDefault and gene.index[1]-3 - g.index[0] < maxTier1GBlockSize): # if this gRNA is within the max distance from the most downstream gRNA or gBlocks are the default and the gRNA is within the cheapest gBlock range from the end of the gene
                         newList.append(g); # add it to the new list
 
 
@@ -716,6 +716,8 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
         gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
 
     endLHR = min(gRNAUpstream.index[0],gene.index[1]-3); # saves end index of LHR as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon) (in Python indexing, i.e. not included in LHR).
+    if gBlockDefault and endLHR < gene.index[1]-3 and endLHR > minGBlockSize: # if defaulting to a gBlock for any recoded region,
+        endLHR = gene.index[0]-3 - minGBlockSize; # extend recoded region to minimum gBlock size
 
     while not geneGB.checkInExon(endLHR) and endLHR > lengthLHR[2]: # Loop as long as the end of LHR is not in an exon and the end of the LHR is inside the max length
         endLHR -= 1; # shift LHR end upstream one bp
@@ -908,7 +910,7 @@ def chooseRHR(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40
 
 
     if endRHR-startRHR < lengthRHR[0]+searchIndexesEnd[0]-searchIndexesEnd[1]: # if RHR is smaller than it should be (gene too close to the end of chromosome, for example)
-        log = log + "\nWarning: RHR found for gene " + geneGB.name + " \nis smaller than allowed by design, with a length of " + str(endRHR-startRHR) + " bp. Maybe gene was too close to start/end of chromosome?\n"; # give a warning
+        log = log + "\ERROR: RHR found for gene " + geneGB.name + " \nis smaller than allowed by design, with a length of " + str(endRHR-startRHR) + " bp. Maybe gene was too close to start/end of chromosome?\n"; # give a warning
 
     for site in filterCutSites: # for every cut site being filtered
         if findFirst(site,geneGB.origin[startRHR:endRHR]) > -1 or findFirst(revComp(site),geneGB.origin[startRHR:endRHR]) > -1: # if cut site found,

@@ -44,13 +44,17 @@ def processErrorFiles(dirPath):
     output(outStr,'outResultsTable.csv')
 
 '''
+NOT NEEDED ANY MORE:
 for file in *.txt; do echo ':::' >> "$file"; done
 cat Mess* >> msgs.txt
 ###
 for f in *.txt; do mv -- "$f" "${f%.txt}_Cas9.txt"; done
 ###
+
+USE JUST THIS: put all message files for both enzymes into output/msgs/ directory, then:
+python
 from py.ProcessOutput import *
-o=createOutputSummaryTable('msgs/')
+o=createOutputSummaryTable('output/msgs/')
 '''
 
 def processMsgFileStrings(fileString):

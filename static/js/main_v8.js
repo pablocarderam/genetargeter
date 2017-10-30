@@ -264,12 +264,13 @@ function run() {
                     offTargetHitScore = document.getElementById('maxOffTargetHitScore').value;
                     enzyme = document.getElementById('enzymeType').value;
                     pam = document.getElementById('PAMSequence').value;
+                    gBlockDefault = document.getElementById('gBlockDefault').value;
 
                     msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
                       HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
                       endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
                       optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
-                      offTargetScore, offTargetHitScore, enzyme, pam]);
+                      offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault]);
                     sendMessageToServer('Sending requests...', "misc");
                     sendMessageToServer(msg,'sendGeneFile');
                     queryNumber += 1;
