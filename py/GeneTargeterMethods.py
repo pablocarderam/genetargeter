@@ -699,7 +699,7 @@ distance in bp between end of LHR and start of gRNA.
 LHR: Left Homologous Region used for chromosomal integration by homologous
 recombination during repair.
 """
-def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40, optimizeRange=[-20,10], maxDistanceFromGRNA=500, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII]):
+def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40, optimizeRange=[-20,10], maxDistanceFromGRNA=500, gBlockDefault=True, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII]):
     #TODO: debug cases in which LHR has to be shifted, do case in which LHR is in intron?
     log = ""; # init log
     gRNAs = []; # List of all gRNAs
