@@ -716,7 +716,7 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
         gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
 
     endLHR = min(gRNAUpstream.index[0],gene.index[1]-3); # saves end index of LHR as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon) (in Python indexing, i.e. not included in LHR).
-    if gBlockDefault and endLHR < gene.index[1]-3 and endLHR > minGBlockSize: # if defaulting to a gBlock for any recoded region,
+    if gBlockDefault and endLHR < gene.index[1]-3 and endLHR > gene.index[0]-3 - minGBlockSize: # if defaulting to a gBlock for any recoded region, there is a recoded region, and it is under the minimum gBlock size,
         endLHR = gene.index[0]-3 - minGBlockSize; # extend recoded region to minimum gBlock size
 
     while not geneGB.checkInExon(endLHR) and endLHR > lengthLHR[2]: # Loop as long as the end of LHR is not in an exon and the end of the LHR is inside the max length

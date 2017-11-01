@@ -264,7 +264,7 @@ function run() {
                     offTargetHitScore = document.getElementById('maxOffTargetHitScore').value;
                     enzyme = document.getElementById('enzymeType').value;
                     pam = document.getElementById('PAMSequence').value;
-                    gBlockDefault = document.getElementById('gBlockDefault').value;
+                    gBlockDefault = document.getElementById('gBlockDefault').checked;
 
                     msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
                       HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
