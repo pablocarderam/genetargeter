@@ -162,16 +162,18 @@ def pSN054TargetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=Fa
 
 
 
+        codingGene = True; # used further on to decide whether to take stop codons into account
         if not (compareSeq(gene.seq[len(gene.seq)-3:len(gene.seq)],"TAA") or compareSeq(gene.seq[len(gene.seq)-3:len(gene.seq)],"TAG") or compareSeq(gene.seq[len(gene.seq)-3:len(gene.seq)],"TGA")): # if gene ends on a stop codon,
             outputDic["logFileStr"] = outputDic["logFileStr"] + "Note: this gene appears not to be a protein-coding sequence (it does not end on a stop codon).\n"; # starts message log to file
+            codingGene = False;
 
         if HRannotated: # if using manual annotations
             gRNA = findGRNA(geneGB, gene); # finds gRNA most upstream annotated manually.
             if len(gRNA["out"].label) == 0: # if no manual annotation found,
-                gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme); # chooses gRNA.
+                gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme); # chooses gRNA.
 
         else: # if not,
-            gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme); # chooses gRNA.
+            gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme); # chooses gRNA.
 
         outputDic["logFileStr"] = outputDic["logFileStr"] + gRNA["log"]; # add logs
         outputDic["gRNATable"] = gRNA["gRNATable"]; # saves gRNA output values
@@ -182,7 +184,7 @@ def pSN054TargetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=Fa
             RHR = GenBankAnn(); # init RHR var
 
             # pick HRs first
-            LHR = chooseLHR(geneGB, gene, lengthLHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, optimizeRange=optimRangeLHR, maxDistanceFromGRNA=maxDistLHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize); # chooses an LHR
+            LHR = chooseLHR(geneGB, gene, lengthLHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, optimizeRange=optimRangeLHR, maxDistanceFromGRNA=maxDistLHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene); # chooses an LHR
             RHR = chooseRHR(geneGB, gene, lengthRHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, optimizeRange=optimRangeRHR, maxDistanceFromGene=maxDistRHR); # chooses RHR
 
             if HRannotated: # if LHR and RHR are already annotated,
@@ -246,7 +248,7 @@ def pSN054TargetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=Fa
             primerString = "Primer name,Sequence"; # "OLIGOS for construct targeting gene " + geneName + "\n\n"; # String will save all primer information to be written to file
 
             if len(recoded.seq) > 0 and len(recoded.seq) + gibsonHomRange[1]*2 >= minGBlockSize: # if there is a recoded region and length of recoded region plus homology regions necessary for Gibson Assembly is greater or equal to minimum gBlock size,
-                gBlock = createGBlock(pSN054_ARMED,recodedOnPlasmid); # annotates gBlock on plasmid
+                gBlock = createGBlock(pSN054_ARMED,recodedOnPlasmid,gibsonHomRange[1]); # annotates gBlock on plasmid
                 outputDic["logFileStr"] = outputDic["logFileStr"] + gBlock["log"]; # add logs
                 gBlock = gBlock["out"]; # saves actual data
                 pSN054_ARMED.features.append(gBlock); # add to plasmid annotations
@@ -382,7 +384,7 @@ end indexes, counted with the last bp in the gene's stop codon as index 0.
 side3Prime is false if PAM sequence is at the 5' end of gRNA, true if at 3'.
 gRNA: guide RNA used by CRISPR enzyme.
 """
-def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True, minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", gBlockDefault=True, maxTier1GBlockSize="250", filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
+def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True, minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", gBlockDefault=True, maxTier1GBlockSize="250", gBlockOverlapSize=40, codingGene=True, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
     log = "Choosing gRNA with PAM sequence " + PAM + " for use with enzyme " + enzyme; # init log
     gRNATable = []; # will store information on each gRNA evaluated. Format: Label, Status, Enzyme, Position, Strand, GC_content, On-target_score, On-target_method, Aggregated_off-target_score, Max_pairwise_off-target_score, Off-target_method, >9_consecutive_A/T, 4-Homopolymer, Triple_T, Sequence, Recoded_sequence, Recoded_sequence_pairwise_off-target_score
     geneList = geneGB.findAnnsLabel(gene.label); # stores gene annotation
@@ -516,17 +518,17 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
             log = log + "\nWarning: no acceptable gRNA with at least " + str(minGCContent*100) + "% GC content, " + str(minOnTargetScore) + " on-target score, " + str(minOffTargetScore) + " off-target total score, no 4-homopolymer sequences, and no TTT sequences found on gene " + gene.label + ".\n" + "Will use backup gRNA with highest GC content, if there are any backups."; # add warning to log
         else: # if gRNAs found,
             newList = []; # new list will only contain gRNAs within acceptable range
-            if gRNAs[0].index[0] > gene.index[1]-3: # if most downstream gRNA starts after start of stop codon,
+            if gRNAs[0].index[0] > gene.index[1]-(3*codingGene): # if most downstream gRNA starts after start of stop codon,
                 inUTR = True; # note downstream gRNA is in UTR
                 for g in gRNAs: # loop through gRNAs
-                    if g.index[0] > gene.index[1]-3: # if this gRNA is still in the 3' UTR or stop codon,
+                    if g.index[0] > gene.index[1]-(3*codingGene): # if this gRNA is still in the 3' UTR or stop codon,
                         newList.append(g); # add it to the new list
 
 
 
             else: # if most downstream gRNA is upstream of stop codon,
                 for g in gRNAs: # loop through gRNAs
-                    if (gRNAs[0].index[0] - g.index[0] <= maxDistanceBetweenGRNAS) or (gBlockDefault and gene.index[1]-3 - g.index[0] < maxTier1GBlockSize): # if this gRNA is within the max distance from the most downstream gRNA or gBlocks are the default and the gRNA is within the cheapest gBlock range from the end of the gene
+                    if (gRNAs[0].index[0] - g.index[0] <= maxDistanceBetweenGRNAS) or (gBlockDefault and gene.index[1]-(3*codingGene) - g.index[0] < maxTier1GBlockSize-2*gBlockOverlapSize): # if this gRNA is within the max distance from the most downstream gRNA or gBlocks are the default and the gRNA is within the cheapest gBlock range from the end of the gene
                         newList.append(g); # add it to the new list
 
 
@@ -699,7 +701,7 @@ distance in bp between end of LHR and start of gRNA.
 LHR: Left Homologous Region used for chromosomal integration by homologous
 recombination during repair.
 """
-def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40, optimizeRange=[-20,10], maxDistanceFromGRNA=500, gBlockDefault=True, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII]):
+def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40, optimizeRange=[-20,10], maxDistanceFromGRNA=500, gBlockDefault=True, minGBlockSize=125, codingGene=True, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII]):
     #TODO: debug cases in which LHR has to be shifted, do case in which LHR is in intron?
     log = ""; # init log
     gRNAs = []; # List of all gRNAs
@@ -715,9 +717,9 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
     else: # if gRNAs found,
         gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
 
-    endLHR = min(gRNAUpstream.index[0],gene.index[1]-3); # saves end index of LHR as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon) (in Python indexing, i.e. not included in LHR).
-    if gBlockDefault and ((endLHR < gene.index[1]-3 and endLHR > gene.index[1]-3 - minGBlockSize) or (meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gene.index[1]-3-endLHR < minGBlockSize)): # if defaulting to a gBlock for any recoded region and a) there is a recoded region, and it is under the minimum gBlock size, or b) if the LHR is supposed to end at the end of the gene, but this region does not make for a good LHR ending point,
-        endLHR = gene.index[1]-3 - minGBlockSize; # extend recoded region to minimum gBlock size
+    endLHR = min(gRNAUpstream.index[0],gene.index[1]-(3*codingGene)); # saves end index of LHR as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon) (in Python indexing, i.e. not included in LHR).
+    if gBlockDefault and ((endLHR < gene.index[1]-(3*codingGene) and endLHR > gene.index[1]-(3*codingGene) - minGBlockSize) or (meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gene.index[1]-(3*codingGene)-endLHR < minGBlockSize)): # if defaulting to a gBlock for any recoded region and a) there is a recoded region, and it is under the minimum gBlock size, or b) if the LHR is supposed to end at the end of the gene, but this region does not make for a good LHR ending point,
+        endLHR = gene.index[1]-(3*codingGene) - minGBlockSize; # extend recoded region to minimum gBlock size
 
     while (not geneGB.checkInExon(endLHR)) and endLHR > lengthLHR[2]: # Loop as long as the end of LHR is not in an exon and the end of the LHR is inside the max length
         endLHR -= 1; # shift LHR end upstream one bp
@@ -730,7 +732,7 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
         endLHR -= 1; # shift endLHR upstream
 
     if meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds: # if no suitable end region found,
-        endLHR = min(gRNAUpstream.index[0],gene.index[1]-3); # saves end index of LHR by default as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon)
+        endLHR = min(gRNAUpstream.index[0],gene.index[1]-(3*codingGene)); # saves end index of LHR by default as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon)
         while not geneGB.checkInExon(endLHR) and endLHR > lengthLHR[2]: # Loop as long as the end of LHR is not in an exon and the end of the LHR is inside the max length
             endLHR -= 1; # shift LHR end upstream one bp
 
@@ -743,8 +745,8 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
         while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
             endLHR -= 1; # shift endLHR upstream
 
-        if  gBlockDefault and gene.index[1]-3-endLHR < minGBlockSize: # if defaulting to a gBlock for any recoded region and the current recoded region is smaller than the minimum gBlock size,
-            endLHR = gene.index[1]-3 - minGBlockSize; # extend recoded region to minimum gBlock size
+        if  gBlockDefault and gene.index[1]-(3*codingGene)-endLHR < minGBlockSize: # if defaulting to a gBlock for any recoded region and the current recoded region is smaller than the minimum gBlock size,
+            endLHR = gene.index[1]-(3*codingGene) - minGBlockSize; # extend recoded region to minimum gBlock size
 
         # search for starts upstream
         while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR <= lengthLHR[2] and startLHR > 0: # while no suitable start region found and still within max length of LHR and inside gene file,
@@ -764,9 +766,9 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
 
     if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds: # if no suitable start region found,
         # resets endLHR
-        endLHR = min(gRNAUpstream.index[0],gene.index[1]-3); # saves end index of LHR as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon) (in Python indexing, i.e. not included in LHR).
-        if gBlockDefault and endLHR < gene.index[1]-3 and endLHR > gene.index[1]-3 - minGBlockSize: # if defaulting to a gBlock for any recoded region, there is a recoded region, and it is under the minimum gBlock size,
-            endLHR = gene.index[1]-3 - minGBlockSize; # extend recoded region to minimum gBlock size
+        endLHR = min(gRNAUpstream.index[0],gene.index[1]-(3*codingGene)); # saves end index of LHR as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon) (in Python indexing, i.e. not included in LHR).
+        if gBlockDefault and endLHR < gene.index[1]-(3*codingGene) and endLHR > gene.index[1]-(3*codingGene) - minGBlockSize: # if defaulting to a gBlock for any recoded region, there is a recoded region, and it is under the minimum gBlock size,
+            endLHR = gene.index[1]-(3*codingGene) - minGBlockSize; # extend recoded region to minimum gBlock size
 
         while not geneGB.checkInExon(endLHR) and endLHR > lengthLHR[2]: # Loop as long as the end of LHR is not in an exon and the end of the LHR is inside the max length
             endLHR -= 1; # shift LHR end upstream one bp
@@ -788,7 +790,7 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
 
     searchIndexesEnd = [int(endLHR+optimizeRange[0]), int(endLHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better end point.
     for i in range(searchIndexesEnd[0], searchIndexesEnd[1]): # iterates across optimization range
-        if meltingTemp(geneGB.origin[(i-endsLength):i]) > meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) and lengthLHR[2] >= i-startLHR >= lengthLHR[0] and i < gRNAUpstream.index[0] and geneGB.checkInExon(i) and (gBlockDefault and (i >= gene.index[1]-3 or i <= gene.index[1]-3 - minGBlockSize)): # if this end point has a better Tm, and is still within bounds, before gRNA and within exon, and if it allows for a gBlock of the minimum size or no gBlocck at all if gBlocks are being used as default,
+        if meltingTemp(geneGB.origin[(i-endsLength):i]) > meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) and lengthLHR[2] >= i-startLHR >= lengthLHR[0] and i < gRNAUpstream.index[0] and geneGB.checkInExon(i) and (gBlockDefault and (i >= gene.index[1]-(3*codingGene) or i <= gene.index[1]-(3*codingGene) - minGBlockSize)): # if this end point has a better Tm, and is still within bounds, before gRNA and within exon, and if it allows for a gBlock of the minimum size or no gBlocck at all if gBlocks are being used as default,
             endLHR = i; # make this the ending position
 
 
@@ -1324,10 +1326,10 @@ to be synthesized and inserted via Gibson in plasmid. Will give a warning if it
 suspects the gBlock won't be able to be synthesized by IDT, reverse-engineering
 from the IDT gene synthesis webpage.
 """
-def createGBlock(plasmid, part):
+def createGBlock(plasmid, part, overlapSize):
     log = ""; # init log
-    startGBlock = part.index[0] - 40; # gBlock start position
-    endGBlock = part.index[1] + 40; # gBlock end position
+    startGBlock = part.index[0] - overlapSize; # gBlock start position
+    endGBlock = part.index[1] + overlapSize; # gBlock end position
     gBlockSeq = plasmid.origin[startGBlock:endGBlock]; # gBlock sequence
     tricky = False; # True if suspected to be hard to synthesize
     '''
