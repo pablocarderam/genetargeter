@@ -10,12 +10,16 @@ from copy import deepcopy; # Import object copying methods for deep copies, used
 
 class GenBankAnn(object):
     """Stores some GenBank format information for an annotation."""
-    def __init__(self, pLab="", pType="misc", pSeq="", pComp=False, pIndex=[]): # class constructor
+    def __init__(self, pLab="", pType="misc", pSeq="", pComp=False, pIndex=[], pCol=""): # class constructor
         self.label = pLab # annotation label
         self.type = pType; # type of annotation
         self.seq = pSeq; # sequence of annotation
         self.comp = pComp; # false if on positive strand, true if on complementary strand
         self.index = pIndex; # list with region start and end indexes IN PYTHON INDEXING (starting on 0)
+        if pCol == "": # if no color specified,
+            pCol = randHex(); # set a random coloring
+
+        self.color = pCol # annotation color
 
 
 class GenBank(object):
@@ -146,6 +150,8 @@ class GenBank(object):
                         else: # if on positive strand,
                             newAnn.seq = self.origin[(newAnn.index[0]):newAnn.index[1]]; # assigns the sequence of the annotated region. To find the sequence of the annotated region, indexes in the full sequence according to the position previously extracted.
 
+                    elif p[0] == "/ApEinfo_fwdcolor" or p[0] == "/ApEinfo_revcolor": # if property is a color,
+                        newAnn.color = p[1]; # save color
 
 
                 else: # if line does not contain = character, it's a continuation of the previous line.
@@ -190,7 +196,7 @@ class GenBank(object):
                 spacing = "".join([" " for i in range(16-len(ann.type))]); # creates enough spacing to complete 16 characters between tab and indexes
                 outStr = outStr + "     " + ann.type + spacing + indexStr + "\n"; # write first line of annotation format
                 outStr = outStr + '                     /label="' + ann.label + '"\n'; # write label line
-                col = randHex(); # generates a random color for annotation
+                col = ann.color; # generates a random color for annotation
                 outStr = outStr + '                     /ApEinfo_revcolor=' + col + '\n'; # write reverse color line
                 outStr = outStr + '                     /ApEinfo_fwdcolor=' + col + '\n'; # write forward color line
             else: # if it wasn't found where it should be,
@@ -362,3 +368,17 @@ class GenBank(object):
             insideExon = True; # Assume inside exon
 
         return insideExon; # return Boolean
+
+
+    """
+    Loops over all annotations changing the color to the one passed as an
+    argument. If pCol is random, randomizes all colors.
+    """
+    def setAllColors(self,pCol):
+        print "Setting all colors to " + pCol
+        if pCol == "random": # if setting random,
+            for ann in self.features: # loop through all annotations
+                ann.color = randHex(); # set random color
+        else: # if using a set color,
+            for ann in self.features: # loop through all annotations
+                ann.color = pCol; # set color

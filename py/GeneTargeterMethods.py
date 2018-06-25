@@ -20,6 +20,15 @@ from gRNAScores.gRNAScoring import * # import methods for gRNA scoring
 from gRNAScores.gRNAScoreDB import * # import methods for gRNA scoring from precalculated DB
 
 #### Constants ####
+# Annotation colors
+LHRColor = "#56B4E9";
+RHRColor = "#56B4E9";
+gRNAColor = "#E69F00";
+recodedRegionColor = "#D55E00";
+primerColor = "#F0E442";
+targetGeneColor = "#009E73";
+gBlockColor = "#CC79A7";
+otherAnnColor = "#999999";
 # Restriction enzyme cut sequences used
 cut_FseI = "ggccggcc"; # FseI cut site
 cut_AsiSI = "gcgatcgc"; # AsiSI cut site
@@ -29,8 +38,10 @@ cut_AflII = "cttaag"; # AflII cut site
 # Plasmids
 pSN054_V5_Cas9 = GenBank();
 pSN054_V5_Cas9.load("input/plasmids/psn054-updated_v5-tagged-jn_final.gb",loadFromFile=True); # load Cas9 plasmid sequence from GenBank format
+pSN054_V5_Cas9.setAllColors(otherAnnColor)
 pSN054_V5_Cpf1 = GenBank();
 pSN054_V5_Cpf1.load("input/plasmids/psn054_v5ha-tags_lbcpf1.gb",loadFromFile=True); # load Cpf1 plasmid sequence from GenBank format
+pSN054_V5_Cpf1.setAllColors(otherAnnColor)
 # Codon usage tables
 codonUsageTables = {
     'P. falciparum 3D7': codonUsage('input/codonUsageTables/Pfalciparum3D7.txt'),
@@ -65,6 +76,8 @@ def preprocessInputFile(geneName, geneFileStr, useFileStrs=False):
             os.mkdir(path); # makes new directory
 
 
+    geneGB.setAllColors(otherAnnColor); # set all annotation colors to grey
+
     geneList = geneGB.findAnnsLabel(geneName); # search for annotations with gene name
     if len(geneList) > 0: # if genes found,
         gene = geneList[0]; # stores gene annotation
@@ -74,6 +87,7 @@ def preprocessInputFile(geneName, geneFileStr, useFileStrs=False):
                 gene = a; # keep it as the gene annotation
                 break; # stop loop
 
+        gene.color = targetGeneColor # set gene to orange, using Okabe and Ito's colorblind palette from 2002
         mRNAs = geneGB.findAnnsType("mRNA")+geneGB.findAnnsType("tRNA")+geneGB.findAnnsType("rRNA"); # list of all mRNAs in GB file. EDIT 11 oct 2017: Include rRNA and tRNA, not just mRNAs!
         for mRNA in mRNAs: # loop over all mRNAs
             if gene.index[0] <= mRNA.index[0] < mRNA.index[1] <= gene.index[1]: # if mRNA is inside gene,
@@ -131,7 +145,7 @@ HRannotated is true if the GenBank file given as input includes manual LHR and
 filterCutSites is a list of strings containing cut sequences to be filtered if
     user provides LHR and RHR.
 """
-def pSN054TargetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AflII], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="azimuth", minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG", gBlockDefault=True): # cfd, 0.5, 35; hsu, 75, 5
+def pSN054TargetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="azimuth", minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG", gBlockDefault=True): # cfd, 0.5, 35; hsu, 75, 5
     outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":"", "gRNATable":""}; # dictionary containing keys to all values being returned
     outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid pSN054_V5_"+ enzyme +" **** \n\n"; # starts message log to file
 
@@ -351,25 +365,25 @@ def insertTargetingElementsPSN054(plasmid, geneName, gRNA, LHR, recodedRegion, R
     endLHR = findFirst(plas.origin, cut_AsiSI); # index of LHR end site (at start of AsiSI cut sequence)
     plas.removeSeq([startLHR, endLHR]); # removes sequence that LHR will replace
     plas.insertSeq(LHR, startLHR); # inserts LHR sequence
-    annLHR = GenBankAnn(geneName+" LHR", "misc_feature", LHR, False, [startLHR,startLHR+len(LHR)]); # annotation object
+    annLHR = GenBankAnn(geneName+" LHR", "misc_feature", LHR, False, [startLHR,startLHR+len(LHR)], LHRColor); # annotation object
     plas.features.append(annLHR); # adds annotation
 
     if len(recodedRegion) > 0: # if there is a recoded region,
         inRecode = annLHR.index[1]; # index of recoded region start site (at end of LHR)
         plas.insertSeq(recodedRegion, inRecode); # inserts recoded region sequence
-        annRecoded = GenBankAnn(geneName+" Recoded Region", "misc_feature", recodedRegion, False, [inRecode,inRecode+len(recodedRegion)]); # annotation object
+        annRecoded = GenBankAnn(geneName+" Recoded Region", "misc_feature", recodedRegion, False, [inRecode,inRecode+len(recodedRegion)], recodedRegionColor); # annotation object
         plas.features.append(annRecoded); # adds annotation
 
     startGRNA = findFirst(plas.origin, cut_IPpoI); # index of gRNA start site (at start of I-PpoI cut sequence)
     endGRNA = startGRNA + len(cut_IPpoI); # index of gRNA end site (at end of I-PpoI cut sequence)
     plas.removeSeq([startGRNA, endGRNA]); # removes sequence that gRNA will replace
     plas.insertSeq("gg" + gRNA, startGRNA); # inserts gRNA sequence with gg sequence used by T7 polymerase
-    annGRNA = GenBankAnn(geneName+" gRNA", "misc_feature", gRNA, False, [startGRNA+2,startGRNA+2+len(gRNA)]); # annotation object. Note that gRNA starts after "gg" added for T7 polymerase
+    annGRNA = GenBankAnn(geneName+" gRNA", "misc_feature", gRNA, False, [startGRNA+2,startGRNA+2+len(gRNA)], gRNAColor); # annotation object. Note that gRNA starts after "gg" added for T7 polymerase
     plas.features.append(annGRNA); # adds annotation
 
     inRHR = findFirst(plas.origin, cut_ISceI); # index of RHR insertion site (at start of I-SceI cut sequence)
     plas.insertSeq(RHR, inRHR); # inserts RHR sequence
-    annRHR = GenBankAnn(geneName+" RHR", "misc_feature", RHR, False, [inRHR,inRHR+len(RHR)]); # annotation object
+    annRHR = GenBankAnn(geneName+" RHR", "misc_feature", RHR, False, [inRHR,inRHR+len(RHR)], RHRColor); # annotation object
     plas.features.append(annRHR); # adds annotation
 
     return plas; # returns modified plasmid
@@ -386,6 +400,10 @@ gRNA: guide RNA used by CRISPR enzyme.
 """
 def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True, minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", gBlockDefault=True, maxTier1GBlockSize=500, gBlockOverlapSize=40, codingGene=True, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
     log = "Choosing gRNA with PAM sequence " + PAM + " for use with enzyme " + enzyme; # init log
+    if not codingGene and searchRange[0] < 0: # if gene is non protein-coding and the start of the search region is inside the gene,
+        log += "\nSince this looks like a non protein-coding gene, the gRNA search range will be shifted to be entirely downstream of the end of the gene."; # Notate change in search range
+        searchRange = [0,searchRange[1]-searchRange[0]]; # shift the search range
+
     gRNATable = []; # will store information on each gRNA evaluated. Format: Label, Status, Enzyme, Position, Strand, GC_content, On-target_score, On-target_method, Aggregated_off-target_score, Max_pairwise_off-target_score, Off-target_method, >9_consecutive_A/T, 4-Homopolymer, Triple_T, Sequence, Recoded_sequence, Recoded_sequence_pairwise_off-target_score
     geneList = geneGB.findAnnsLabel(gene.label); # stores gene annotation
     gene = geneList[0]; # stores gene annotation
@@ -473,7 +491,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
                                 offTargetScores = gRNAInfo[9:12]; # use it
 
 
-                        newGRNA = GenBankAnn(gene.label + " " + enzyme + " gRNA ","misc",gRNASeq,comp,gRNAIndexes); # create annotation object with gRNA information
+                        newGRNA = GenBankAnn(gene.label + " " + enzyme + " gRNA ","misc",gRNASeq,comp,gRNAIndexes,gRNAColor); # create annotation object with gRNA information
                         newGRNA.onTarget = onTarget; # Add on-target score as attribute
                         newGRNA.offTarget = offTargetScores; # Add off-target scores as attribute
                         newGRNA.gc = gc; # Add gc content as attribute
@@ -487,7 +505,12 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
                         gRNATable[len(gRNATable)-1][13] = str(newGRNA.tripleT); # Edit this gRNA's tripleT
                         gRNATable[len(gRNATable)-1][15] = 'No recoded region necessary'; # Edit this gRNA's recoded status
 
-                        if offTargetScores[0] >= minOffTargetScore and offTargetScores[1] <= maxOffTargetHitScore and not newGRNA.homopolymer and not newGRNA.tripleT: # if total off-target score and max hit score are passable, and if no homopolymer or triple T
+                        containsCutSite = "" # store info on whether it contains a RE cut site
+                        for site in filterCutSites: # for every cut site being filtered
+                            if findFirst(site,gRNASeq) > -1 or findFirst(revComp(site),gRNASeq) > -1: # if cut site found,
+                                containsCutSite = site; # notate site
+
+                        if offTargetScores[0] >= minOffTargetScore and offTargetScores[1] <= maxOffTargetHitScore and not newGRNA.homopolymer and not newGRNA.tripleT and containsCutSite == "": # if total off-target score and max hit score are passable, and if no homopolymer or triple T, and if contains no cut sites,
                             gRNAs.append(newGRNA); # add this gRNA's information to list.
                             gRNATable[len(gRNATable)-1][1] = 'Valid'; # Edit this gRNA's status
                         else: # if failed off-target score culling.
@@ -499,6 +522,8 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
                                 gRNATable[len(gRNATable)-1][1] = 'Possible backup (4-homopolymer)'; # Edit this gRNA's status
                             elif newGRNA.tripleT: # if failed max pairwise off-target check,
                                 gRNATable[len(gRNATable)-1][1] = 'Possible backup (triple T)'; # Edit this gRNA's status
+                            elif containsCutSite: # if failed cut site check
+                                gRNATable[len(gRNATable)-1][1] = 'Possible backup (contains restriction cut site: ' + containsCutSite + ')'; # Edit this gRNA's status
 
 
 
@@ -802,7 +827,7 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
 
 
     # creates var to store finished LHR as annotation
-    LHR = GenBankAnn(gene.label + " LHR", "misc_feature", geneGB.origin[startLHR:endLHR], False, [startLHR,endLHR]); # creates GenBankAnn object to hold LHR
+    LHR = GenBankAnn(gene.label + " LHR", "misc_feature", geneGB.origin[startLHR:endLHR], False, [startLHR,endLHR], LHRColor); # creates GenBankAnn object to hold LHR
 
     log = log + "LHR for gene " + gene.label + " selected.\n\n"; # logs this process finished
     return {"out":LHR, "log":log}; # returns LHR GenBankAnn object
@@ -926,7 +951,7 @@ def chooseRHR(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40
             log = log + "\nWarning: RHR sequence for gene " + gene.label + ": \n" + geneGB.origin[startRHR:endRHR] + "\ncontains restriction site " + site + "\n"; # add warning to log
 
     # creates var to store finished RHR as annotation
-    RHR = GenBankAnn(gene.label + " RHR", "misc_feature", geneGB.origin[startRHR:endRHR], False, [startRHR,endRHR]); # creates GenBankAnn object to hold RHR
+    RHR = GenBankAnn(gene.label + " RHR", "misc_feature", geneGB.origin[startRHR:endRHR], False, [startRHR,endRHR], RHRColor); # creates GenBankAnn object to hold RHR
 
     log = log + "RHR for gene " + gene.label + " selected.\n\n"; # logs this process finished
 
@@ -1155,7 +1180,7 @@ def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCo
                 #print [gOnSeq+"NGG",gOffSeq+gNewPAM,pairScoreCFD(gOnSeq,gOffSeq,gNewPAM,pamType),pairScoreHsu(gOnSeq,gOffSeq,gNewPAM,pamType)]
 
         recodedSeq = nonRecodedStart + bestRecodedSeq; # adds initial bases from reading frame adjustment to best candidate
-        annRecoded = GenBankAnn(gene.label + " Recoded", "misc_feature", recodedSeq, False, [startRecode,endRecode]); # creates var to store finished recodedSeq as annotation
+        annRecoded = GenBankAnn(gene.label + " Recoded", "misc_feature", recodedSeq, False, [startRecode,endRecode], recodedRegionColor); # creates var to store finished recodedSeq as annotation
         log = log + "Recoded region with size " + str(len(recodedSeq)) + " for gene " + gene.label + " selected.\n\n"; # logs this process finished
 
     else: # if no recoded region necessary,
@@ -1231,8 +1256,8 @@ def createPrimers(plasmid, part, rangeSize=[18,22,50], rangeMeltTemp=[55,62,65],
             else: # if temp difference still exceeds specs
                 log = log + "\nWarning: Primers for sequence " + part.label + " under given constraints have a Tm difference of " + str(meltingTemp(primFwdSeq)-meltingTemp(primRevSeq)) + ", above the given threshold of " + str(maxTempDif)  + "\n"; # give warning
 
-    annPrimFwd = GenBankAnn(part.label + " Primer (Fwd)", "misc_feature", primFwdSeq, False, [startPF,endPF]); # creates GenBankAnn object to hold fwd primer
-    annPrimRev = GenBankAnn(part.label + " Primer (Rev)", "misc_feature", primRevSeq, True, [startPR,endPR]); # creates GenBankAnn object to hold rev primer
+    annPrimFwd = GenBankAnn(part.label + " Primer (Fwd)", "misc_feature", primFwdSeq, False, [startPF,endPF], primerColor); # creates GenBankAnn object to hold fwd primer
+    annPrimRev = GenBankAnn(part.label + " Primer (Rev)", "misc_feature", primRevSeq, True, [startPR,endPR], primerColor); # creates GenBankAnn object to hold rev primer
 
     log = log + "Primers for part " + part.label + " selected.\n\n"; # logs this process finished
     return {"out":[annPrimFwd, annPrimRev], "log":log}; # return primer annotation objects
@@ -1313,8 +1338,8 @@ def createGibsonPrimers(plasmid, part, rangeHom=[30,40,50], minMeltTemp=68, maxT
             else: # if temp difference still exceeds specs
                 log = log + "\nWarning: Gibson primers for sequence " + part.label + " under given constraints have a Tm difference of " + str(meltingTemp(primFwdSeq)-meltingTemp(primRevSeq)) + ", above the given threshold of " + str(maxTempDif) + "\n"; # give warning
 
-    annPrimFwd = GenBankAnn(part.label + " Gibson Primer (Fwd)", "misc_feature", primFwdSeq, False, [startPF,endPF]); # creates GenBankAnn object to hold fwd primer
-    annPrimRev = GenBankAnn(part.label + " Gibson Primer (Rev)", "misc_feature", primRevSeq, True, [startPR,endPR]); # creates GenBankAnn object to hold rev primer
+    annPrimFwd = GenBankAnn(part.label + " Gibson Primer (Fwd)", "misc_feature", primFwdSeq, False, [startPF,endPF], primerColor); # creates GenBankAnn object to hold fwd primer
+    annPrimRev = GenBankAnn(part.label + " Gibson Primer (Rev)", "misc_feature", primRevSeq, True, [startPR,endPR], primerColor); # creates GenBankAnn object to hold rev primer
 
     log = log + "Gibson primers for part " + part.label + " selected.\n\n"; # logs this process finished
     return {"out":[annPrimFwd, annPrimRev],"log":log}; # return list of primers
@@ -1353,7 +1378,7 @@ def createGBlock(plasmid, part, overlapSize):
     if tricky: # if sequence seems tricky
         log = log + "\nWarning: I suspect IDT might reject the gBlock created: \n" + gBlockSeq + "\n"; # warn user
 
-    annGBlock = GenBankAnn(part.label + " gBlock", "misc_feature", gBlockSeq, False, [startGBlock,endGBlock]); # creates GenBankAnn object to hold gBlock
+    annGBlock = GenBankAnn(part.label + " gBlock", "misc_feature", gBlockSeq, False, [startGBlock,endGBlock], gBlockColor); # creates GenBankAnn object to hold gBlock
 
     log = log + "gBlock for part " + part.label + " selected.\n\n"; # logs this process finished
     return {"out":annGBlock, "log":log}; # returns annotation
@@ -1375,8 +1400,8 @@ def createKlenowOligos(plasmid, part, lengthHom=40): #TODO: debug.
     endPR = part.index[1] + lengthHom; # Rev primer end position
     primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
 
-    annPrimFwd = GenBankAnn(part.label + " Klenow oligo (Fwd)", "misc_feature", primFwdSeq, False, [startPF,endPF]); # creates GenBankAnn object to hold fwd primer
-    annPrimRev = GenBankAnn(part.label + " Klenow oligo (Rev)", "misc_feature", primRevSeq, True, [startPR,endPR]); # creates GenBankAnn object to hold rev primer
+    annPrimFwd = GenBankAnn(part.label + " Klenow oligo (Fwd)", "misc_feature", primFwdSeq, False, [startPF,endPF], primerColor); # creates GenBankAnn object to hold fwd primer
+    annPrimRev = GenBankAnn(part.label + " Klenow oligo (Rev)", "misc_feature", primRevSeq, True, [startPR,endPR], primerColor); # creates GenBankAnn object to hold rev primer
 
     log = log + "Klenow oligos for part " + part.label + " selected.\n\n"; # logs this process finished
     return {"out":[annPrimFwd, annPrimRev], "log":log}; # return list of primers
@@ -1454,7 +1479,7 @@ LHR (Gibson overhang PCR primers)
 RHR (Gibson overhang PCR primers)
 gRNA (Klenow oligos for gRNA sequence)
 gBlock (gBlock sequencing primer)
-RecKlen (Klenow oligos for recoded region, if the region is small enough)
+RecAE (Anneal-extension oligos for recoded region, if the region is small enough)
 
 Orientation refers to forward (F) and reverse (R) primers.
 """
@@ -1476,7 +1501,7 @@ def shortenOligoNames(primerString):
             elif name.find("gRNA") > -1:
                 newName = newName + "gRNA" + "_";
             elif name.find("Recoded region Klenow") > -1:
-                newName = newName + "RecKlen" + "_";
+                newName = newName + "RecAE" + "_";
 
             # Add oligo orientation
             if name.find("fwd") > -1:
