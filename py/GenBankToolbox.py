@@ -375,7 +375,6 @@ class GenBank(object):
     argument. If pCol is random, randomizes all colors.
     """
     def setAllColors(self,pCol):
-        print "Setting all colors to " + pCol
         if pCol == "random": # if setting random,
             for ann in self.features: # loop through all annotations
                 ann.color = randHex(); # set random color

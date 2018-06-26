@@ -421,7 +421,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-500,125], PAM="NGG", side3Prime=True,
     backupGRNAs = []; # stores gRNAs that fail off-target score as possible backups
     gRNAUpstream = GenBankAnn(); # will store gRNA most upstream
 
-    searchRange[0] = max(searchRange[0],-1*len(geneGB.origin)); # adjusts search range in case it goes beyond the total length of the gene
+    searchRange[0] = max(searchRange[0],-1*len(geneGB.origin)); # adjusts search range in case it goes beyond the total length of the gene (to the left)
 
     pamSeqs = ambiguousSeqs(PAM); # store actual PAM sequences
     extGRNASeqIndexes = []; # stores indexes of extended gRNA sequence (NNNN-gRNA 20mer-PAM 3mer-NNN for Cas9, PAM 4mer-gRNA 23mer-NNN for Cpf1) relative to PAM start point.
@@ -743,7 +743,7 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
         gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
 
     endLHR = min(gRNAUpstream.index[0],gene.index[1]-(3*codingGene)); # saves end index of LHR as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon) (in Python indexing, i.e. not included in LHR).
-    if gBlockDefault and ((endLHR < gene.index[1]-(3*codingGene) and endLHR > gene.index[1]-(3*codingGene) - minGBlockSize) or (meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gene.index[1]-(3*codingGene)-endLHR < minGBlockSize)): # if defaulting to a gBlock for any recoded region and a) there is a recoded region, and it is under the minimum gBlock size, or b) if the LHR is supposed to end at the end of the gene, but this region does not make for a good LHR ending point,
+    if gBlockDefault and ((endLHR < gene.index[1]-(3*codingGene) and endLHR > gene.index[1]-(3*codingGene) - minGBlockSize) or (meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and gene.index[1]-(3*codingGene)-endLHR < minGBlockSize)): # if defaulting to a gBlock for any recoded region and a) there is a recoded region, and it is under the minimum gBlock size, or b) if the LHR is supposed to end at the end of the gene, but this region does not make for a good LHR ending point,
         endLHR = gene.index[1]-(3*codingGene) - minGBlockSize; # extend recoded region to minimum gBlock size
 
     while (not geneGB.checkInExon(endLHR)) and endLHR > lengthLHR[2]: # Loop as long as the end of LHR is not in an exon and the end of the LHR is inside the max length
@@ -753,10 +753,10 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
     failSearchEnd = False; # true if no suitable LHR end region is found within given parameters.
 
     # First search for end region
-    while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
+    while meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
         endLHR -= 1; # shift endLHR upstream
 
-    if meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds: # if no suitable end region found,
+    if meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds: # if no suitable end region found,
         endLHR = min(gRNAUpstream.index[0],gene.index[1]-(3*codingGene)); # saves end index of LHR by default as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon)
         while not geneGB.checkInExon(endLHR) and endLHR > lengthLHR[2]: # Loop as long as the end of LHR is not in an exon and the end of the LHR is inside the max length
             endLHR -= 1; # shift LHR end upstream one bp
@@ -767,7 +767,7 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
     # Then search for start region; modify end region if necessary
     while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and (gRNAUpstream.index[0]-endLHR <= maxDistanceFromGRNA and geneGB.checkInExon(endLHR-1)): # if no start region has been found, and still within max distance from gRNA and inside exon,
         # find new end region if necessary
-        while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
+        while meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
             endLHR -= 1; # shift endLHR upstream
 
         if  gBlockDefault and gene.index[1]-(3*codingGene)-endLHR < minGBlockSize: # if defaulting to a gBlock for any recoded region and the current recoded region is smaller than the minimum gBlock size,
@@ -798,7 +798,7 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
         while not geneGB.checkInExon(endLHR) and endLHR > lengthLHR[2]: # Loop as long as the end of LHR is not in an exon and the end of the LHR is inside the max length
             endLHR -= 1; # shift LHR end upstream one bp
 
-        while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
+        while meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
             endLHR -= 1; # shift endLHR upstream
 
         startLHR = endLHR - lengthLHR[1]; # stores LHR start index according to preferred length by default
@@ -815,7 +815,7 @@ def chooseLHR(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40
 
     searchIndexesEnd = [int(endLHR+optimizeRange[0]), int(endLHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better end point.
     for i in range(searchIndexesEnd[0], searchIndexesEnd[1]): # iterates across optimization range
-        if meltingTemp(geneGB.origin[(i-endsLength):i]) > meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) and lengthLHR[2] >= i-startLHR >= lengthLHR[0] and i < gRNAUpstream.index[0] and geneGB.checkInExon(i) and (gBlockDefault and (i >= gene.index[1]-(3*codingGene) or i <= gene.index[1]-(3*codingGene) - minGBlockSize)): # if this end point has a better Tm, and is still within bounds, before gRNA and within exon, and if it allows for a gBlock of the minimum size or no gBlocck at all if gBlocks are being used as default,
+        if meltingTemp(geneGB.origin[max(i-endsLength,0):i]) > meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) and lengthLHR[2] >= i-startLHR >= lengthLHR[0] and i < gRNAUpstream.index[0] and geneGB.checkInExon(i) and (gBlockDefault and (i >= gene.index[1]-(3*codingGene) or i <= gene.index[1]-(3*codingGene) - minGBlockSize)): # if this end point has a better Tm, and is still within bounds, before gRNA and within exon, and if it allows for a gBlock of the minimum size or no gBlocck at all if gBlocks are being used as default,
             endLHR = i; # make this the ending position
 
 
