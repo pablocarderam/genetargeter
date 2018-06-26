@@ -28,7 +28,7 @@ recodedRegionColor = "#D55E00";
 primerColor = "#F0E442";
 targetGeneColor = "#009E73";
 gBlockColor = "#CC79A7";
-otherAnnColor = "#999999";
+otherAnnColor = "#BBBBBB";
 # Restriction enzyme cut sequences used
 cut_FseI = "ggccggcc"; # FseI cut site
 cut_AsiSI = "gcgatcgc"; # AsiSI cut site
