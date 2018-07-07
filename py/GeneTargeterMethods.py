@@ -901,7 +901,7 @@ def chooseRHR(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40
             endRHR -= 1; # shift endRHR downstream
 
 
-    if meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds and startRHR-gene.index[1] <= maxDistanceFromGene and not geneGB.checkInExon(startRHR): # if still not found and within bounds and start of RHR is not downstream of the start of a gene,
+    if meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds and startRHR-gene.index[1] <= maxDistanceFromGene and not geneGB.checkInExon(startRHR) and startRHR+lengthRHR[0] < len(geneGB.origin)-1: # if still not found and within bounds and start of RHR is not downstream of the start of a gene and not too close to end of gene file,
         # Then modify start region, search for end region;
         while meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds and startRHR-gene.index[1] <= maxDistanceFromGene and not geneGB.checkInExon(startRHR): # if no end region has been found and start of RHR is not downstream of the start of a gene,
             startRHR += 1; # shifts start of RHR downstream
@@ -911,7 +911,7 @@ def chooseRHR(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40
                 startRHR += 1; # shift startRHR downstream
 
             # search for end downstream
-            while meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds and endRHR-startRHR <= lengthRHR[2]: # while no suitable end region found and still within max length of RHR,
+            while meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds and endRHR-startRHR <= lengthRHR[2] and endRHR < len(geneGB.origin)-1: # while no suitable end region found and still within max length of RHR and still inside gene file,
                 endRHR += 1; # shift endRHR downstream
 
             # if not found downstream
