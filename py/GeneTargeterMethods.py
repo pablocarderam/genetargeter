@@ -325,8 +325,12 @@ def pSN054TargetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=Fa
                 geneGB = geneGB.revComp(); # flip pre-editing locus
                 editedLocus = editedLocus.revComp(); # flip post-editing locus
 
+            geneGB.name = geneName + "_" + enzyme + "_Locus_Pre-editing"; # save file type in genbank locus
+            pSN054_ARMED.name = geneName + "_" + enzyme + "_Locus_Pre-editing"; # save file type in genbank locus
+            editedLocus.name = geneName + "_" + enzyme + "_Locus_Post-editing"; # save file type in genbank locus
+
             outputDic["geneFileStr"] = geneGB.save(path + "/" + geneName + "_Locus_Pre-editing.gb", saveToFile=(not useFileStrs)); # saves annotated gene
-            outputDic["plasmidFileStr"] = pSN054_ARMED.save(path + "/" +  "pSN054_V5_Cas9_targeting" + geneName, saveToFile=(not useFileStrs)); # saves plasmid
+            outputDic["plasmidFileStr"] = pSN054_ARMED.save(path + "/" +  "pSN054_V5_" + enzyme + "_" + geneName, saveToFile=(not useFileStrs)); # saves plasmid
             outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + geneName+"_Locus_Post-editing.gb", saveToFile=(not useFileStrs)); # saves edited locus
             outputDic["oligoFileStr"] = primerString; # saves primers to file
             outputDic["newPlasmid"] = pSN054_ARMED; # saves new plasmid to output dictionary
