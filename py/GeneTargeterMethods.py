@@ -326,7 +326,7 @@ def pSN054TargetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=Fa
                 editedLocus = editedLocus.revComp(); # flip post-editing locus
 
             geneGB.name = geneName + "_" + enzyme + "_Locus_Pre-editing"; # save file type in genbank locus
-            pSN054_ARMED.name = geneName + "_" + enzyme + "_Locus_Pre-editing"; # save file type in genbank locus
+            pSN054_ARMED.name = geneName + "_" + enzyme + "_pSN054_V5"; # save file type in genbank locus
             editedLocus.name = geneName + "_" + enzyme + "_Locus_Post-editing"; # save file type in genbank locus
 
             outputDic["geneFileStr"] = geneGB.save(path + "/" + geneName + "_Locus_Pre-editing.gb", saveToFile=(not useFileStrs)); # saves annotated gene
