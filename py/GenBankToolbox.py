@@ -46,6 +46,7 @@ class GenBank(object):
     save(pFile) = Saves a GenBank class object to a GenBank file.
     insertSeq(seq, index) = inserts sequence into GenBank object, modifies annotation indexes accordingly
     removeSeq(indexes) = removes sequence from GenBank object, modifies annotation indexes accordingly
+    insertGenBank(gb, index) = inserts another GenBank object into GenBank object, modifies annotation indexes accordingly
     """
 
     def __init__(self): # class constructor
@@ -73,96 +74,99 @@ class GenBank(object):
         else: # if a file string has been passed in pFile,
             d = pFile; # save the read file string as raw data in d
 
-        d = d.split("\n"); # Split into lines. d is now a list of strings corresponding to the lines of the file.
+        if len(d) == 0: # if data is empty,
+            print "ERROR: empty file or filestring passed for GenBank loading."
+        else: # if there's data,
+            d = d.split("\n"); # Split into lines. d is now a list of strings corresponding to the lines of the file.
 
-        i = 0; # indexes through lines
-        w = d[i].split(); # splits line into words
-
-        while len(w) == 0 or w[0] != "LOCUS" and i < len(d): # iterates until LOCUS found or end of document reached
-            i = i+1; # advance counter
+            i = 0; # indexes through lines
             w = d[i].split(); # splits line into words
 
-        if w[0] == "LOCUS": # if locus found...
-            self.name = w[1]; # saves name
-            self.additionalInfo = " ".join(w[4:(len(w)-1)]); # saves additional information
-            self.date = w[len(w)-1]; # date is always last in line
-
-        while w[0] != "DEFINITION" and i < len(d): # iterates until DEFINITION found or end of document reached
-            i = i+1; # advance counter
-            w = d[i].split(); # splits line into words
-
-        if w[0] == "DEFINITION": # if definition found...
-            self.definition = d[i].lstrip()[12::]; # saves definition information on this line after "DEFINITION" string and ensuing whitespace.
-            while w[len(w)-1].find(".") < 0 and i < len(d): # iterates until last word in line contains period, or end of document reached
-                i = i+1; # advance counter
-                w = d[i].split(); # splits line into words
-                self.definition = self.definition + d[i]; # save this line as definition information
-
-        # We need to load the sequence before we load the annotations
-        while w[0] != "ORIGIN" and i < len(d): # iterates until ORIGIN found or end of document reached
-            i = i+1; # advance counter
-            w = d[i].split(); # splits line into words
-
-        if w[0] == "ORIGIN": # if origin found...
-            i = i+1; # advance counter
-            w = d[i].split(); # splits line into words
-            while w[0] != "//" or i == len(d): # iterates until end of document reached
-                self.origin = self.origin + "".join(w[1:]); # joins all sequence information in this line into the full sequence. The first word is omitted due to the fact it is supposed to be a position number.
+            while len(w) == 0 or w[0] != "LOCUS" and i < len(d): # iterates until LOCUS found or end of document reached
                 i = i+1; # advance counter
                 w = d[i].split(); # splits line into words
 
-        # Now the annotations
-        i = 0; # reset the line counter to search for the features section
-        while w[0] != "FEATURES" and i < len(d): # iterates until FEATURES found and end of document reached
-            i = i+1; # advance counter
-            w = d[i].split(); # splits line into words
+            if w[0] == "LOCUS": # if locus found...
+                self.name = w[1]; # saves name
+                self.additionalInfo = " ".join(w[4:(len(w)-1)]); # saves additional information
+                self.date = w[len(w)-1]; # date is always last in line
 
-        if w[0] == "FEATURES": # if features found...
-            newAnn = GenBankAnn("","","",False,[]); # creates new empty GenBankAnn class object
-            i = i+1; # advance counter
-            w = d[i].split(); # splits line into words
-            while w[0] != "ORIGIN" and i < len(d): # iterates until ORIGIN found or end of document reached, assuming ORIGIN comes after features...
-                if d[i].lstrip()[0] != "/" and len(w) == 2: # if the line does not start with "/" and contains two strings separated by spaces, it means it might be a new annotation. lstrip() removes left whitespace.
-                    posRawString = w[1].split("("); # splits second word in w by "(" to see if on complementary strand
-                    posString = posRawString[0]; # assigns posString to the indexes string in the case that the annotation is on the positive strand
-                    if len(posRawString) > 1: # if split into more than one piece, it means it's on the complementary strand
-                        posString = posRawString[1][:(len(posRawString[1])-1)]; # extracts index information from raw string
+            while w[0] != "DEFINITION" and i < len(d): # iterates until DEFINITION found or end of document reached
+                i = i+1; # advance counter
+                w = d[i].split(); # splits line into words
 
-                    if posString.split("..")[0].isdigit(): # if index information is actually a number (avoids cases of continuing description lines)
-                        newAnn = GenBankAnn("","","",False,[]); # resets newAnn variable
-                        newAnn.type = w[0]; # stores annotation type
+            if w[0] == "DEFINITION": # if definition found...
+                self.definition = d[i].lstrip()[12::]; # saves definition information on this line after "DEFINITION" string and ensuing whitespace.
+                while w[len(w)-1].find(".") < 0 and i < len(d): # iterates until last word in line contains period, or end of document reached
+                    i = i+1; # advance counter
+                    w = d[i].split(); # splits line into words
+                    self.definition = self.definition + d[i]; # save this line as definition information
 
+            # We need to load the sequence before we load the annotations
+            while w[0] != "ORIGIN" and i < len(d): # iterates until ORIGIN found or end of document reached
+                i = i+1; # advance counter
+                w = d[i].split(); # splits line into words
+
+            if w[0] == "ORIGIN": # if origin found...
+                i = i+1; # advance counter
+                w = d[i].split(); # splits line into words
+                while w[0] != "//" or i == len(d): # iterates until end of document reached
+                    self.origin = self.origin + "".join(w[1:]); # joins all sequence information in this line into the full sequence. The first word is omitted due to the fact it is supposed to be a position number.
+                    i = i+1; # advance counter
+                    w = d[i].split(); # splits line into words
+
+            # Now the annotations
+            i = 0; # reset the line counter to search for the features section
+            while w[0] != "FEATURES" and i < len(d): # iterates until FEATURES found and end of document reached
+                i = i+1; # advance counter
+                w = d[i].split(); # splits line into words
+
+            if w[0] == "FEATURES": # if features found...
+                newAnn = GenBankAnn("","","",False,[]); # creates new empty GenBankAnn class object
+                i = i+1; # advance counter
+                w = d[i].split(); # splits line into words
+                while w[0] != "ORIGIN" and i < len(d): # iterates until ORIGIN found or end of document reached, assuming ORIGIN comes after features...
+                    if d[i].lstrip()[0] != "/" and len(w) == 2: # if the line does not start with "/" and contains two strings separated by spaces, it means it might be a new annotation. lstrip() removes left whitespace.
+                        posRawString = w[1].split("("); # splits second word in w by "(" to see if on complementary strand
+                        posString = posRawString[0]; # assigns posString to the indexes string in the case that the annotation is on the positive strand
                         if len(posRawString) > 1: # if split into more than one piece, it means it's on the complementary strand
-                            newAnn.comp = True; # set comp to true
+                            posString = posRawString[1][:(len(posRawString[1])-1)]; # extracts index information from raw string
 
-                        newAnn.index = [int(index) for index in posString.split("..")]; # takes the index string, splits it into two strings separated by ".." and converts them both to ints.
-                        if len(newAnn.index) == 1: # if only one index found (just one bp annotated),
-                            newAnn.index.append(newAnn.index[0]); # duplicate the index
+                        if posString.split("..")[0].isdigit(): # if index information is actually a number (avoids cases of continuing description lines)
+                            newAnn = GenBankAnn("","","",False,[]); # resets newAnn variable
+                            newAnn.type = w[0]; # stores annotation type
 
-                        newAnn.index[0] = newAnn.index[0] - 1; # changes to Python indexing. Upper limit does not have to be changed since Python does not include it in indexing, while GenBank does.
+                            if len(posRawString) > 1: # if split into more than one piece, it means it's on the complementary strand
+                                newAnn.comp = True; # set comp to true
 
-                elif d[i].find('=') > 0: # if line contains = character, it means it's a new property
-                    p = d[i].lstrip().split("="); # splits line into a property's name and value
-                    if p[0] == "/gene" or p[0] == "/label" or p[0] == "/ID": # if the property is a gene or label...
-                        newAnn.label = p[1][1:(len(p[1])-1)]; # assigns the label (extracting the label from string p)
-                        if newAnn.comp: # if on complementary strand,
-                            newAnn.seq = revComp(self.origin[(newAnn.index[0]):newAnn.index[1]]); # assigns the sequence of the annotated region to the complement. To find the sequence of the annotated region, indexes in the full sequence according to the position previously extracted.
-                        else: # if on positive strand,
-                            newAnn.seq = self.origin[(newAnn.index[0]):newAnn.index[1]]; # assigns the sequence of the annotated region. To find the sequence of the annotated region, indexes in the full sequence according to the position previously extracted.
+                            newAnn.index = [int(index) for index in posString.split("..")]; # takes the index string, splits it into two strings separated by ".." and converts them both to ints.
+                            if len(newAnn.index) == 1: # if only one index found (just one bp annotated),
+                                newAnn.index.append(newAnn.index[0]); # duplicate the index
 
-                    elif p[0] == "/ApEinfo_fwdcolor" or p[0] == "/ApEinfo_revcolor": # if property is a color,
-                        newAnn.color = p[1]; # save color
+                            newAnn.index[0] = newAnn.index[0] - 1; # changes to Python indexing. Upper limit does not have to be changed since Python does not include it in indexing, while GenBank does.
+
+                    elif d[i].find('=') > 0: # if line contains = character, it means it's a new property
+                        p = d[i].lstrip().split("="); # splits line into a property's name and value
+                        if p[0] == "/gene" or p[0] == "/label" or p[0] == "/ID": # if the property is a gene or label...
+                            newAnn.label = p[1][1:(len(p[1])-1)]; # assigns the label (extracting the label from string p)
+                            if newAnn.comp: # if on complementary strand,
+                                newAnn.seq = revComp(self.origin[(newAnn.index[0]):newAnn.index[1]]); # assigns the sequence of the annotated region to the complement. To find the sequence of the annotated region, indexes in the full sequence according to the position previously extracted.
+                            else: # if on positive strand,
+                                newAnn.seq = self.origin[(newAnn.index[0]):newAnn.index[1]]; # assigns the sequence of the annotated region. To find the sequence of the annotated region, indexes in the full sequence according to the position previously extracted.
+
+                        elif p[0] == "/ApEinfo_fwdcolor" or p[0] == "/ApEinfo_revcolor": # if property is a color,
+                            newAnn.color = p[1]; # save color
 
 
-                else: # if line does not contain = character, it's a continuation of the previous line.
-                    pass; # do nothing since we're not loading descriptions anyway. Keep your labels short. Sorry.
+                    else: # if line does not contain = character, it's a continuation of the previous line.
+                        pass; # do nothing since we're not loading descriptions anyway. Keep your labels short. Sorry.
 
-                if len(newAnn.label)*len(newAnn.type)*len(newAnn.seq)*len(newAnn.index) != 0: # if all properties in newAnn have been filled in,
-                    self.features.append(newAnn); # adds the new annotation
-                    newAnn = GenBankAnn("","","",False,[]); # resets newAnn variable
+                    if len(newAnn.label)*len(newAnn.type)*len(newAnn.seq)*len(newAnn.index) != 0: # if all properties in newAnn have been filled in,
+                        self.features.append(newAnn); # adds the new annotation
+                        newAnn = GenBankAnn("","","",False,[]); # resets newAnn variable
 
-                i = i+1; # advance counter
-                w = d[i].split(); # splits line into words
+                    i = i+1; # advance counter
+                    w = d[i].split(); # splits line into words
 
 
     """
@@ -295,6 +299,24 @@ class GenBank(object):
 
 
         return r; # returns variable
+
+
+    """
+    Inserts new GenBank object into GenBank object, modifies annotation indexes
+    accordingly. The new sequence should be in 5' to 3', positive sense.
+    Returns list of annotations whose sequence was altered by the elimination if
+    it occurs accross one or more annotated regions, returns empty variable
+    otherwise. The returned annotation contains the new sequence, not the
+    original one, so it can be removed from the features list if necessary.
+    """
+    def insertGenBank(self, gb, index):
+        gb_copy = deepcopy(gb); # copy of sequence to be inserted
+        r = self.insertSeq(gb_copy.origin,index); # inserts new sequence without annotations into this GenBank object, modifies this object's annotations
+        gb_copy.insertSeq(self.origin[:index],0); # inserts this object's sequence up until the insertion point into other file
+        self.features = self.features + gb_copy.features; # now that all annotations have the same coordinate system, save the annotations onto this object's feature lists
+        gb_copy = None; # delete copy
+
+        return r; # returns list of annotations whose sequence was altered by the elimination if it occurs accross one or more annotated regions
 
 
     """

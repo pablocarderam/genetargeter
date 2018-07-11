@@ -327,7 +327,7 @@ function displayGeneOutput(files) {
 
 
 function downloadOutput() {
-    var fileTypes = ["Locus_Pre-editing _","pSN054_V5_","Locus_Post-editing_","Oligos_","sgRNA_Table_","Message_File_"];
+    var fileTypes = ["Locus_Pre-editing_","pSN054_V5_","Locus_Post-editing_","Oligos_","sgRNA_Table_","Message_File_"];
     var enzyme = document.getElementById('enzymeType').value;
     var fileExt = [".gb",".gb",".gb",".csv",".csv",".txt"];
     for (var j = 1; j < currentOutput.length; j++) {
