@@ -287,7 +287,7 @@ def generateConcatGenBanks(fileDir):
                 gb = GenBank();
                 gb.load(os.path.join(dirpath,f),loadFromFile=True);
                 correctedFileName = f.replace("Pre-editing _","Pre-editing_").replace("(1).gb",".gb")
-                gbToAdd = '_'.join( f.split('_')[:2] + [ f[-7:-3] ] ).replace(" ","");
+                gbToAdd = '_'.join( correctedFileName.split('_')[:2] + [ correctedFileName[-7:-3] ] )
                 lenSeq = len(gbs[gbToAdd].origin);
 
                 gbs[gbToAdd].insertSeq(sep,lenSeq);
