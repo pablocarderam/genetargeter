@@ -18,8 +18,8 @@ processOutput()
 def processOutput(dirPath='output/'):
     o=createOutputSummaryTable(dirPath);
     o=createOutputSummaryTableNonProtein(dirPath);
-    generateConcatGenBanks(dirPath);
-    #createOutputDirStructure(dirPath);
+    gbs=generateConcatGenBanks(dirPath);
+    createOutputDirStructure(dirPath);
 
 
 def createOutputSummaryTable(dirPath):
@@ -267,12 +267,18 @@ def createOutputDirStructure(fileDir):
 
 
 
-def generateConcatGenBanks(fileDir):
+def generateConcatGenBanks(fileDir,gbToGenerate="ALL"):
     if not os.path.exists(fileDir+"/gb_concats/"):
         os.makedirs(fileDir+"/gb_concats/");
 
+    chromosomes = range(1,15)+["MIT","API"];
+    for chromosome in chromosomes:
+        if not os.path.exists(fileDir+"/gb_concats/"+"Chromosome_"+str(chromosome)):
+            os.makedirs(fileDir+"/gb_concats/"+"Chromosome_"+str(chromosome));
+
     gbs = {"Locus_Pre-editing_Cas9":GenBank(),"Locus_Post-editing_Cas9":GenBank(),"pSN054_V5_Cas9":GenBank(),
            "Locus_Pre-editing_Cpf1":GenBank(),"Locus_Post-editing_Cpf1":GenBank(),"pSN054_V5_Cpf1":GenBank()};
+    genome = dict( (chrom,deepcopy(gbs)) for chrom in chromosomes );
 
     lenSep = int(1e3);
     sep = "N"*lenSep;
@@ -286,12 +292,27 @@ def generateConcatGenBanks(fileDir):
             if f.find(".gb") > -1:
                 gb = GenBank();
                 gb.load(os.path.join(dirpath,f),loadFromFile=True);
-                correctedFileName = f.replace("Pre-editing _","Pre-editing_").replace("(1).gb","").replace(".gb","").strip();
-                gbToAdd = '_'.join( correctedFileName.split('_')[:2] + [ correctedFileName[-4:] ] )
-                lenSeq = len(gbs[gbToAdd].origin);
+                if gb.origin > 0:
+                    correctedFileName = f.replace("Pre-editing _","Pre-editing_").replace("(1).gb","").replace(".gb","").strip();
+                    splitName = correctedFileName.split("PF3D7_")
+                    chromosome = "MIT";
+                    if len(splitName) > 1:
+                        chromosome = splitName[1][:2];
+                        if chromosome == "AP":
+                            chromosome = "API";
+                        else:
+                            chromosome = int(chromosome);
 
-                gbs[gbToAdd].insertSeq(sep,lenSeq);
-                gbs[gbToAdd].insertGenBank(gb,lenSeq+lenSep);
+
+
+                    gbToAdd = '_'.join( correctedFileName.split('_')[:2] + [ correctedFileName[-4:] ] )
+                    if chromosome == gbToGenerate or gbToGenerate == "ALL":
+                        lenSeq = len(genome[chromosome][gbToAdd].origin);
+
+                        genome[chromosome][gbToAdd].insertSeq(sep,lenSeq);
+                        genome[chromosome][gbToAdd].insertGenBank(gb,lenSeq+lenSep);
+
+
 
             fileCt += 1;
             if fileCt > pctSize:
@@ -299,10 +320,17 @@ def generateConcatGenBanks(fileDir):
                 fileCt = 0;
                 print str(pct) + '%';
 
-        for concat in gbs.keys():
-            if len(gbs[concat].origin) > 0:
-                gbs[concat].removeSeq([0,lenSep]);
-                gbs[concat].save(fileDir+"/gb_concats/"+concat);
+        for chromosome in chromosomes:
+            for concat in genome[chromosome].keys():
+                if len(genome[chromosome][concat].origin) > 0:
+                    genome[chromosome][concat].removeSeq([0,lenSep]);
+                    print "Removed initial separator";
+                    fName = "Chromosome_"+str(chromosome)+'_'+concat+".gb";
+                    genome[chromosome][concat].name = fName;
+                    genome[chromosome][concat].save(fileDir+"/gb_concats/Chromosome_"+str(chromosome)+"/"+fName+".gb",saveToFile=True);
+                    print "Saved " + fName;
+
+        return gbs;
 
 
 

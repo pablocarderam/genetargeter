@@ -52,13 +52,22 @@ def loadSeqs(pFile):
 """
 Output data to fileName.
 """
-def output(out, fileName, wipe=False):
+def output(out, fileName, wipe=False, maxSizeFragment=10000):
     mode = "a"; # default mode is to append
     if wipe:
         mode = "w+"; # change to overwrite file if wiping
+
+    chunks = [out[i:i+maxSizeFragment] for i in range(0, len(out), maxSizeFragment)]; # divide filestring into chunks
     fOut = open(fileName,mode); # create or open file in appending mode
-    fOut.write(out); # write output to file
+    c = 0; # counter if keeping track of progress
+    for chunk in chunks: # break into smaller chunks and write
+        # print c # print progress
+        fOut.write(chunk); # write output to file
+        c +=1 # advance counter
+
     fOut.close(); # close file
+
+
 
 
 # Sequence manipulation
