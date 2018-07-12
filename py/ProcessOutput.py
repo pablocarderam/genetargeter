@@ -325,7 +325,7 @@ def generateConcatGenBanks(fileDir,gbToGenerate="ALL"):
                 if len(genome[chromosome][concat].origin) > 0:
                     genome[chromosome][concat].removeSeq([0,lenSep]);
                     print "Removed initial separator";
-                    fName = "Chromosome_"+str(chromosome)+'_'+concat+".gb";
+                    fName = "Chromosome_"+str(chromosome)+'_'+concat;
                     genome[chromosome][concat].name = fName;
                     genome[chromosome][concat].save(fileDir+"/gb_concats/Chromosome_"+str(chromosome)+"/"+fName+".gb",saveToFile=True);
                     print "Saved " + fName;
