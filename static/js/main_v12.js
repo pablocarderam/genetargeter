@@ -265,12 +265,13 @@ function run() {
                     enzyme = document.getElementById('enzymeType').value;
                     pam = document.getElementById('PAMSequence').value;
                     gBlockDefault = document.getElementById('gBlockDefault').checked;
+                    plasmidType = document.getElementById('plasmidType').value;
 
                     msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
                       HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
                       endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
                       optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
-                      offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault]);
+                      offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType]);
                     sendMessageToServer('Sending requests...', "misc");
                     sendMessageToServer(msg,'sendGeneFile');
                     queryNumber += 1;
@@ -327,8 +328,9 @@ function displayGeneOutput(files) {
 
 
 function downloadOutput() {
-    var fileTypes = ["Locus_Pre-editing_","pSN054_V5_","Locus_Post-editing_","Oligos_","sgRNA_Table_","Message_File_"];
+    var fileTypes = ["Locus_Pre-editing_","Plasmid_","Locus_Post-editing_","Oligos_","sgRNA_Table_","Message_File_"];
     var enzyme = document.getElementById('enzymeType').value;
+    var plasmid = document.getElementById('plasmidType').value;
     var fileExt = [".gb",".gb",".gb",".csv",".csv",".txt"];
     for (var j = 1; j < currentOutput.length; j++) {
         if (j%(fileTypes.length+1) > 0) {
@@ -336,7 +338,7 @@ function downloadOutput() {
             var file = currentOutput[j];
             var data = 'data:text/plain;charset=utf-8,' + encodeURIComponent(file);
             console.log([j,fileTypes[j%(fileTypes.length+1)-1],fileExt[j%(fileTypes.length+1)]]);
-            saveAs(data,fileTypes[j%(fileTypes.length+1)-1]+geneName+"_"+enzyme+fileExt[j%(fileTypes.length+1)-1]);
+            saveAs(data,fileTypes[j%(fileTypes.length+1)-1]+geneName+"_"+plasmid+"_"+enzyme+fileExt[j%(fileTypes.length+1)-1]);
         }
     }
 }

@@ -1,7 +1,7 @@
 # Used to process batch download from plasmoDB to be input into GeneTargeter
 
-from py.GenBankToolbox import *
-from py.BioUtils import *
+from py.utils.GenBankToolbox import *
+from py.utils.BioUtils import *
 from copy import deepcopy
 
 # use to process plasmoDB fasta download (no introns, use gff_to_genbank now

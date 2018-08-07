@@ -5,7 +5,7 @@ Classes useful in rosalind bioinformatic algorithms
 @author: Pablo the awesome molecular jedi
 """
 
-from BioUtils import *; # Imports utils
+from py.utils.BioUtils import *; # Imports utils
 from copy import deepcopy; # Import object copying methods for deep copies, used in creating revComp of GenBank objects
 
 class GenBankAnn(object):

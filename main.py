@@ -4,7 +4,8 @@ arguments from the client. Websockets implementation from
 https://github.com/BruceEckel/hello-flask-websockets
 """
 
-from py.GeneTargeterMethods import *; # main python library in py folder
+from py.genetargeter.GeneTargeterMethods import *; # main python library in py folder
+from py.genetargeter.inputProcessing import *; # input handling
 
 # Imports from Websockets tutorial:
 import os
@@ -64,11 +65,12 @@ def gene_message(message):
     enzyme = msgList[26];
     PAM = msgList[27];
     gBlockDefault = (msgList[28] == "true");
+    plasmidType = msgList[29];
 
     geneGBs = preprocessInputFile(geneName, geneFileStr, useFileStrs=True); # obtain gb file(s) to be processed
     outMsg = queryNumber; # will store output message
     for gbName in geneGBs: # for every gb
-        output = pSN054TargetGene(gbName, geneGBs[gbName], codonOptimize=optimOrg, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib, optimRangeLHR=optimLHR, optimRangeRHR=optimRHR, endSizeLHR=endsLHR, endSizeRHR=endsRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minFragSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, onTargetMethod=onTargetMethod, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, offTargetThreshold=offTargetThreshold, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme, PAM=PAM, gBlockDefault=gBlockDefault); # call result
+        output = targetGene(gbName, geneGBs[gbName], codonOptimize=optimOrg, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib, optimRangeLHR=optimLHR, optimRangeRHR=optimRHR, endSizeLHR=endsLHR, endSizeRHR=endsRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minFragSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, onTargetMethod=onTargetMethod, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, offTargetThreshold=offTargetThreshold, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme, PAM=PAM, gBlockDefault=gBlockDefault, plasmidType=plasmidType); # call result
         outMsg = outMsg + sep + output["geneName"] + sep + output["geneFileStr"] + sep + output["plasmidFileStr"] + sep + output["editedLocusFileStr"] + sep + output["oligoFileStr"] + sep + output["gRNATable"] + sep + output["logFileStr"];
 
     sendMsg('Process complete',"misc");

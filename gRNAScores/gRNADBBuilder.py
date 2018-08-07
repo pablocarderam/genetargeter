@@ -9,7 +9,7 @@ package is not used by GeneTargeterMethods during runtime, but is kept here just
 in case.
 @author: Pablo CR
 """
-from py.BioUtils import *;
+from py.utils.BioUtils import *;
 from gRNAScores.Rule_Set_2_scoring_v1.analysis.rs2_score_calculator import *; # Import Doench et al. (2016) on-target scoring module
 from gRNAScores.CFD_Scoring.cfd_score_calculator import *; # Import Doench et al. (2016) off-target scoring module
 import subprocess;
@@ -167,7 +167,7 @@ def offScoreHsu(pGRNA,gList,threshold=0):
     scores.sort(reverse=True);
     maxScore = scores[0]; # stores max score
     numScores = len(scores); # stores number of scores above threshold
-    return [specificityScore,maxScore,numScores]; # return max value, make call based on that and score. 
+    return [specificityScore,maxScore,numScores]; # return max value, make call based on that and score.
 
 
 def offScoreCFD(pGRNA,guideListList,threshold=2.3):

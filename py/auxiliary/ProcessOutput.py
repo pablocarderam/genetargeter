@@ -1,5 +1,5 @@
-from py.BioUtils import *;
-from GenBankToolbox import *;
+from py.utils.BioUtils import *;
+from py.utils.GenBankToolbox import *;
 from os import walk;
 import os;
 
@@ -11,7 +11,7 @@ import os;
 '''
 USE JUST THIS: put all files for both enzymes into output/ directory, then:
 python
-from py.ProcessOutput import *
+from py.auxiliary.ProcessOutput import *
 processOutput()
 '''
 

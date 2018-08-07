@@ -12,7 +12,7 @@ import sys;
 import math;
 import pickle;
 import numpy as np;
-from py.BioUtils import *;
+from py.utils.BioUtils import *;
 import gRNAScores.Rule_Set_2_scoring_v1.analysis.model_comparison as RS2; # Import Doench et al. (2016) old on-target scoring module
 from gRNAScores.CFD_Scoring.cfd_score_calculator import *; # Import Doench et al. (2016) off-target scoring module
 import gRNAScores.azimuth.model_comparison as azimuth; # Import Doench et al. (2016) new on-target scoring module
