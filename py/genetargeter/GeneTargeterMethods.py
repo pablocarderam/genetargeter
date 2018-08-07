@@ -4,9 +4,9 @@ Created on June 7 2016
 GeneTargeterMethods
 Methods for creating constructs aimed at inserting regulatory elements into
 chromosomal DNA.
-For now, creates a construct based on pSN054 (updated) V5 developed by the Niles
-Lab at MIT tagged designed to deliver the regulatory element 3' UTR payload to a
-specific gene, given as a parameter.
+For now, creates a construct based on pSN054 (updated) V5 or pSN150 (5'
+targeting) developed by the Niles Lab at MIT tagged designed to deliver the
+regulatory element 3' UTR payload to a specific gene, given as a parameter.
 @author: Pablo the awesome molecular jedi
 """
 
@@ -262,13 +262,13 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                 geneGB = geneGB.revComp(); # flip pre-editing locus
                 editedLocus = editedLocus.revComp(); # flip post-editing locus
 
-            geneGB.name = geneName + "_" + enzyme + "_Locus_Pre-editing"; # save file type in genbank locus
-            plasmidArmed.name = geneName + "_" + enzyme + "_pSN054_V5"; # save file type in genbank locus
-            editedLocus.name = geneName + "_" + enzyme + "_Locus_Post-editing"; # save file type in genbank locus
+            geneGB.name = geneName + "_" + plasmidType + "_" + enzyme + "_Locus_Pre-editing"; # save file type in genbank locus
+            plasmidArmed.name = geneName + "_" + plasmidType + "_" + enzyme; # save file type in genbank locus
+            editedLocus.name = geneName + "_" + plasmidType + "_" + enzyme + "_Locus_Post-editing"; # save file type in genbank locus
 
-            outputDic["geneFileStr"] = geneGB.save(path + "/" + geneName + "_Locus_Pre-editing.gb", saveToFile=(not useFileStrs)); # saves annotated gene
-            outputDic["plasmidFileStr"] = plasmidArmed.save(path + "/" +  "pSN054_V5_" + enzyme + "_" + geneName, saveToFile=(not useFileStrs)); # saves plasmid
-            outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + geneName+"_Locus_Post-editing.gb", saveToFile=(not useFileStrs)); # saves edited locus
+            outputDic["geneFileStr"] = geneGB.save(path + "/" + geneName + plasmidType + "_" + enzyme + "_Locus_Pre-editing.gb", saveToFile=(not useFileStrs)); # saves annotated gene
+            outputDic["plasmidFileStr"] = plasmidArmed.save(path + "/" + plasmidType + "_" + enzyme + "_" + geneName, saveToFile=(not useFileStrs)); # saves plasmid
+            outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + geneName + plasmidType + "_" + enzyme + "_Locus_Post-editing.gb", saveToFile=(not useFileStrs)); # saves edited locus
             outputDic["oligoFileStr"] = primerString; # saves primers to file
             outputDic["newPlasmid"] = plasmidArmed; # saves new plasmid to output dictionary
             outputDic["newGene"] = geneGB; # saves new plasmid to output dictionary
@@ -276,8 +276,8 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
             outputDic["geneName"] = geneName; # saves gene name to output
 
             if not useFileStrs: # if saving to files,
-                output(outputDic["oligoFileStr"], path + "/" + geneName + "_Oligos.csv",wipe=True); # saves oligos to file
-                output(outputDic["logFileStr"], path + "/" + geneName + "_Message_Log.txt",wipe=True); # saves message log to file
+                output(outputDic["oligoFileStr"], path + "/" + geneName + plasmidType + "_" + enzyme + "_Oligos.csv",wipe=True); # saves oligos to file
+                output(outputDic["logFileStr"], path + "/" + geneName + plasmidType + "_" + enzyme + "_Message_Log.txt",wipe=True); # saves message log to file
 
 
 

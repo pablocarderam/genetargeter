@@ -38,10 +38,10 @@ def chooseLHR3Prime(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLen
         endLHR -= 1; # shift LHR end upstream one bp
 
     startLHR = max(endLHR - lengthLHR[1],0); # stores LHR start index according to preferred length, or 0 if not enough space before gene
-    failSearchEnd = False; # true if no suitable LHR end region is found within given parameters.
+    failSearchStart = False; # true if no suitable LHR end region is found within given parameters.
 
     # First search for end region
-    while meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
+    while meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchStart and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
         endLHR -= 1; # shift endLHR upstream
 
     if meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds: # if no suitable end region found,
@@ -49,13 +49,13 @@ def chooseLHR3Prime(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLen
         while not geneGB.checkInExon(endLHR) and endLHR > lengthLHR[2]: # Loop as long as the end of LHR is not in an exon and the end of the LHR is inside the max length
             endLHR -= 1; # shift LHR end upstream one bp
 
-        failSearchEnd = True; # changes failSearchEnd status
+        failSearchStart = True; # changes failSearchStart status
         log = log + "\nWarning: No LHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the last " + str(endsLength) + " bp of LHR, \nwith a max distance of " + str(maxDistanceFromGRNA) + " bp between end of LHR and gRNA. \nDefaulted to ending right before start of gRNA most upstream." + "\n"; # give a warning
 
     # Then search for start region; modify end region if necessary
     while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and gRNAUpstream.index[0]-endLHR <= maxDistanceFromGRNA and geneGB.checkInExon(endLHR-1): # if no start region has been found, and still within max distance from gRNA and inside exon,
         # find new end region if necessary
-        while meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
+        while meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchStart and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
             endLHR -= 1; # shift endLHR upstream
 
         if gBlockDefault and gene.index[1]-(3*codingGene)-endLHR < minGBlockSize: # if defaulting to a gBlock for any recoded region and the current recoded region is smaller than the minimum gBlock size,
@@ -83,7 +83,7 @@ def chooseLHR3Prime(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLen
         if gBlockDefault and endLHR < gene.index[1]-(3*codingGene) and endLHR > gene.index[1]-(3*codingGene) - minGBlockSize: # if defaulting to a gBlock for any recoded region, there is a recoded region, and it is under the minimum gBlock size,
             endLHR = gene.index[1]-(3*codingGene) - minGBlockSize; # extend recoded region to minimum gBlock size
 
-        while meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(endLHR-1) and endLHR > lengthLHR[2]: # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, still within exon, and the end of the LHR is inside the max length
+        while meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchStart and geneGB.checkInExon(endLHR-1) and endLHR > lengthLHR[2]: # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, still within exon, and the end of the LHR is inside the max length
             endLHR -= 1; # shift endLHR upstream
 
         startLHR = endLHR - lengthLHR[1]; # stores LHR start index according to preferred length by default
@@ -147,24 +147,24 @@ def chooseLHR5Prime(geneGB, gene, lengthLHR=[450,500,750], minTmEnds=59, endsLen
 
     genes = geneGB.findAnnsType("gene"); # list of all genes, used to verify LHR doesn't start inside any genes (truncating them)
 
-    endLHR = max(gene.index[0], gRNAUpstream.index[0]); # saves end index of LHR as one bp after gene or after most downstream gRNA.
-    startLHR = max(endLHR - lengthLHR[1],0); # stores LHR start index according to preferred length, or the first base in file if not enough space before gene
-    failSearchStart = False; # true if no suitable LHR start region is found within given parameters.
+    endLHR = min(gene.index[0], gRNAUpstream.index[0]); # saves end index of LHR as one bp before gene or before most upstream gRNA.
+    failSearchEnd = False; # true if no suitable LHR start region is found within given parameters.
 
     # First search for end region
-    while meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and gene.index[0] - endLHR <= maxDistanceFromGene and startLHR + lengthLHR[0] < len(geneGB.origin) and not geneGB.checkInExon(endLHR-1): # while no suitable start region found, still within max distance from gene, not beyond the border of the chromosome, the search for a suitable start region hasn't failed yet, and start of LHR is not downstream of the start of a gene,
+    while meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and gene.index[0] - endLHR <= maxDistanceFromGene and endLHR - lengthLHR[0] > 0 and not geneGB.checkInExon(endLHR-1): # while no suitable start region found, still within max distance from gene, not beyond the border of the chromosome, the search for a suitable start region hasn't failed yet, and start of LHR is not downstream of the start of a gene,
         endLHR -= 1; # shift endLHR upstream
 
-    if meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and ( gene.index[0] - endLHR > maxDistanceFromGene or geneGB.checkInExon(endLHR) ): # if no suitable start region found,
+    if meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and ( gene.index[0] - endLHR > maxDistanceFromGene or geneGB.checkInExon(endLHR) or endLHR - lengthLHR[0] <= 0 ): # if no suitable start region found,
         endLHR = min(gene.index[0], gRNAUpstream.index[0]); # saves start index of LHR as one bp before gene or 1 bp before most downstream gRNA by default
-        failSearchStart = True; # changes failSearchStart status
+        failSearchEnd = True; # changes failSearchEnd status
         log = log + "\nWarning: No LHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the last " + str(endsLength) + " bp of LHR, \nwith a max distance of " + str(maxDistanceFromGene) + " bp between end of LHR and start of gene. \nDefaulted to ending right before start of gene or most upstream gRNA." + "\n"; # give a warning
 
+    startLHR = max(endLHR - lengthLHR[1],0); # stores LHR start index according to preferred length, or the first base in file if not enough space before gene
     # search for start upstream
     while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR <= lengthLHR[2] and startLHR > 0: # while no suitable end region found, still within max length of LHR, and still inside gene file,
         startLHR -= 1; # shift startLHR upstream
 
-    # if not found downstream
+    # if not found upstream
     if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR > lengthLHR[2]: # if no end region found this way,
         startLHR = endLHR - lengthLHR[1]; # return to preferred position
         # search upstream
@@ -178,7 +178,7 @@ def chooseLHR5Prime(geneGB, gene, lengthLHR=[450,500,750], minTmEnds=59, endsLen
             endLHR -= 1; # shifts end of LHR upstream
 
             # find new end region if necessary
-            while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gene.index[0] - endLHR <= maxDistanceFromGene and not geneGB.checkInExon(endLHR-1) and not failSearchStart: # while no suitable start region found, still within max distance from gene, the search for a suitable start region hasn't failed yet, and start of LHR is not downstream of the start of a gene,
+            while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gene.index[0] - endLHR <= maxDistanceFromGene and not geneGB.checkInExon(endLHR-1) and not failSearchEnd: # while no suitable start region found, still within max distance from gene, the search for a suitable start region hasn't failed yet, and start of LHR is not downstream of the start of a gene,
                 endLHR -= 1; # shift endLHR upstream
 
             # search for start upstream
@@ -196,7 +196,7 @@ def chooseLHR5Prime(geneGB, gene, lengthLHR=[450,500,750], minTmEnds=59, endsLen
 
     if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and ( gene.index[0] - endLHR > maxDistanceFromGene or geneGB.checkInExon(endLHR) ): # if no suitable start region found,
         endLHR = min(gene.index[0], gRNAUpstream.index[0]); # saves end index of LHR as one bp before gene or 1 bp before most upstream gRNA by default
-        while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gene.index[0]-endLHR <= maxDistanceFromGene and not failSearchStart and not geneGB.checkInExon(endLHR-1): # while no suitable start region found, still within max distance from gene, the search for a suitable start region hasn't failed yet, and start of LHR is not downstream of the start of a gene,
+        while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gene.index[0]-endLHR <= maxDistanceFromGene and not failSearchEnd and not geneGB.checkInExon(endLHR-1): # while no suitable start region found, still within max distance from gene, the search for a suitable start region hasn't failed yet, and start of LHR is not downstream of the start of a gene,
             endLHR -= 1; # shift endLHR upstream
 
         startLHR = max([endLHR - lengthLHR[1],0]); # stores LHR end index according to preferred length by default, or max length available if there is not enough sequence space on the chromosome before the gene start
@@ -266,7 +266,6 @@ def chooseRHR3Prime(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLen
     genes = geneGB.findAnnsType("gene"); # list of all genes, used to verify RHR doesn't start inside any genes (truncating them)
 
     startRHR = max(gene.index[1], gRNADownstream.index[1]); # saves start index of RHR as one bp after gene or after most downstream gRNA.
-    endRHR = min(startRHR + lengthRHR[1],len(geneGB.origin)-1); # stores RHR start index according to preferred length, or the last base in file if not enough space after gene
     failSearchStart = False; # true if no suitable RHR start region is found within given parameters.
 
     # First search for start region
@@ -278,6 +277,7 @@ def chooseRHR3Prime(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLen
         failSearchStart = True; # changes failSearchStart status
         log = log + "\nWarning: No RHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the first " + str(endsLength) + " bp of RHR, \nwith a max distance of " + str(maxDistanceFromGene) + " bp between end of gene and start of RHR. \nDefaulted to starting right after end of gene or most downstream gRNA." + "\n"; # give a warning
 
+    endRHR = min(startRHR + lengthRHR[1],len(geneGB.origin)-1); # stores RHR start index according to preferred length, or the last base in file if not enough space after gene
     # search for end downstream
     while meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds and endRHR-startRHR <= lengthRHR[2] and endRHR < len(geneGB.origin)-1: # while no suitable end region found, still within max length of RHR, and still inside gene file,
         endRHR += 1; # shift endRHR downstream
@@ -380,7 +380,7 @@ def chooseRHR5Prime(geneGB, gene, lengthRHR=[450,500,650], minTmEnds=55, endsLen
 
 
 
-    startRHR = min(gRNADownstream.index[1],gene.index[0]); # saves start index of RHR as whatever is more downstream between the end of the gRNA or the start of the gene (in Python indexing, i.e. not included in RHR).
+    startRHR = max(gRNADownstream.index[1],gene.index[0]); # saves start index of RHR as whatever is more downstream between the end of the gRNA or the start of the gene (in Python indexing, i.e. not included in RHR).
     if gBlockDefault and ((startRHR > gene.index[0] and startRHR < gene.index[0] - minGBlockSize) or (meltingTemp(geneGB.origin[startRHR:startRHR+endsLength]) < minTmEnds and startRHR-gene.index[0] < minGBlockSize)): # if defaulting to a gBlock for any recoded region and a) there is a recoded region, and it is under the minimum gBlock size, or b) if the RHR is supposed to start at the start of the gene, but this region does not make for a good RHR starting point,
         startRHR = gene.index[0] + minGBlockSize; # extend recoded region to minimum gBlock size
 
@@ -395,7 +395,7 @@ def chooseRHR5Prime(geneGB, gene, lengthRHR=[450,500,650], minTmEnds=55, endsLen
         startRHR += 1; # shift startRHR downstream
 
     if meltingTemp(geneGB.origin[startRHR:min(startRHR+endsLength,len(geneGB.origin))]) < minTmEnds: # if no suitable start region found,
-        startRHR = min(gRNADownstream.index[1],gene.index[0]); # saves end index of RHR by default as whatever is more downstream between the start of the gRNA or the start of the gene
+        startRHR = max(gRNADownstream.index[1],gene.index[0]); # saves end index of RHR by default as whatever is more downstream between the start of the gRNA or the start of the gene
         while not geneGB.checkInExon(startRHR) and startRHR < gene.index[1] and startRHR < len(geneGB.origin)-lengthRHR[2]: # Loop as long as the end of RHR is not in an exon and the end of the RHR is inside the max length
             startRHR += 1; # shift RHR end downstream one bp
 
