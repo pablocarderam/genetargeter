@@ -24,6 +24,9 @@ cut_AflII = "cttaag"; # AflII cut site
 cut_AhdI = "gacaacttgtc"; # AhdI cut site
 cut_BsiWI = "cgtacg"; # BsiWI cut site
 
+# Other sequences
+ha_tag = "tacccatacgatgttccagattacgct"; # HA tag sequence
+
 # Plasmids
 pSN054_V5_Cas9 = GenBank();
 pSN054_V5_Cas9.load("input/plasmids/psn054-updated_v5-tagged-jn_final.gb",loadFromFile=True); # load Cas9 plasmid sequence from GenBank format

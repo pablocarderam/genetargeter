@@ -248,7 +248,7 @@ restriction sites given as parameters. Checks that gRNA recoded sequence has a
 pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
-def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString=""):
+def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString="", haTag=True):
     #TODO: debug #TODO: Recoded if upstream of stop codon add recode values to table
     gRNAs = geneGB.findAnnsLabel("gRNA", True); # List of all gRNAs
     gRNATable = gRNATableString.split('\n'); # split string into lines
@@ -316,6 +316,8 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
         endRecode -= frame; # modify recode end site according to reading frame
         nonRecodedStart = recodeSeq[-frame:]; # stores 0, 1 or 2 nucleotides not recoded due to reading frame
         recodeSeq = recodeSeq[0:len(recodeSeq)-frame]; # adjust recode region
+        if haTag: # if adding an HA tag,
+            recodeSeq = ha_tag + recodeSeq; # add HA tag to start of recoded region
 
         cutSeqs = filterCutSites + [g.seq for g in gRNAs]; # list of all cut seqs. all gRNAs in gene are to be included as cut sequences
         cutCheck = 0; # variable used to check if cut sequences are present. Initially greater than -1*len(cutSeqs) since all gRNAs are present.
@@ -340,7 +342,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                 for g in gRNAs: # for every gRNA candidate within recoded region,
                     if g.index[0] >= startRecode-frame and g.index[1] <= endRecode: # if grna is inside recoded region
                         gOnSeq = g.seq; # get original gRNA sequence
-                        wholeRecSeq = nonRecodedStart + recodedSeq; # add initial bases
+                        wholeRecSeq = recodedSeq + nonRecodedStart; # add initial bases
                         gOffSeq = "";
                         anchor = -1; # will store index of gRNA bp most to the left (whichever strand). Default to -1 to indicate excision
                         if geneGB.checkInExon(g.index[0]) or geneGB.checkInExon(g.index[1]): # if the gRNA hasn't been completely excised,
@@ -482,11 +484,11 @@ pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
 #TODO: different cut sites for different plasmids
-def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString="", target3Prime=True):
+def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString="", target3Prime=True, haTag=True):
     out = {}; # will contain method output
     if target3Prime: # if targeting 3'
         out = chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod, pamType=pamType, orgCodonTable=orgCodonTable,codonSampling=codonSampling, gRNATableString=gRNATableString); # defines region to be recoded, returns recoded sequence
     else: # if using pSN150,
-        out = chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod, pamType=pamType, orgCodonTable=orgCodonTable,codonSampling=codonSampling, gRNATableString=gRNATableString); # defines region to be recoded, returns recoded sequence
+        out = chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod, pamType=pamType, orgCodonTable=orgCodonTable,codonSampling=codonSampling, gRNATableString=gRNATableString, haTag=haTag); # defines region to be recoded, returns recoded sequence
 
     return out;
