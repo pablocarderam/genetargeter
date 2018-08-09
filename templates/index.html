@@ -300,18 +300,25 @@
 									<a href="http://omicsomics.blogspot.com/2009/04/is-codon-optimization-bunk.html" target="_blank">
 										using</a>
 									<select id="codonOptimStrat">
-										<option value="CAI Maximization">CAI Maximization</option>
+										<option value="CAI Maximization" selected="selected">CAI Maximization</option>
 										<option value="Codon Sampling">Codon Sampling</option>
 									</select>
 								</p>
 								<p>
-									Minimum gBlock gene fragment size:
+									Minimum gBlock size:
 									<input class="txtInput" type="number" id="minFragSize" value="125">
 									bp
 								</p>
 								<p>
 									Extend gBlock if under minimum size (instead of using oligos):
 									<input type="checkbox" id="gBlockDefault" checked>
+								</p>
+								<p>
+									Use HA tags (5' designs): <select id="haTag">
+										<option value="Yes">Yes</option>
+										<option value="No">No</option>
+										<option value="Auto" selected="selected">Auto</option>
+									</select>
 								</p>
 							</div>
 							<br><br><br>

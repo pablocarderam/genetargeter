@@ -37,11 +37,11 @@ def preprocessInputFile(geneName, geneFileStr, useFileStrs=False):
                 break; # stop loop
 
         gene.color = annColors['targetGeneColor'] # set gene to orange, using Okabe and Ito's colorblind palette from 2002
-        mRNAs = geneGB.findAnnsType("mRNA")+geneGB.findAnnsType("tRNA")+geneGB.findAnnsType("rRNA"); # list of all mRNAs in GB file. EDIT 11 oct 2017: Include rRNA and tRNA, not just mRNAs!
+        mRNAs = geneGB.findAnnsType("mRNA",True)+geneGB.findAnnsType("tRNA",True)+geneGB.findAnnsType("rRNA",True); # list of all mRNAs in GB file. EDIT 11 oct 2017: Include rRNA and tRNA, not just mRNAs!
         for mRNA in mRNAs: # loop over all mRNAs
             if gene.index[0] <= mRNA.index[0] < mRNA.index[1] <= gene.index[1]: # if mRNA is inside gene,
                 newGB = copy.deepcopy(geneGB); # copy original GB object,
-                newMRNAs = newGB.findAnnsType("mRNA")+newGB.findAnnsType("tRNA")+newGB.findAnnsType("rRNA"); # list of all mRNAs in new GB file. EDIT 11 oct 2017: Include rRNA and tRNA, not just mRNAs!
+                newMRNAs = newGB.findAnnsType("mRNA")+newGB.findAnnsType("tRNA",True)+newGB.findAnnsType("rRNA",True); # list of all mRNAs in new GB file. EDIT 11 oct 2017: Include rRNA and tRNA, not just mRNAs!
                 for newMRNA in newMRNAs: # loop over mRNAs of new GB file
                     if gene.index[0] <= newMRNA.index[0] < newMRNA.index[1] <= gene.index[1] and mRNA.label != newMRNA.label: # if inside gene and different from current mRNA,
                         newGB.features.remove(newMRNA); # remove newMRNA from new GB file
@@ -56,3 +56,10 @@ def preprocessInputFile(geneName, geneFileStr, useFileStrs=False):
         gbDict[geneName] = geneGB; # save original gb file as output
 
     return gbDict;
+
+'''
+Check if gene's name is in list of predicted signal peptides
+'''
+def chkSignalPeptide5Prime(geneName):
+    sigPep = False; # TODO
+    return sigPep;

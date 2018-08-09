@@ -34,7 +34,7 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
         intronStartIndices = []; # stores start indexes of introns starting after recode sequence start
         intronEndIndices = []; # stores end indexes of introns starting after recode sequence start
-        for ann in geneGB.features: # loop through all annotations
+        for ann in geneGB.findAnnsLabel(gene.label): # loop through annotations associated with gene
             if ann.type == "exon": # if annotation is exon
                 if gene.index[1] > ann.index[1] > startRecode: # if annotation is an exon ending before gene end and after recode start,
                     intronStartIndices.append(ann.index[1]); # add this intron start index
@@ -268,7 +268,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
         intronStartIndices = []; # stores start indexes of introns starting after recode sequence start
         intronEndIndices = []; # stores end indexes of introns starting after recode sequence start
-        for ann in geneGB.features: # loop through all annotations
+        for ann in geneGB.findAnnsLabel(gene.label): # loop through annotations associated with gene
             if ann.type == "exon": # if annotation is exon
                 if gene.index[0] < ann.index[1] < endRecode: # if annotation is an exon ending after gene start and before recode end,
                     intronStartIndices.append(ann.index[1]); # add this intron start index
@@ -314,7 +314,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
         frame = len(recodeSeq) % 3; # stores reading frame, index from start of sequence to be recoded
         endRecode -= frame; # modify recode end site according to reading frame
-        nonRecodedStart = recodeSeq[-frame:]; # stores 0, 1 or 2 nucleotides not recoded due to reading frame
+        nonRecodedEnd = recodeSeq[-frame:]; # stores 0, 1 or 2 nucleotides not recoded due to reading frame
         recodeSeq = recodeSeq[0:len(recodeSeq)-frame]; # adjust recode region
         if haTag: # if adding an HA tag,
             recodeSeq = ha_tag + recodeSeq; # add HA tag to start of recoded region
@@ -338,11 +338,11 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                 offScore = 0; # reset offScore
                 tricky = False; # reset tricky Boolean
                 badStart = False; # reset badStart Boolean
-                recodedSeq = optimizeCodons(recodeSeq,orgCodonTable,codonSampling=codonSampling); # optimize codons.
+                recodedSeq = recodeSeq#optimizeCodons(recodeSeq,orgCodonTable,codonSampling=codonSampling); # optimize codons.
                 for g in gRNAs: # for every gRNA candidate within recoded region,
                     if g.index[0] >= startRecode-frame and g.index[1] <= endRecode: # if grna is inside recoded region
                         gOnSeq = g.seq; # get original gRNA sequence
-                        wholeRecSeq = recodedSeq + nonRecodedStart; # add initial bases
+                        wholeRecSeq = recodedSeq + nonRecodedEnd; # add initial bases
                         gOffSeq = "";
                         anchor = -1; # will store index of gRNA bp most to the left (whichever strand). Default to -1 to indicate excision
                         if geneGB.checkInExon(g.index[0]) or geneGB.checkInExon(g.index[1]): # if the gRNA hasn't been completely excised,
@@ -460,7 +460,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
                 #print [gOnSeq+"NGG",gOffSeq+gNewPAM,pairScoreCFD(gOnSeq,gOffSeq,gNewPAM,pamType),pairScoreHsu(gOnSeq,gOffSeq,gNewPAM,pamType)]
 
-        recodedSeq = nonRecodedStart + bestRecodedSeq; # adds initial bases from reading frame adjustment to best candidate
+        recodedSeq = bestRecodedSeq + nonRecodedEnd; # adds end bases from reading frame adjustment to best candidate
         annRecoded = GenBankAnn(gene.label + " Recoded", "misc_feature", recodedSeq, False, [startRecode,endRecode], annColors['recodedRegionColor']); # creates var to store finished recodedSeq as annotation
         log = log + "Recoded region with size " + str(len(recodedSeq)) + " for gene " + gene.label + " selected.\n\n"; # logs this process finished
 
@@ -469,6 +469,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
     gRNATableString = "\n".join([",".join(g) for g in gRNATable]); # Creates string from grna array
     gRNATableString = gRNATableString.replace(">=threshold",">="+str(offScoreThreshold)); # adds pairwise recoded threshold values
+
     return {"out":annRecoded, "log":log, "gRNATable":gRNATableString}; # returns recoded region GenBankAnn object
 
 
@@ -484,7 +485,7 @@ pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
 #TODO: different cut sites for different plasmids
-def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString="", target3Prime=True, haTag=True):
+def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString="", target3Prime=True, haTag=False):
     out = {}; # will contain method output
     if target3Prime: # if targeting 3'
         out = chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod, pamType=pamType, orgCodonTable=orgCodonTable,codonSampling=codonSampling, gRNATableString=gRNATableString); # defines region to be recoded, returns recoded sequence

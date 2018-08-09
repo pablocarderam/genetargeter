@@ -23,6 +23,7 @@ cut_ISceI = "attaccctgttatcccta"; # I-SceI cut site
 cut_AflII = "cttaag"; # AflII cut site
 cut_AhdI = "gacaacttgtc"; # AhdI cut site
 cut_BsiWI = "cgtacg"; # BsiWI cut site
+cut_NheI = "gctagc"; # NheI cut site
 
 # Other sequences
 ha_tag = "tacccatacgatgttccagattacgct"; # HA tag sequence

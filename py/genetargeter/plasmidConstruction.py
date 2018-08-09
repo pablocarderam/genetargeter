@@ -73,7 +73,7 @@ Inserts the recoded region after the LHR, before the AsiSI cut site (leaves the
 Inserts RHR after I-SceI cut site, leaves the site intact with its recognition
     sequence.
 """
-def insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, RHR):
+def insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag=True):
     plas = copy.deepcopy(plasmid); # makes a copy of the plasmid object to modify without altering the original
 
     inLHR = findFirst(plas.origin, cut_FseI) + len(cut_FseI); # index of LHR start site (at end of FseI cut sequence)
@@ -81,16 +81,24 @@ def insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, R
     annLHR = GenBankAnn(geneName+" LHR", "misc_feature", LHR, False, [inLHR,inLHR+len(LHR)], annColors['LHRColor']); # annotation object
     plas.features.append(annLHR); # adds annotation
 
-    inRHR = findFirst(plas.origin, cut_AhdI) + 6; # index of RHR start site (middle of AhdI cut sequence)
+    endRHR = findFirst(plas.origin, cut_AhdI) + 6; # index of RHR end site (middle of AhdI cut sequence)
+    startRHR = endRHR; # assume keeping HA tag
+    if not haTag: # if deleting HA tag,
+        startRHR = findFirst(plas.origin, cut_NheI) + 1; # index of RHR start site (middle of NheI cut sequence)
+
     if len(recodedRegion) > 0: # if there is a recoded region,
-        inRecode = inRHR; # index of recoded region start site (middle of AhdI cut sequence)
+        inRecode = startRHR; # index of recoded region start site (middle of AhdI cut sequence)
         plas.insertSeq(recodedRegion, inRecode); # inserts recoded region sequence
         annRecoded = GenBankAnn(geneName+" Recoded Region", "misc_feature", recodedRegion, False, [inRecode,inRecode+len(recodedRegion)], annColors['recodedRegionColor']); # annotation object
-        plas.features.append(annRecoded); # adds annotation
-        inRHR = inRecode + len(recodedRegion); # shift RHR start site downstream of recoded region
+        if haTag: # if recoded region contains HA tag,
+            annHATag = GenBankAnn("HA tag (recoded)", "misc_feature", recodedRegion[0:len(ha_tag)], False, [inRecode,inRecode+len(ha_tag)], annColors['otherAnnColor']); # annotation object for HA tag
+            plas.features.append(annHATag); # adds annotation
 
-    plas.insertSeq(RHR, inRHR); # inserts RHR sequence
-    annRHR = GenBankAnn(geneName+" RHR", "misc_feature", RHR, False, [inRHR,inRHR+len(RHR)], annColors['RHRColor']); # annotation object
+        plas.features.append(annRecoded); # adds annotation
+        startRHR = inRecode + len(recodedRegion); # shift RHR start site downstream of recoded region
+
+    plas.insertSeq(RHR, startRHR); # inserts RHR sequence
+    annRHR = GenBankAnn(geneName+" RHR", "misc_feature", RHR, False, [startRHR,startRHR+len(RHR)], annColors['RHRColor']); # annotation object
     plas.features.append(annRHR); # adds annotation
 
     startGRNA = findFirst(plas.origin, cut_IPpoI); # index of gRNA start site (at start of I-PpoI cut sequence)
@@ -111,12 +119,12 @@ positive strand and must not contain RE cut sites cut_FseI, cut_AsiSI,
 cut_IPpoI, cut_ISceI, or cut_AflII. Returns new GenBank object with targeting
 elements.
 """
-def insertTargetingElements(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, plasmidType):
+def insertTargetingElements(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, plasmidType, haTag = False):
     out = {}; # will contain method output
     if plasmidType == 'pSN054': # if using pSN054,
         out = insertTargetingElementsPSN054(plasmid, geneName, gRNA, LHR, recodedRegion, RHR); # use this method
     elif plasmidType == 'pSN150': # if using pSN150,
-        out = insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, RHR); # use other method
+        out = insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag); # use other method
 
     return out;
 

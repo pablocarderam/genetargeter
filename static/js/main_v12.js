@@ -6,6 +6,7 @@
 var backToTopShown = true; // used to control back-to-top button appearance and disappearance
 var currentOutput = []; // saves current output array to download multiple times if desired
 var nonCoding = ''; // tag if noncoding
+var haTagged = ''; // tag if contains HA tags
 var fileCounter = 0; // used in coloring output file lines
 var numFilesUploaded = 0;
 var disconnected = false; // true when connection is lost in middle of operations
@@ -107,7 +108,7 @@ function toggleOptions() {
       document.getElementById('moreOptions').style.height = document.querySelector('.measuringWrapper').clientHeight + "px";
     }
 
-    if (document.getElementById("optionsBtn").innerHTML == "Show more options") {
+    if (document.getElementById("optionsBtn").innerHTML === "Show more options") {
         document.getElementById("optionsBtn").innerHTML = "Show less options";
     }
     else {
@@ -169,7 +170,7 @@ function uploadFile(){
         }
     }
     else {
-        if (x.value == "") {
+        if (x.value === "") {
             txt += "Select one or more files.";
         } else {
             txt += "Sorry, the files property is not supported by your browser.";
@@ -220,6 +221,7 @@ function fadeIn(el, display){
   }
 }
 
+// the full monty
 function run() {
     document.getElementById("run").innerHTML = "Processing files...";
     var x = document.getElementById("geneFileForm");
@@ -240,38 +242,39 @@ function run() {
                 fR.readAsText(file, "UTF-8");
                 fR.onload = function (evt) {
                     var HRann = document.getElementById("HRannChkBox").checked;
-                    lengthLHR = [document.getElementById("LHRMin").value, document.getElementById("LHRPref").value, document.getElementById("LHRMax").value];
-                    lengthRHR = [document.getElementById("RHRMin").value, document.getElementById("RHRPref").value, document.getElementById("RHRMax").value];
-                    lengthGib = [document.getElementById("gibMin").value, document.getElementById("gibPref").value, document.getElementById("gibMax").value];
-                    optimLHR = [-1*document.getElementById("optLowLHR").value, document.getElementById("optHighLHR").value];
-                    optimRHR = [-1*document.getElementById("optLowRHR").value, document.getElementById("optHighRHR").value];
-                    endsLHR = document.getElementById("endsLHR").value;
-                    endsRHR = document.getElementById("endsRHR").value;
-                    endsTempLHR = document.getElementById("endsTempLHR").value;
-                    endsTempRHR = document.getElementById("endsTempRHR").value;
-                    gibTemp = document.getElementById("gibTemp").value;
-                    gibTDif = document.getElementById("gibTDif").value;
-                    maxDistLHR = document.getElementById("maxDistLHR").value;
-                    maxDistRHR = document.getElementById("maxDistRHR").value;
-                    minFragSize = document.getElementById('minFragSize').value;
-                    optimOrg = document.getElementById('codonOptimizeOrg').value;
-                    codonSampling = document.getElementById('codonOptimStrat').value;
-                    minGCContent = document.getElementById('gRNAGCContent').value;
-                    onTargetMethod = document.getElementById('gRNAOnTargetMethod').value;
-                    onTargetScore = document.getElementById('gRNAOnTargetCutoff').value;
-                    offTargetMethod = document.getElementById('gRNAOffTargetMethod').value;
-                    offTargetScore = document.getElementById('minOffTargetScore').value;
-                    offTargetHitScore = document.getElementById('maxOffTargetHitScore').value;
-                    enzyme = document.getElementById('enzymeType').value;
-                    pam = document.getElementById('PAMSequence').value;
-                    gBlockDefault = document.getElementById('gBlockDefault').checked;
-                    plasmidType = document.getElementById('plasmidType').value;
+                    var lengthLHR = [document.getElementById("LHRMin").value, document.getElementById("LHRPref").value, document.getElementById("LHRMax").value];
+                    var lengthRHR = [document.getElementById("RHRMin").value, document.getElementById("RHRPref").value, document.getElementById("RHRMax").value];
+                    var lengthGib = [document.getElementById("gibMin").value, document.getElementById("gibPref").value, document.getElementById("gibMax").value];
+                    var optimLHR = [-1*document.getElementById("optLowLHR").value, document.getElementById("optHighLHR").value];
+                    var optimRHR = [-1*document.getElementById("optLowRHR").value, document.getElementById("optHighRHR").value];
+                    var endsLHR = document.getElementById("endsLHR").value;
+                    var endsRHR = document.getElementById("endsRHR").value;
+                    var endsTempLHR = document.getElementById("endsTempLHR").value;
+                    var endsTempRHR = document.getElementById("endsTempRHR").value;
+                    var gibTemp = document.getElementById("gibTemp").value;
+                    var gibTDif = document.getElementById("gibTDif").value;
+                    var maxDistLHR = document.getElementById("maxDistLHR").value;
+                    var maxDistRHR = document.getElementById("maxDistRHR").value;
+                    var minFragSize = document.getElementById('minFragSize').value;
+                    var optimOrg = document.getElementById('codonOptimizeOrg').value;
+                    var codonSampling = document.getElementById('codonOptimStrat').value;
+                    var minGCContent = document.getElementById('gRNAGCContent').value;
+                    var onTargetMethod = document.getElementById('gRNAOnTargetMethod').value;
+                    var onTargetScore = document.getElementById('gRNAOnTargetCutoff').value;
+                    var offTargetMethod = document.getElementById('gRNAOffTargetMethod').value;
+                    var offTargetScore = document.getElementById('minOffTargetScore').value;
+                    var offTargetHitScore = document.getElementById('maxOffTargetHitScore').value;
+                    var enzyme = document.getElementById('enzymeType').value;
+                    var pam = document.getElementById('PAMSequence').value;
+                    var gBlockDefault = document.getElementById('gBlockDefault').checked;
+                    var plasmidType = document.getElementById('plasmidType').value;
+                    var haTag = document.getElementById('haTag').value;
 
                     msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
                       HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
                       endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
                       optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
-                      offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType]);
+                      offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType, haTag]);
                     sendMessageToServer('Sending requests...', "misc");
                     sendMessageToServer(msg,'sendGeneFile');
                     queryNumber += 1;
@@ -290,7 +293,7 @@ function run() {
         }
     }
     else {
-        if (x.value == "") {
+        if (x.value === "") {
             txt += "Select one or more files.";
         } else {
             txt += "Sorry, the files property is not supported by your browser.";
@@ -302,7 +305,14 @@ function run() {
 function displayGeneOutput(files) {
     var clean = true;
     var msgLog = files[files.length-1];
-    var fileNum = parseInt(files[0]);
+    var fileNum;
+    if (haTagged === "_HA_Tag") {
+        fileNum = parseInt(files[0].split("-")[1]);
+    }
+    else {
+        fileNum = parseInt(files[0]);
+        fileCounter += 1;
+    }
     var fileLine = document.getElementById('selectedFiles').children;
     if (msgLog.search(/warning/i) > -1) {
         fileLine[fileNum].style.color = "#FEB36E";
@@ -317,11 +327,11 @@ function displayGeneOutput(files) {
         fileLine[fileNum].style.color = "#73A46F";
         fileLine[fileNum].children[1].innerHTML = " <b> || SUCCESS!</b>"
     }
-    fileCounter += 1;
+
     if (fileCounter == numFilesUploaded) {
         document.getElementById("run").innerHTML = "Completed!";
     }
-    else {
+    else if (haTagged !== "_HA_Tag") {
         run();
     }
 }
@@ -338,7 +348,7 @@ function downloadOutput() {
             var file = currentOutput[j];
             var data = 'data:text/plain;charset=utf-8,' + encodeURIComponent(file);
             console.log([j,fileTypes[j%(fileTypes.length+1)-1],fileExt[j%(fileTypes.length+1)]]);
-            saveAs(data,fileTypes[j%(fileTypes.length+1)-1]+geneName+"_"+plasmid+"_"+enzyme+fileExt[j%(fileTypes.length+1)-1]);
+            saveAs(data,fileTypes[j%(fileTypes.length+1)-1]+geneName+"_"+plasmid+"_"+enzyme+haTagged+fileExt[j%(fileTypes.length+1)-1]);
         }
     }
 }
@@ -366,9 +376,17 @@ function decodeFileMsg(content) {
 
     if (content.data.search("Note: this gene appears not to be a protein-coding sequence") > 0) {
         nonCoding = "_putative_ncRNA";
+
     }
     else {
         nonCoding = "";
+    }
+
+    if (content.data.search("HA_Tag_Design-") > -1) {
+        haTagged = "_HA_Tag";
+    }
+    else {
+        haTagged = "";
     }
 
     files = content.data.split(sep);
