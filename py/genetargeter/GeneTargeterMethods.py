@@ -279,6 +279,22 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     plasmidArmed.features.append(klenow[1]); # add rev primer to plasmid annotations
     primerString = primerString + "\n" + geneName + " gRNA Klenow oligo (fwd)," + klenow[0].seq + "\n" + geneName + " gRNA Klenow oligo (rev)," + klenow[1].seq; # write oligos to output string
 
+    gRNACassetteStart = plasmidArmed.findFirst(plas.origin, cut_BsiWI).index[1]; # gBlock starts at BsiWI cut
+    gRNACassetteEnd = plasmidArmed.findFirst(plas.origin, cut_AsiSI).index[4]; # gBlock ends at AsiSI cut
+    gRNACassette = GenBankAnn("sgRNA cassette", "misc", plasmidArmed.origin[gRNACassetteStart:gRNACassetteEnd], False, [gRNACassetteStart,gRNACassetteEnd], annColors["otherAnnColor"]); # create cassette annotation
+    gRNAGBlock = createGBlock(plasmidArmed,gRNACassette,gibsonHomRange[1]); # annotates gBlock on plasmid
+    outputDic["logFileStr"] = outputDic["logFileStr"] + gRNAGBlock["log"]; # add logs
+    gRNAGBlock = gRNAGBlock["out"]; # saves actual data
+    plasmidArmed.features.append(gRNAGBlock); # add to plasmid annotations
+
+    primGRNAGBlock = createPrimers(plasmidArmed, gRNAGBlock); # creates gBlock primers
+    outputDic["logFileStr"] = outputDic["logFileStr"] + primGRNAGBlock["log"]; # add logs
+    primGRNAGBlock = primGRNAGBlock["out"]; # saves actual data
+    plasmidArmed.features.append(primGRNAGBlock[0]); # add fwd primer to plasmid annotations
+    plasmidArmed.features.append(primGRNAGBlock[1]); # add rev primer to plasmid annotations
+
+    primerString = primerString + "\n" + geneName + "sgRNA cassette gBlock primer (fwd)," + primGRNAGBlock[0].seq + "\n" + geneName + "sgRNA cassette gBlock primer (rev)," + primGRNAGBlock[1].seq; # write primers to output string
+
     primerString = shortenOligoNames(primerString) + "\n"; # abbreviates primer names to fit on commercial tube labels
 
     editedLocus = editLocus(geneName, geneGB, plasmidArmed); # inserts construct into genomic context
