@@ -16,7 +16,7 @@ var socket = io.connect(namespace);
 // Add a connect listener
 socket.on('connect',function() {
   console.log('Client has connected to the server!');
-  if (disconnected && validCredentials) {
+  if (disconnected && validCredentials && fileCounter != numFilesUploaded) {
     run();
     console.log("resending");
   }

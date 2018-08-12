@@ -4,6 +4,7 @@ arguments from the client. Websockets implementation from
 https://github.com/BruceEckel/hello-flask-websockets
 """
 
+from py.genetargeter.constants import *; # main python library in py folder
 from py.genetargeter.GeneTargeterMethods import *; # main python library in py folder
 from py.genetargeter.inputProcessing import *; # input handling
 
@@ -72,11 +73,12 @@ def gene_message(message):
     outMsg = queryNumber; # will store output message
     outMsgHA = "HA_Tag_Design-" + str(queryNumber); # will store output message for HA tag design, if any
     for gbName in geneGBs: # for every gb
+        sigPep = chkSignalPeptide5Prime(gbName,signalPDB); # signalP info
         haTag = False; # don't use HA tags by default
-        if plasmidType == "pSN150" and ( haTagMsg == "Yes" or (haTagMsg == "Auto" and not chkSignalPeptide5Prime(gbName)) ): # if forcing HA tags or 5' end does not contain signal peptide and auto HA-tagging
+        if plasmidType == "pSN150" and ( haTagMsg == "Yes" or (haTagMsg == "Auto" and not sigPep) ): # if forcing HA tags or 5' end does not contain signal peptide and auto HA-tagging
             haTag = True; # use HA tags
 
-        output = targetGene(gbName, geneGBs[gbName], codonOptimize=optimOrg, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib, optimRangeLHR=optimLHR, optimRangeRHR=optimRHR, endSizeLHR=endsLHR, endSizeRHR=endsRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minFragSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, onTargetMethod=onTargetMethod, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, offTargetThreshold=offTargetThreshold, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme, PAM=PAM, gBlockDefault=gBlockDefault, plasmidType=plasmidType, haTag=haTag); # call result
+        output = targetGene(gbName, geneGBs[gbName], codonOptimize=optimOrg, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib, optimRangeLHR=optimLHR, optimRangeRHR=optimRHR, endSizeLHR=endsLHR, endSizeRHR=endsRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minFragSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, onTargetMethod=onTargetMethod, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, offTargetThreshold=offTargetThreshold, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme, PAM=PAM, gBlockDefault=gBlockDefault, plasmidType=plasmidType, haTag=haTag, sigPep=sigPep); # call result
         outMsg = outMsg + sep + output["geneName"] + sep + output["geneFileStr"] + sep + output["plasmidFileStr"] + sep + output["editedLocusFileStr"] + sep + output["oligoFileStr"] + sep + output["gRNATable"] + sep + output["logFileStr"];
         if haTag and plasmidType == "pSN150": # if using HA tags and pSN150,
             outputHA = output["outputHA"]; # save HA outputs

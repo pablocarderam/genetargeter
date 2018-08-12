@@ -373,10 +373,10 @@ def chooseRHR5Prime(geneGB, gene, lengthRHR=[450,500,650], minTmEnds=55, endsLen
     gRNADownstream = GenBankAnn(); # init var to hold gRNA
     if len(gRNAs) == 0: # if no gRNAs found
         gRNAs = geneGB.findAnnsLabel("gRNA"); # List of all gRNAs
-        gRNADownstream = gRNAs[0]; # will store gRNA most upstream
+        gRNADownstream = gRNAs[0]; # will store gRNA most downstream
         for g in gRNAs: # loops across gRNAs
-            if g.index[0] < gRNADownstream.index[0]: # if more upstream
-                gRNADownstream = g; # replace as most upstream
+            if g.index[0] > gRNADownstream.index[0]: # if more downstream
+                gRNADownstream = g; # replace as most downstream
 
 
 

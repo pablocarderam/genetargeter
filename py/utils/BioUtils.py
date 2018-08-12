@@ -12,6 +12,8 @@ from math import *; # Used for logarithms
 import random; # Needed to generate random color codes
 import datetime; # Needed to access dates
 
+from Bio.SeqUtils import MeltingTemp as mt # needed for NN melting temp
+
 # Methods
 
 # File handling
@@ -22,6 +24,7 @@ Returns a dictionary of keys=sequence Fasta names, values=sequences
 def loadFastas(pFile):
     txt = open(pFile); # Access given file
     d = txt.read(); # Read file
+    txt.close(); # Close file
 
     d = d.lstrip(">"); # Remove initial >
     d = d.split(">"); # Split into separate sequences
@@ -174,10 +177,24 @@ Howley formula. Cation concentration is in moles/L (M). RNA-DNA interactions are
 equivalent to RNA-RNA interactions.
 http://www.sigmaaldrich.com/technical-documents/articles/biology/oligos-melting-temp.html
 """
-def meltingTemp(seq, cationConcentration=0.05, interactionType="DNA"): #TODO: use nearest neighbor thermodynamics. http://www.premierbiosoft.com/tech_notes/PCR_Primer_Design.html
+def meltingTempSimple(seq, cationConcentration=0.05, interactionType="DNA"):
     Tm = 81.5 + 41*(gcContent(seq)) - 500/len(seq) + 16.6*log(cationConcentration,10);
     if interactionType == "RNA":
         Tm = 79.8 + 58.4*(gcContent(seq)) + 11.8*(gcContent(seq))**2 - 820/len(seq) + 18.5*log(cationConcentration,10);
+
+    return Tm;
+
+
+"""
+Returns approximate melting temperature of sequence to its complement using
+nearest neighbor algorithm (Biopython wrapper). Cation concentration is in
+moles/L (M).
+"""
+def meltingTemp(seq, cationConcentration=0.05, interactionType="DNA"):
+    if interactionType=="DNA":
+        Tm = mt.Tm_NN(seq,Na=cationConcentration*1000, nn_table=mt.DNA_NN3); # Allawi & SantaLucia (1997) (default)
+    if interactionType == "RNA":
+        Tm = mt.Tm_NN(seq,Na=cationConcentration*1000, nn_table=mt.RNA_NN3); # Chen et al. (2012)
 
     return Tm;
 

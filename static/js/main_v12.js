@@ -56,6 +56,7 @@ function invalidCred() {
 function validCred() {
     var x = document.getElementById("geneFileForm");
     validCredentials = true;
+    fileCounter = 0;
     if ('files' in x) {
         if (x.files.length == 0) {
             document.getElementById("modFooter").innerHTML = "Valid passcode! Select some gene files though.";
@@ -347,7 +348,6 @@ function downloadOutput() {
             var geneName = currentOutput[Math.floor(j/(fileTypes.length+1))*7] + nonCoding;
             var file = currentOutput[j];
             var data = 'data:text/plain;charset=utf-8,' + encodeURIComponent(file);
-            console.log([j,fileTypes[j%(fileTypes.length+1)-1],fileExt[j%(fileTypes.length+1)]]);
             saveAs(data,fileTypes[j%(fileTypes.length+1)-1]+geneName+"_"+plasmid+"_"+enzyme+haTagged+fileExt[j%(fileTypes.length+1)-1]);
         }
     }

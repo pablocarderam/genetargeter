@@ -53,3 +53,8 @@ codonUsageTables = {
     'R. norvegicus': codonUsage('input/codonUsageTables/Rnorvegicus.txt'),
     'scramble': codonUsage()
 }
+
+# SignalP DB
+fOb = open('input/signalP/Pf3D7_GenesWithSignalPeptide_Summary.csv');
+signalPDB = fOb.read();
+fOb.close();

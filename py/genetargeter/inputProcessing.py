@@ -58,8 +58,16 @@ def preprocessInputFile(geneName, geneFileStr, useFileStrs=False):
     return gbDict;
 
 '''
-Check if gene's name is in list of predicted signal peptides
+Check if gene's name is in list of predicted signal peptides. Queries DB
+downloaded from PlasmoDB with params:
+ Minimum SignalP-NN Conclusion Score=3
+ Minimum SignalP-NN D-Score=0.5
+ Minimum SignalP-HMM Signal Probability=0.5
+ (any of three criteria)
 '''
-def chkSignalPeptide5Prime(geneName):
-    sigPep = False; # TODO
+def chkSignalPeptide5Prime(geneName,DB):
+    sigPep = False; # default no signal peptide
+    if geneName in DB: # if in list,
+        sigPep = True; # say so
+
     return sigPep;

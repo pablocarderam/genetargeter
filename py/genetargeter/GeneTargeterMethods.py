@@ -59,11 +59,14 @@ HRannotated is true if the GenBank file given as input includes manual LHR and
 filterCutSites is a list of strings containing cut sequences to be filtered if
     user provides LHR and RHR.
 """
-def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="azimuth", minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG", gBlockDefault=True, plasmidType="pSN054", haTag=True): # cfd, 0.5, 35; hsu, 75, 5
+def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="azimuth", minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG", gBlockDefault=True, plasmidType="pSN054", haTag=True, sigPep=False): # cfd, 0.5, 35; hsu, 75, 5
 
     outputDicHA = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":"", "gRNATable":""}; # dictionary containing keys to all values being returned for HA-containing design
     outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":"", "gRNATable":"", "outputHA":outputDicHA}; # dictionary containing keys to all values being returned
     outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid " + plasmidType + "_" + enzyme + " **** \n\n"; # starts message log to file
+
+    if sigPep: # if gene in signal peptide list,
+        outputDic["logFileStr"] = outputDic["logFileStr"] + "Gene contains putative signal peptide according to SignalP information downloaded from PlasmoDB.\n\n"; # say so in output log
 
     if useFileStrs: # if we are using file strings,
         path = ""; # sets an empty path, needed for save functions of class GenBank
@@ -164,10 +167,10 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                     geneGB.features.append(LHR); # adds LHR to gene annotations
 
                 RHRlist = geneGB.findAnnsLabel("RHR"); # saves RHR annotation
-                if len(RHRlist) > 0: # if LHR found,
+                if len(RHRlist) > 0: # if RHR found,
                     RHR = RHRlist[0]; # save first RHR annotation as RHR
                     outputDic["logFileStr"] = outputDic["logFileStr"] + "\nFound user RHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
-                else: # if no LHR found,
+                else: # if no RHR found,
                     outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user RHR annotation, used automatic annotation instead." + "\n"; # add warning to log
                     outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
                     RHR = RHR["out"]; # saves actual data
@@ -279,8 +282,8 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     plasmidArmed.features.append(klenow[1]); # add rev primer to plasmid annotations
     primerString = primerString + "\n" + geneName + " gRNA Klenow oligo (fwd)," + klenow[0].seq + "\n" + geneName + " gRNA Klenow oligo (rev)," + klenow[1].seq; # write oligos to output string
 
-    gRNACassetteStart = plasmidArmed.findFirst(plas.origin, cut_BsiWI).index[1]; # gBlock starts at BsiWI cut
-    gRNACassetteEnd = plasmidArmed.findFirst(plas.origin, cut_AsiSI).index[4]; # gBlock ends at AsiSI cut
+    gRNACassetteStart = findFirst(plasmidArmed.origin, cut_BsiWI) + 1; # gBlock starts at BsiWI cut
+    gRNACassetteEnd = findFirst(plasmidArmed.origin, cut_AsiSI) + 4; # gBlock ends at AsiSI cut
     gRNACassette = GenBankAnn("sgRNA cassette", "misc", plasmidArmed.origin[gRNACassetteStart:gRNACassetteEnd], False, [gRNACassetteStart,gRNACassetteEnd], annColors["otherAnnColor"]); # create cassette annotation
     gRNAGBlock = createGBlock(plasmidArmed,gRNACassette,gibsonHomRange[1]); # annotates gBlock on plasmid
     outputDic["logFileStr"] = outputDic["logFileStr"] + gRNAGBlock["log"]; # add logs

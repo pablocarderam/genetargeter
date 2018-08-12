@@ -314,7 +314,10 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
         frame = len(recodeSeq) % 3; # stores reading frame, index from start of sequence to be recoded
         endRecode -= frame; # modify recode end site according to reading frame
-        nonRecodedEnd = recodeSeq[-frame:]; # stores 0, 1 or 2 nucleotides not recoded due to reading frame
+        nonRecodedEnd = ""; # stores 0, 1 or 2 nucleotides not recoded due to reading frame
+        if frame != 0: # if frame shift is not zero, to avoid listing all of recode region with recodeSeq[-0:],
+            nonRecodedEnd = recodeSeq[-frame:]; # stores 0, 1 or 2 nucleotides not recoded due to reading frame
+
         recodeSeq = recodeSeq[0:len(recodeSeq)-frame]; # adjust recode region
         if haTag: # if adding an HA tag,
             recodeSeq = ha_tag + recodeSeq; # add HA tag to start of recoded region
@@ -338,9 +341,9 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                 offScore = 0; # reset offScore
                 tricky = False; # reset tricky Boolean
                 badStart = False; # reset badStart Boolean
-                recodedSeq = recodeSeq#optimizeCodons(recodeSeq,orgCodonTable,codonSampling=codonSampling); # optimize codons.
+                recodedSeq = optimizeCodons(recodeSeq,orgCodonTable,codonSampling=codonSampling); # optimize codons.
                 for g in gRNAs: # for every gRNA candidate within recoded region,
-                    if g.index[0] >= startRecode-frame and g.index[1] <= endRecode: # if grna is inside recoded region
+                    if g.index[0] >= startRecode and g.index[1] <= endRecode-frame: # if grna is inside recoded region
                         gOnSeq = g.seq; # get original gRNA sequence
                         wholeRecSeq = recodedSeq + nonRecodedEnd; # add initial bases
                         gOffSeq = "";
