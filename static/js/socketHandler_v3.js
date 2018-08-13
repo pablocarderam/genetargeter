@@ -18,7 +18,7 @@ socket.on('connect',function() {
   console.log('Client has connected to the server!');
   if (disconnected && validCredentials && fileCounter != numFilesUploaded) {
     run();
-    console.log("resending");
+    console.log("Resending");
   }
 });
 // Add a connect listener
@@ -52,5 +52,5 @@ socket.on('invalidCred',function() {
 // Sends a message to the server via sockets
 function sendMessageToServer(message,type) {
   socket.emit(type, {data: message});
-  console.log(message + " :: sent");
+  //console.log(message + " :: sent");
 };

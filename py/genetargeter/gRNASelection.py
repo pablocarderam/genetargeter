@@ -330,7 +330,7 @@ def findGRNA(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISce
             else: # if gRNAs found,
                 gRNAExtreme = gRNAs[0]; # will store gRNA most upstream
                 for g in gRNAs: # loops across gRNAs
-                    if g.index[0] < gRNAExtreme.index[0]: # if more upstream
+                    if ( target3Prime and g.index[0] < gRNAExtreme.index[0] ) or ( not target3Prime and g.index[0] > gRNAExtreme.index[0] ): # if more upstream
                         gRNAExtreme = g; # replace as most upstream
 
 

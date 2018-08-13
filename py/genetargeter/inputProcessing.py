@@ -30,8 +30,7 @@ def preprocessInputFile(geneName, geneFileStr, useFileStrs=False):
     geneList = geneGB.findAnnsLabel(geneName); # search for annotations with gene name
     if len(geneList) > 0: # if genes found,
         gene = geneList[0]; # stores gene annotation
-        geneAnns = geneGB.findAnnsLabel(geneName); # stores all gene annotations with gene name in them
-        for a in geneAnns: # loops through found annotations
+        for a in geneList: # loops through found annotations
             if a.type == "gene": # if this annotation's type is gene,
                 gene = a; # keep it as the gene annotation
                 break; # stop loop
@@ -39,7 +38,7 @@ def preprocessInputFile(geneName, geneFileStr, useFileStrs=False):
         gene.color = annColors['targetGeneColor'] # set gene to orange, using Okabe and Ito's colorblind palette from 2002
         mRNAs = geneGB.findAnnsType("mRNA",True)+geneGB.findAnnsType("tRNA",True)+geneGB.findAnnsType("rRNA",True); # list of all mRNAs in GB file. EDIT 11 oct 2017: Include rRNA and tRNA, not just mRNAs!
         for mRNA in mRNAs: # loop over all mRNAs
-            if gene.index[0] <= mRNA.index[0] < mRNA.index[1] <= gene.index[1]: # if mRNA is inside gene,
+            if gene.index[0] <= mRNA.index[0] < mRNA.index[1] <= gene.index[1] and gene.label in mRNA.label: # if mRNA is inside gene and gene name is in mRNA label,
                 newGB = copy.deepcopy(geneGB); # copy original GB object,
                 newMRNAs = newGB.findAnnsType("mRNA")+newGB.findAnnsType("tRNA",True)+newGB.findAnnsType("rRNA",True); # list of all mRNAs in new GB file. EDIT 11 oct 2017: Include rRNA and tRNA, not just mRNAs!
                 for newMRNA in newMRNAs: # loop over mRNAs of new GB file

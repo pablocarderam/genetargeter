@@ -465,7 +465,11 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
         recodedSeq = bestRecodedSeq + nonRecodedEnd; # adds end bases from reading frame adjustment to best candidate
         annRecoded = GenBankAnn(gene.label + " Recoded", "misc_feature", recodedSeq, False, [startRecode,endRecode], annColors['recodedRegionColor']); # creates var to store finished recodedSeq as annotation
-        log = log + "Recoded region with size " + str(len(recodedSeq)) + " for gene " + gene.label + " selected.\n\n"; # logs this process finished
+        haTagMsg = ""; # used to output message
+        if haTag: # if using an HA tag,
+            haTagMsg = " with a recoded HA tag"; # msg modifier
+
+        log = log + "Recoded region with size " + str(len(recodedSeq)) + " for gene " + gene.label + haTagMsg + " selected.\n\n"; # logs this process finished
 
     else: # if no recoded region necessary,
         log = log + "Recoded region not deemed necessary for gene " + gene.label + ".\n\n"; # logs this process finished

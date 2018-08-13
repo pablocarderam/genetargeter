@@ -206,6 +206,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
             plasmidArmed = insertTargetingElements(plasmid, gene.label, gRNA.seq, LHR.seq, recoded.seq, RHR.seq, plasmidType=plasmidType, haTag=False); # inserts targeting elements
             plasmidArmedHA = ""; # will contain plasmid with HA tags
             outputDicHA = copy.deepcopy(outputDic); # will store outputs
+            outputDicHA["logFileStr"] = outputDicHA["logFileStr"].replace(" **** \n\n", "_HA_Tag **** \n\n")
             outputDic = postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=False); # generate and annotate assembly info
             if haTag: # if using HA tags,
                 plasmidArmedHA = insertTargetingElements(plasmid, gene.label, gRNA.seq, LHR.seq, recodedHA.seq, RHR.seq, plasmidType=plasmidType, haTag=True); # inserts targeting elements
@@ -313,7 +314,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
 
     haName = ""; # default no HA tags notated in name
     if haTag: # if using HA tags,
-        haName = "_HA_tags_"; # include in name
+        haName = "HA_tags"; # include in name
 
     geneGB.name = geneName + "_" + plasmidType + "_" + enzyme + "_" + haName + "_Locus_Pre-editing"; # save file type in genbank locus
     plasmidArmed.name = geneName + "_" + plasmidType + "_" + enzyme + "_" + haName; # save file type in genbank locus

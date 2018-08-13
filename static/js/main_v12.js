@@ -344,7 +344,7 @@ function downloadOutput() {
     var plasmid = document.getElementById('plasmidType').value;
     var fileExt = [".gb",".gb",".gb",".csv",".csv",".txt"];
     for (var j = 1; j < currentOutput.length; j++) {
-        if (j%(fileTypes.length+1) > 0) {
+        if (j%(fileTypes.length+1) > 0 && currentOutput[j].length > 1) {
             var geneName = currentOutput[Math.floor(j/(fileTypes.length+1))*7] + nonCoding;
             var file = currentOutput[j];
             var data = 'data:text/plain;charset=utf-8,' + encodeURIComponent(file);
