@@ -148,7 +148,7 @@ class GenBank(object):
                     elif d[i].find('=') > 0: # if line contains = character, it means it's a new property
                         p = d[i].lstrip().split("="); # splits line into a property's name and value
                         if p[0] == "/gene" or p[0] == "/label" or p[0] == "/ID": # if the property is a gene or label...
-                            newAnn.label = p[1][1:(len(p[1])-1)]; # assigns the label (extracting the label from string p)
+                            newAnn.label = p[1][1:(len(p[1])-2)]; # assigns the label (extracting the label from string p)
                             if newAnn.comp: # if on complementary strand,
                                 newAnn.seq = revComp(self.origin[(newAnn.index[0]):newAnn.index[1]]); # assigns the sequence of the annotated region to the complement. To find the sequence of the annotated region, indexes in the full sequence according to the position previously extracted.
                             else: # if on positive strand,
