@@ -283,8 +283,13 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     plasmidArmed.features.append(klenow[1]); # add rev primer to plasmid annotations
     primerString = primerString + "\n" + geneName + " gRNA Klenow oligo (fwd)," + klenow[0].seq + "\n" + geneName + " gRNA Klenow oligo (rev)," + klenow[1].seq; # write oligos to output string
 
-    gRNACassetteStart = findFirst(plasmidArmed.origin, cut_BsiWI) + 1; # gBlock starts at BsiWI cut
-    gRNACassetteEnd = findFirst(plasmidArmed.origin, cut_AsiSI) + 4; # gBlock ends at AsiSI cut
+    gRNACassetteStart = plasmidArmed.findAnnsLabel("Lox")[0].index[0]; # gBlock starts at first Lox
+    gRNACassetteEnd = plasmidArmed.findAnnsLabel("RHR_vector overlap_lef")[0].index[1]; # gBlock ends at RHR_vector overlap_lef
+
+    if plasmidType == "pSN150": # if using pSN150 instead of pSN054,
+        gRNACassetteStart = findFirst(plasmidArmed.origin, cut_BsiWI) + 1; # gBlock starts at BsiWI cut
+        gRNACassetteEnd = findFirst(plasmidArmed.origin, cut_AsiSI) + 4; # gBlock ends at AsiSI cut
+
     gRNACassette = GenBankAnn("sgRNA cassette", "misc", plasmidArmed.origin[gRNACassetteStart:gRNACassetteEnd], False, [gRNACassetteStart,gRNACassetteEnd], annColors["otherAnnColor"]); # create cassette annotation
     gRNAGBlock = createGBlock(plasmidArmed,gRNACassette,gibsonHomRange[1]); # annotates gBlock on plasmid
     outputDic["logFileStr"] = outputDic["logFileStr"] + gRNAGBlock["log"]; # add logs

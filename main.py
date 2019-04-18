@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 """
 Handles connection with client, calls main method to build targeted vector with
 arguments from the client. Websockets implementation from
@@ -15,7 +17,7 @@ monkey.patch_all()
 
 import time
 from flask import Flask, render_template, session, request
-from flask.ext.socketio import SocketIO, emit, disconnect
+from flask_socketio import SocketIO, emit, disconnect
 
 app = Flask(__name__)
 app.debug = True # change in dev/prod
