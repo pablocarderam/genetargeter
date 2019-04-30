@@ -43,25 +43,25 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
     gRNAEx = gRNAExt.index[doingHR == 'RHR'] # position of most extreme gRNA to be avoided
 
     if not ( (seqBeg<=lenMin) and (lenMin<=lenMax) and (lenMax<=genBeg) and (genBeg<=genEnd) and (genEnd<=seqEnd) and (seqEnd-genEnd>=lenMax) ) : # If assertions don't hold,
-        log = log + "\nERROR: Not enough space on either side of gene for maximum HR size, or min and max HR lengths are switched. Aborting." + "\n" # give a warning
+        log = log + "\nERROR: Not enough space on either side of gene for maximum HR size, or you mixed up min and max HR lengths. Aborting." + "\n" # give a warning
 
     # Initialize region
 
     regBeg = max( genBeg-lenMax-1, seqBeg ) if doingHR == 'LHR' else max( (targetExtreme == 'end') * genEnd, gRNAEx, min(gBlockDefault*(genBeg+minGBlockSize),nxtGen-lenMin) ) # beginning of possible LHR or RHR region
-    regEnd = min( (targetExtreme != 'end')*lenMax + genBeg, genEnd-3*codingGene, gRNAEx, max(gBlockDefault*(genEnd-minGBlockSize),genBeg) ) if doingHR == 'LHR' else min( nxtGen+lenMax, seqEnd ) # end of possible LHR or RHR region
+    regEnd = min( (targetExtreme == 'end')*genEnd + genBeg, genEnd-3*codingGene, gRNAEx, max(gBlockDefault*(genEnd-minGBlockSize),genBeg) ) if doingHR == 'LHR' else min( nxtGen+lenMax, seqEnd ) # end of possible LHR or RHR region
 
     # Partitioning
     cutSites = [] # will store cut site indeces
     for site in filterCutSites: # for every cut site,
         cutSites = cutSites + findMotif( geneGB.origin[regBeg:regEnd], site ) # store all its occurrences
 
-    cutSites = sorted(cutSites) # sort by ascending index
+    cutSites = [ s+regBeg for s in sorted(cutSites) ] # sort by ascending index, add back beginning of region index to find global coordinates
     regBegArr = [regBeg] + cutSites # start of possible HR regions
     regEndArr = cutSites + [regEnd] # Ends of possible HR regions
 
     regIdxArr = [] # will store indexes of possible HR regions
     for i in range( len(regBegArr) ): # for every partition,
-        if abs( regBegArr[i]-regEndArr[i] ) >= lenMin: # if enough space for HR in partition,
+        if abs( regBegArr[i]-regEndArr[i] ) >= lenMin and (doingHR == 'LHR')*genBeg <= regEndArr[i]: # if enough space for HR in partition and LHR end still within bounds,
             regIdxArr.append( [ regBegArr[i],regEndArr[i] ] ) # add to valid partition index array
 
 
@@ -84,7 +84,6 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
     p = ss if ss>=0 else ss + len( begIntArr )  # will keep track of partition if wrapping around back of partitions, set to positive indexing
 
     i = [ min(a,b), max(a,b) ] # search each terminus start position in sequence terminus, start from end if doing LHR or from start if RHR, flipped for loop
-    print(terIdxArr)
     bestHR = [ i,
         [ isTricky( geneGB.origin[ i[0]:i[0]+endsLength ] ),
             isTricky( geneGB.origin[ i[1]-endsLength:i[1] ] ) ],
