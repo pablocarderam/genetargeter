@@ -149,11 +149,11 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
             # pick HRs first
             if target3Prime: # if going for 3' payload,
-                LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='start', lengthLHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, optimizeRange=optimRangeLHR, maxDistanceFromGRNA=maxDistLHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an LHR
-                RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthRHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, optimizeRange=optimRangeRHR, maxDistanceFromGene=maxDistRHR, filterCutSites=filterCutSites); # chooses RHR
+                LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an LHR
+                RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, filterCutSites=filterCutSites); # chooses RHR
             else: # if going for 5' payload, TODO: switch params?
-                LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='start', lengthLHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, optimizeRange=optimRangeRHR, maxDistanceFromGene=maxDistRHR, filterCutSites=filterCutSites); # chooses LHR
-                RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthRHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, optimizeRange=optimRangeLHR, maxDistanceFromGRNA=maxDistLHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an RHR
+                LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='start', lengthHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, filterCutSites=filterCutSites); # chooses LHR
+                RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='start', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an RHR
 
             if HRannotated: # if LHR and RHR are already annotated,
                 LHRlist = geneGB.findAnnsLabel("LHR"); # overwrite LHR annotations

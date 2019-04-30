@@ -17,7 +17,7 @@ distance in bp between end of LHR and start of gRNA.
 LHR: Left Homologous Region used for chromosomal integration by homologous
 recombination during repair.
 """
-def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
+def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
     log = "" # init log
     gRNAs = [] # List of all gRNAs
     gRNAExt = GenBankAnn() # init var to hold gRNA
@@ -47,8 +47,8 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
     # Initialize region
 
-    regBeg = max( genBeg-lenMax-1, seqBeg ) if doingHR == 'LHR' else max( (targetExtreme == 'end') * genEnd, gRNAEx ) # beginning of possible LHR or RHR region
-    regEnd = min( genEnd, gRNAEx ) if doingHR == 'LHR' else min( nxtGen+lenMax, seqEnd ) # end of possible LHR or RHR region
+    regBeg = max( genBeg-lenMax-1, seqBeg ) if doingHR == 'LHR' else max( (targetExtreme == 'end') * genEnd, gRNAEx, min(gBlockDefault*(genBeg+minGBlockSize),nxtGen-lenMin) ) # beginning of possible LHR or RHR region
+    regEnd = min( (targetExtreme != 'end')*lenMax + genBeg, genEnd-3*codingGene, gRNAEx, max(gBlockDefault*(genEnd-minGBlockSize),genBeg) ) if doingHR == 'LHR' else min( nxtGen+lenMax, seqEnd ) # end of possible LHR or RHR region
 
     # Partitioning
     cutSites = [] # will store cut site indeces
@@ -59,7 +59,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
     regBegArr = [regBeg] + cutSites # start of possible HR regions
     regEndArr = cutSites + [regEnd] # Ends of possible HR regions
 
-    regIdxArr = [  ] # will store indexes of possible HR regions
+    regIdxArr = [] # will store indexes of possible HR regions
     for i in range( len(regBegArr) ): # for every partition,
         if abs( regBegArr[i]-regEndArr[i] ) >= lenMin: # if enough space for HR in partition,
             regIdxArr.append( [ regBegArr[i],regEndArr[i] ] ) # add to valid partition index array
@@ -84,6 +84,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
     p = ss if ss>=0 else ss + len( begIntArr )  # will keep track of partition if wrapping around back of partitions, set to positive indexing
 
     i = [ min(a,b), max(a,b) ] # search each terminus start position in sequence terminus, start from end if doing LHR or from start if RHR, flipped for loop
+    print(terIdxArr)
     bestHR = [ i,
         [ isTricky( geneGB.origin[ i[0]:i[0]+endsLength ] ),
             isTricky( geneGB.origin[ i[1]-endsLength:i[1] ] ) ],
