@@ -101,8 +101,8 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
         if plasmidType == "pSN054": # if using 3' plasmid
             if enzyme == "Cas9": # if Cas9,
                 plasmid = pSN054_V5_Cas9; # set plasmid
-            elif enzyme == "Cpf1": # if Cpf1,
-                plasmid = pSN054_V5_Cpf1; # set plasmid
+            elif enzyme == "Cas12": # if Cas12,
+                plasmid = pSN054_V5_Cas12; # set plasmid
 
             closestGene = len(geneGB.origin); # by default, assume next gene downstream is after end of file
             target3Prime = True; # this plasmid targets 3' end
@@ -115,8 +115,8 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
         elif plasmidType == "pSN150": # if using 5' plasmid
             if enzyme == "Cas9": # if Cas9,
                 plasmid = pSN150_Cas9; # set plasmid
-            elif enzyme == "Cpf1": # if Cpf1,
-                plasmid = pSN150_Cpf1; # set plasmid
+            elif enzyme == "Cas12": # if Cas12,
+                plasmid = pSN150_Cas12; # set plasmid
 
             closestGene = 0; # by default, assume next gene downstream is before start of file
             target3Prime = False; # this plasmid targets 3' end
@@ -134,10 +134,10 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
         if HRannotated: # if using manual annotations
             gRNA = findGRNA(geneGB, gene); # finds gRNA most upstream annotated manually.
             if len(gRNA["out"].label) == 0: # if no manual annotation found,
-                gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime); # chooses gRNA.
+                gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, filterCutSites=filterCutSites); # chooses gRNA.
 
         else: # if not,
-            gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime); # chooses gRNA.
+            gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, filterCutSites=filterCutSites); # chooses gRNA.
 
         outputDic["logFileStr"] = outputDic["logFileStr"] + gRNA["log"]; # add logs
         outputDic["gRNATable"] = gRNA["gRNATable"]; # saves gRNA output values
@@ -149,11 +149,11 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
             # pick HRs first
             if target3Prime: # if going for 3' payload,
-                LHR = chooseLHR3Prime(geneGB, gene, lengthLHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, optimizeRange=optimRangeLHR, maxDistanceFromGRNA=maxDistLHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene); # chooses an LHR
-                RHR = chooseRHR3Prime(geneGB, gene, lengthRHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, optimizeRange=optimRangeRHR, maxDistanceFromGene=maxDistRHR); # chooses RHR
+                LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='start', lengthLHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, optimizeRange=optimRangeLHR, maxDistanceFromGRNA=maxDistLHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an LHR
+                RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthRHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, optimizeRange=optimRangeRHR, maxDistanceFromGene=maxDistRHR, filterCutSites=filterCutSites); # chooses RHR
             else: # if going for 5' payload, TODO: switch params?
-                LHR = chooseLHR5Prime(geneGB, gene, lengthLHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, optimizeRange=optimRangeRHR, maxDistanceFromGene=maxDistRHR); # chooses LHR
-                RHR = chooseRHR5Prime(geneGB, gene, lengthRHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, optimizeRange=optimRangeLHR, maxDistanceFromGRNA=maxDistLHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene); # chooses an RHR
+                LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='start', lengthLHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, optimizeRange=optimRangeRHR, maxDistanceFromGene=maxDistRHR, filterCutSites=filterCutSites); # chooses LHR
+                RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthRHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, optimizeRange=optimRangeLHR, maxDistanceFromGRNA=maxDistLHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an RHR
 
             if HRannotated: # if LHR and RHR are already annotated,
                 LHRlist = geneGB.findAnnsLabel("LHR"); # overwrite LHR annotations
@@ -193,10 +193,10 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
 
 
-            recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime); # defines region to be recoded, returns recoded sequence
+            recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
             recodedHA = {}; # will contain recoded region with HA tag
             if haTag: # if using HA tags,
-                recodedHA = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, haTag=True); # defines region to be recoded with HA tag, returns recoded sequence
+                recodedHA = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, haTag=True, filterCutSites=filterCutSites); # defines region to be recoded with HA tag, returns recoded sequence
                 recodedHA = recodedHA["out"]; # saves actual data
 
             outputDic["logFileStr"] = outputDic["logFileStr"] + recoded["log"]; # add logs

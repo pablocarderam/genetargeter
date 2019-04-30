@@ -242,7 +242,7 @@
 									CRISPR cutting enzyme:
 											<select id="enzymeType" onchange="changeEnzyme()">
 												<option value="Cas9" selected="selected">Cas9 (3' PAM)</option>
-												<option value="Cpf1">Cpf1 (5' PAM)</option>
+												<option value="Cas12">Cas12 (aka Cpf1; 5' PAM)</option>
 											</select> <br>
 									PAM Sequence: &nbsp<select id="PAMSequence">
 										<option value="NGG" selected="selected">NGG (SpCas9)</option>
@@ -255,13 +255,13 @@
 										<option value="NAAAAC">NAAAAC (TdCas9)</option>
 										<option value="NNGRRT">NNGRRT (SaCas9)</option>
 										<option value="NNGRR">NNGRR (SaCas9, low efficiency)</option>
-										<option value="TTTV">TTTV (AsCpf1)</option>
-										<option value="TYCV">TYCV (AsCpf1 S542R)</option>
-										<option value="CCCC">CCCC (AsCpf1 K607R)</option>
-										<option value="TATV">TATV (AsCpf1 S542R/K548V/N552R)</option>
+										<option value="TTTV">TTTV (AsCas12)</option>
+										<option value="TYCV">TYCV (AsCas12 S542R)</option>
+										<option value="CCCC">CCCC (AsCas12 K607R)</option>
+										<option value="TATV">TATV (AsCas12 S542R/K548V/N552R)</option>
 									</select> <br>
 									On-target <a href="#bottom" class="tooltip"
-										tipTxt="Doench et al. (2016) scores obtained from gradient-boosted regression trees of SpCas9 data. Kim et al. (2017) scores determined through logistic regression of AsCpf1 data.">
+										tipTxt="Doench et al. (2016) scores obtained from gradient-boosted regression trees of SpCas9 data. Kim et al. (2017) scores determined through logistic regression of AsCas12 data.">
 										scoring method</a>:
 											<select id="gRNAOnTargetMethod" onchange="changeOnScoringMethod()">
 												<option value="azimuth" selected="selected">Azimuth (Doench et al., 2016)</option>
@@ -270,7 +270,7 @@
 											</select> <br>
 									Minimum on-target score: &nbsp<input class="txtInput" type="number" id="gRNAOnTargetCutoff" value="35"> % <br>
 									Off-target <a href="http://crispr.mit.edu/about" class="tooltip" target="_blank"
-										tipTxt="CFD scores are more accurate in Cas9-edited mammalian cells (Doench et al., 2016). Hsu et al. (2013) scores are used by crispr.mit.edu and Benchling, and are used as proxies for Cpf1. Individual scores are aggregated as per crispr.mit.edu.">
+										tipTxt="CFD scores are more accurate in Cas9-edited mammalian cells (Doench et al., 2016). Hsu et al. (2013) scores are used by crispr.mit.edu and Benchling, and are used as proxies for Cas12. Individual scores are aggregated as per crispr.mit.edu.">
 										scoring method</a> for single hits:<br>
 											<select id="gRNAOffTargetMethod" onchange="changeOffScoringMethod()">
 												<option value="cfd" selected="selected">CFD (Doench et al., 2016)</option>
@@ -390,7 +390,7 @@
 					On-target Cas9 gRNA scoring code and CFD scoring matrix obtained December 27, 2016 from <a href="https://dx.doi.org/10.1038/nbt.3437" target="_blank">Doench et al. (2016)</a> supplementary material.
 			</p>
 			<p>
-					On-target Cpf1 gRNA scoring coefficients obtained from <a href="https://dx.doi.org/10.1038/nmeth.4104" target="_blank">Kim et al. (2017)</a> supplementary material, equivalent to <a href="http://big.hanyang.ac.kr/cindel/" target="_blank">CINDEL</a> online tool. Exact on-target scores may vary between GeneTargeter and <a href="http://big.hanyang.ac.kr/cindel/" target="_blank">CINDEL</a> due to minor differenes in gRNA free energy calculations.
+					On-target Cas12 gRNA scoring coefficients obtained from <a href="https://dx.doi.org/10.1038/nmeth.4104" target="_blank">Kim et al. (2017)</a> supplementary material, equivalent to <a href="http://big.hanyang.ac.kr/cindel/" target="_blank">CINDEL</a> online tool. Exact on-target scores may vary between GeneTargeter and <a href="http://big.hanyang.ac.kr/cindel/" target="_blank">CINDEL</a> due to minor differenes in gRNA free energy calculations.
 			</p>
 			<p>
 					Self-folding Gibbs free energy of gRNAs (used to calculate <a href="https://dx.doi.org/10.1038/nmeth.4104" target="_blank">Kim et al. (2017)</a> <a href="http://big.hanyang.ac.kr/cindel/" target="_blank">CINDEL</a> scores) calculated using RNAfold obtained from <a href="http://www.tbi.univie.ac.at/RNA/index.html" target="_blank">ViennaRNA v2.3.3</a> <a href="https://dx.doi.org/10.1186/1748-7188-6-26" target="_blank">(Lorenz et al., 2011)</a>.

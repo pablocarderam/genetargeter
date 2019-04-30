@@ -49,15 +49,15 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], PAM="NGG", minGCContent=0.3
     searchRange[1] = min(abs(closestGene-gene.index[target3Prime]),searchRange[1]); # set end of search range as start of next downstream gene if that happens before the current end of search range (SHOULD WORK IN 5' CASE TOO)
 
     pamSeqs = ambiguousSeqs(PAM); # store actual PAM sequences
-    extGRNASeqIndexes = []; # stores indexes of extended gRNA sequence (NNNN-gRNA 20mer-PAM 3mer-NNN for Cas9, PAM 4mer-gRNA 23mer-NNN for Cpf1) relative to PAM start point.
-    realGRNASeqIndexes = []; # stores indexes of actual gRNA sequence (gRNA 20mer for Cas9, gRNA 23mer for Cpf1) relative to PAM start point.
+    extGRNASeqIndexes = []; # stores indexes of extended gRNA sequence (NNNN-gRNA 20mer-PAM 3mer-NNN for Cas9, PAM 4mer-gRNA 23mer-NNN for Cas12) relative to PAM start point.
+    realGRNASeqIndexes = []; # stores indexes of actual gRNA sequence (gRNA 20mer for Cas9, gRNA 23mer for Cas12) relative to PAM start point.
     pamIndexes = []; # stores indexes of PAM sequences within extended gRNA
 
     if enzyme == "Cas9": # if enzyme is Cas9,
         extGRNASeqIndexes = [-24,6,-3,27]; # Start and end indexes for NNNN-gRNA 20mer-PAM 3mer-NNN extended sequence relative to PAM start position. Second two numbers are for rev comp strand.
         realGRNASeqIndexes = [4,24]; # Start and end indexes for gRNA 20mer sequence within extended sequence.
         pamIndexes = [24,24+len(PAM)]; # Stores PAM seq indexes, including Ns and Vs
-    elif enzyme == "Cpf1": # if enzyme is Cpf1,
+    elif enzyme == "Cas12": # if enzyme is Cas12,
         extGRNASeqIndexes = [0,30,-26,4]; # Start and end indexes for PAM 4mer-gRNA 23mer extended sequence relative to PAM start position. Second two numbers are for rev comp strand.
         realGRNASeqIndexes = [len(PAM),23+len(PAM)]; # Start and end indexes for PAM gRNA 23mer sequence within extended sequence.
         pamIndexes = [0,len(PAM)]; # Stores PAM seq indexes, including Ns and Vs
@@ -73,7 +73,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], PAM="NGG", minGCContent=0.3
 
         while i > len(PAM) and i < len(searchSeq)-extGRNASeqIndexes[1]+2 and len(gRNAs) < 3: # iterate through all searchSeq until done with searchSeq (allow enough bases upstream of search end point to accomodate on-target 30-mer minus-strand gRNA sequence) or three candidates found.
             comp = False; # set sense to plus strand
-            extGRNASeq = ""; # stores extended sequence sequence (NNNN-gRNA 20mer-PAM 3mer-NNN for Cas9, PAM 4mer-gRNA 23mer for Cpf1)
+            extGRNASeq = ""; # stores extended sequence sequence (NNNN-gRNA 20mer-PAM 3mer-NNN for Cas9, PAM 4mer-gRNA 23mer for Cas12)
             gRNAIndexes = []; # store gRNA indexes
             if searchSeq[i:i+len(PAM)] in pamSeqs: # if PAM found on plus strand,
                 extGRNASeq = searchSeq[i+extGRNASeqIndexes[0]:i+extGRNASeqIndexes[1]]; # store extended sequence

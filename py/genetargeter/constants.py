@@ -25,6 +25,12 @@ cut_AhdI = "gacaacttgtc"; # AhdI cut site
 cut_BsiWI = "cgtacg"; # BsiWI cut site
 cut_NheI = "gctagc"; # NheI cut site
 
+# Cut sites to check for each plasmid
+cut_sites = {
+    'pSN054' : [cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI],
+    'pSN150' : [cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]
+    }
+
 # Other sequences
 ha_tag = "tacccatacgatgttccagattacgct"; # HA tag sequence
 
@@ -32,15 +38,15 @@ ha_tag = "tacccatacgatgttccagattacgct"; # HA tag sequence
 pSN054_V5_Cas9 = GenBank();
 pSN054_V5_Cas9.load("input/plasmids/psn054-updated_v5-tagged-jn_final.gb",loadFromFile=True); # load Cas9 plasmid sequence from GenBank format
 pSN054_V5_Cas9.setAllColors(annColors['otherAnnColor'])
-pSN054_V5_Cpf1 = GenBank();
-pSN054_V5_Cpf1.load("input/plasmids/psn054_v5ha-tags_lbcpf1.gb",loadFromFile=True); # load Cpf1 plasmid sequence from GenBank format
-pSN054_V5_Cpf1.setAllColors(annColors['otherAnnColor'])
+pSN054_V5_Cas12 = GenBank();
+pSN054_V5_Cas12.load("input/plasmids/psn054_v5ha-tags_lbcas12.gb",loadFromFile=True); # load Cas12 plasmid sequence from GenBank format
+pSN054_V5_Cas12.setAllColors(annColors['otherAnnColor'])
 pSN150_Cas9 = GenBank();
-pSN150_Cas9.load("input/plasmids/psn150_cas9.gb",loadFromFile=True); # load Cas9 plasmid sequence from GenBank format
+pSN150_Cas9.load("input/plasmids/psn150_cas9_editedpcr.gb",loadFromFile=True); # load Cas9 plasmid sequence from GenBank format
 pSN150_Cas9.setAllColors(annColors['otherAnnColor'])
-pSN150_Cpf1 = GenBank();
-pSN150_Cpf1.load("input/plasmids/psn150_cpf1.gb",loadFromFile=True); # load Cas9 plasmid sequence from GenBank format
-pSN150_Cpf1.setAllColors(annColors['otherAnnColor'])
+pSN150_Cas12 = GenBank();
+pSN150_Cas12.load("input/plasmids/psn150_cas12_editedpcr.gb",loadFromFile=True); # load Cas9 plasmid sequence from GenBank format
+pSN150_Cas12.setAllColors(annColors['otherAnnColor'])
 
 # Codon usage tables
 codonUsageTables = {

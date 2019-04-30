@@ -69,7 +69,7 @@ def buildPfalGRNADB(pathToGenome,enzyme="Cas9"):
     if enzyme == "Cas9":
         PfalGRNAs = buildGRNADB(PfalGenome,"GG",[-21,2]);
         PfalGRNAs = PfalGRNAs + buildGRNADB(PfalGenome,"AG",[-21,2]);
-    elif enzyme == "Cpf1":
+    elif enzyme == "Cas12":
         PfalGRNAs = buildGRNADB(PfalGenome,"TTTA",[0,27]);
         PfalGRNAs = PfalGRNAs + buildGRNADB(PfalGenome,"TTTC",[0,27]);
         PfalGRNAs = PfalGRNAs + buildGRNADB(PfalGenome,"TTTG",[0,27]);
@@ -346,6 +346,6 @@ scoreGRNAs(seqGRNAs,guideListList)
 #from gRNAScores.gRNADBBuilder import *
 #exportCFDMatrix(mm_scores)
 #offTargetScore("TTGTGTTCTCCATATATCGATGG","cfd");
-outStr = "\n".join(gListCpf1);
-output(outStr, "gListCpf1.txt");
+outStr = "\n".join(gListCas12);
+output(outStr, "gListCas12.txt");
 '''

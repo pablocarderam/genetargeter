@@ -36,12 +36,12 @@ def searchDB(searchSeq,dbFilePath):
 def getGRNAInfoFromDB(pExtSeq,enzyme):
     searchSeq = pExtSeq.upper(); # to uppercase
     returnInfo = [];
-    dbFilePaths = ['./gRNAScores/data/cas9Small.csv','./gRNAScores/data/cpf1Small.csv']
+    dbFilePaths = ['./gRNAScores/data/cas9Small.csv','./gRNAScores/data/cas12Small.csv']
     fp='';
     if enzyme=='Cas9':
         fp='./gRNAScores/data/cas9Small.csv';
-    elif enzyme == 'Cpf1':
-        fp='./gRNAScores/data/cpf1Small.csv';
+    elif enzyme == 'Cas12':
+        fp='./gRNAScores/data/cas12Small.csv';
 
     returnInfo = searchDB(searchSeq,fp);
     return returnInfo;

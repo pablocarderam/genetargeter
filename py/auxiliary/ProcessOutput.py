@@ -36,7 +36,7 @@ def createOutputSummaryTable(dirPath):
                 enzymeMod = -1;
                 if msg.find("Cas9") > -1:
                     enzymeMod = 0;
-                elif msg.find("Cpf1") > -1:
+                elif msg.find("Cas12") > -1:
                     enzymeMod = 6;
 
 
@@ -101,18 +101,18 @@ def createOutputSummaryTable(dirPath):
 
 
 
-    tabStr = "Gene_ID,Cas9_Status,Cas9_LHR,Cas9_gBlock,Cas9_RHR,Cas9_gRNA,Cas9_gBlock_size,Cpf1_Status,Cpf1_LHR,Cpf1_gBlock,Cpf1_RHR,Cpf1_gRNA,Cpf1_gBlock_size,Enzyme_recommended\n";
+    tabStr = "Gene_ID,Cas9_Status,Cas9_LHR,Cas9_gBlock,Cas9_RHR,Cas9_gRNA,Cas9_gBlock_size,Cas12_Status,Cas12_LHR,Cas12_gBlock,Cas12_RHR,Cas12_gRNA,Cas12_gBlock_size,Enzyme_recommended\n";
     for g in geneResults:
         bestOption = "Cas9";
         if geneResults[g][0:5].count("Error") > 0 and geneResults[g][6:11].count("Error") > 0:
             bestOption = "None";
         elif geneResults[g][0:5].count("Success") < geneResults[g][6:11].count("Success") and geneResults[g][6:11].count("Error") == 0:
-            bestOption = "Cpf1";
+            bestOption = "Cas12";
         elif geneResults[g][0:5].count("Success") == geneResults[g][6:11].count("Success"):
             if int(geneResults[g][5]) < int(geneResults[g][11]):
                 bestOption = "Cas9";
             elif int(geneResults[g][5]) > int(geneResults[g][11]):
-                bestOption = "Cpf1";
+                bestOption = "Cas12";
             else:
                 bestOption = "Either";
 
@@ -143,7 +143,7 @@ def createOutputSummaryTableNonProtein(dirPath):
                     enzymeMod = -1;
                     if msg.find("Cas9") > -1:
                         enzymeMod = 0;
-                    elif msg.find("Cpf1") > -1:
+                    elif msg.find("Cas12") > -1:
                         enzymeMod = 6;
 
 
@@ -208,18 +208,18 @@ def createOutputSummaryTableNonProtein(dirPath):
 
 
 
-    tabStr = "Gene_ID,Cas9_Status,Cas9_LHR,Cas9_gBlock,Cas9_RHR,Cas9_gRNA,Cas9_gBlock_size,Cpf1_Status,Cpf1_LHR,Cpf1_gBlock,Cpf1_RHR,Cpf1_gRNA,Cpf1_gBlock_size,Enzyme_recommended\n";
+    tabStr = "Gene_ID,Cas9_Status,Cas9_LHR,Cas9_gBlock,Cas9_RHR,Cas9_gRNA,Cas9_gBlock_size,Cas12_Status,Cas12_LHR,Cas12_gBlock,Cas12_RHR,Cas12_gRNA,Cas12_gBlock_size,Enzyme_recommended\n";
     for g in geneResults:
         bestOption = "Cas9";
         if geneResults[g][0:5].count("Error") > 0 and geneResults[g][6:11].count("Error") > 0:
             bestOption = "None";
         elif geneResults[g][0:5].count("Success") < geneResults[g][6:11].count("Success") and geneResults[g][6:11].count("Error") == 0:
-            bestOption = "Cpf1";
+            bestOption = "Cas12";
         elif geneResults[g][0:5].count("Success") == geneResults[g][6:11].count("Success"):
             if int(geneResults[g][5]) < int(geneResults[g][11]):
                 bestOption = "Cas9";
             elif int(geneResults[g][5]) > int(geneResults[g][11]):
-                bestOption = "Cpf1";
+                bestOption = "Cas12";
             else:
                 bestOption = "Either";
 
@@ -277,7 +277,7 @@ def generateConcatGenBanks(fileDir,gbToGenerate="ALL"):
             os.makedirs(fileDir+"/gb_concats/"+"Chromosome_"+str(chromosome));
 
     gbs = {"Locus_Pre-editing_Cas9":GenBank(),"Locus_Post-editing_Cas9":GenBank(),"pSN054_V5_Cas9":GenBank(),
-           "Locus_Pre-editing_Cpf1":GenBank(),"Locus_Post-editing_Cpf1":GenBank(),"pSN054_V5_Cpf1":GenBank()};
+           "Locus_Pre-editing_Cas12":GenBank(),"Locus_Post-editing_Cas12":GenBank(),"pSN054_V5_Cas12":GenBank()};
     genome = dict( (chrom,deepcopy(gbs)) for chrom in chromosomes );
 
     lenSep = int(1e3);
@@ -354,7 +354,7 @@ def resultsDict(filePath):
     return results;
 
 def outputResultsTable(rDict1,rDict2):
-    outStr = "Code,Cas9,Cpf1";
+    outStr = "Code,Cas9,Cas12";
     for c in rDict1:
         outStr = outStr + c + ", " + rDict1[c] + ", " + rDict2[c] + "\n";
 

@@ -434,7 +434,7 @@ function changeEnzyme() {
         document.getElementById('gRNAOffTargetMethod').value = "cfd";
         document.getElementById('PAMSequence').value = "NGG";
     }
-    else if (document.getElementById('enzymeType').value === 'Cpf1') {
+    else if (document.getElementById('enzymeType').value === 'Cas12') {
         document.getElementById('gRNAOnTargetMethod').value = "cindel";
         document.getElementById('gRNAOffTargetMethod').value = "hsu";
         document.getElementById('PAMSequence').value = "TTTV";

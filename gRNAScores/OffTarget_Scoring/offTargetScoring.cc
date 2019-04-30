@@ -15,8 +15,8 @@
 // frequency to the on-target gRNA.
 //
 // The scoring parameters were developed from Cas9 data, however, they can be
-// used for Cpf1 while data on Cpf1 is published. It's recommended to use Hsu
-// scores when evaluating Cpf1 cut sites.
+// used for Cas12 while data on Cas12 is published. It's recommended to use Hsu
+// scores when evaluating Cas12 cut sites.
 //
 // Aggregate score is calculated as 100 * 100/(100 + sum of individual hits),
 // resulting in a 0-100 scale as well. If the on-target gRNA is found in the
