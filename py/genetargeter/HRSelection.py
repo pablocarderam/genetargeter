@@ -1,162 +1,24 @@
 
+
 from py.utils.BioUtils import *; # Imports utils
 from py.utils.GenBankToolbox import *; # Imports utils
 from py.genetargeter.constants import *; # Imports constants
 
-"""
-Check if there are any cut sites in sequence
-"""
-def noCutSites(seq,sites):
-    clean = True;
-    for site in sites:
-        if findFirst(site,seq) >= 0: # if site found,
-            clean = False; # return false
-            break;
-
-
-    return clean;
-
-"""
-Returns true if melting temperature is adequate, no hard-to-synthesize,
-sequences, and no restriction sites.
-"""
-def goodOligo(seq, minTmEnds=55, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI])
-    good = True;
-    good = good * ( meltingTemp(seq) > minTmEnds ); # good Tm
-    good = good * not isTricky(seq); # no terrible homopolymers or other crap
-
-    return good;
-
-"""
-Selects an appropriate LHR for the given gene. GenBank sequence object given as
-argument (geneGB) must have an annotation with label=gene, at least one
-annotation with gRNA in label (or some similar indicator), and the length of the
-gene must be at least lengthLHR[2]. lengthLHR is [min, preferred, max] length in
-bp of LHR. minTmEnds is min melting temp in extremes of LHR. endsLength is
-length of extremes of the LHR contemplated in analysis. optimizeRange is a list
-with the index positions relative to the start of the LHR over which the start
-of the LHR is optimized once it is chosen. maxDistanceFromGRNA is maximum
-distance in bp between end of LHR and start of gRNA.
-LHR: Left Homologous Region used for chromosomal integration by homologous
-recombination during repair.
-"""
 def chooseLHR3Prime(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40, optimizeRange=[-20,10], maxDistanceFromGRNA=500, gBlockDefault=True, minGBlockSize=125, codingGene=True, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
-    #TODO: debug cases in which LHR has to be shifted, do case in which LHR is in intron?
-    log = ""; # init log
-    gRNAs = []; # List of all gRNAs
-    gRNAUpstream = GenBankAnn(); # init var to hold gRNA
-    if len(gRNAs) == 0: # if no gRNAs found
-        gRNAs = geneGB.findAnnsLabel("gRNA"); # List of all gRNAs
-        gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
-        for g in gRNAs: # loops across gRNAs
-            if g.index[0] < gRNAUpstream.index[0]: # if more upstream
-                gRNAUpstream = g; # replace as most upstream
+    return chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='start', lengthHR=lengthLHR, minTmEnds=minTmEnds, endsLength=endsLength, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]);
 
+def chooseRHR3Prime(geneGB, gene, lengthRHR=[450,500,650], minTmEnds=55, endsLength=40, optimizeRange=[-20,10], maxDistanceFromGene=500, gBlockDefault=True, minGBlockSize=125, codingGene=True, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
+    return chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthHR=lengthRHR, minTmEnds=minTmEnds, endsLength=endsLength, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]);
 
-    endLHR = min(gRNAUpstream.index[0],gene.index[1]-(3*codingGene)); # saves end index of LHR as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon) (in Python indexing, i.e. not included in LHR).
+def chooseLHR5Prime(geneGB, gene, lengthLHR=[450,500,650], minTmEnds=55, endsLength=40, optimizeRange=[-20,10], maxDistanceFromGene=500, gBlockDefault=True, minGBlockSize=125, codingGene=True, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
+    return chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='start', lengthHR=lengthLHR, minTmEnds=minTmEnds, endsLength=endsLength, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]);
 
-    def getHR(endLHR):
-        return startLHR,endLHR
-
-    startLHR,endLHR = getHR(endLHR)
-    while endLHR-cutSite < lengthLHR[0] and cutSite > lengthLHR[0]: # as long as there isn't enough space for LHR between cut site and end, and there is space left in file,
-
-    if gBlockDefault and ((endLHR < gene.index[1]-(3*codingGene) and endLHR > gene.index[1]-(3*codingGene) - minGBlockSize) or (meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and gene.index[1]-(3*codingGene)-endLHR < minGBlockSize)): # if defaulting to a gBlock for any recoded region and a) there is a recoded region, and it is under the minimum gBlock size, or b) if the LHR is supposed to end at the end of the gene, but this region does not make for a good LHR ending point,
-        endLHR = gene.index[1]-(3*codingGene) - minGBlockSize; # extend recoded region to minimum gBlock size
-
-    cutSite = max([max(findMotif(site,geneGB.origin[max(endLHR-lengthLHR[0],gene.index[0]):endLHR])) for site in filterCutSites]) # find last RE cutsite
-    while endLHR-cutSite < lengthLHR[0] and cutSite > lengthLHR[0]: # as long as there isn't enough space for LHR between cut site and end, and there is space left in file,
-        endLHR = cutSite; # shift end of LHR to upstream of cut site
-        cutSite = max([max(findMotif(site,geneGB.origin[max(endLHR-lengthLHR[0],gene.index[0]):endLHR])) for site in filterCutSites]) # find last RE cutsite
-
-    while (not geneGB.checkInExon(endLHR)) and endLHR > lengthLHR[2] and ( noCutSites(geneGB.origin[max(endLHR-endsLength,0):endLHR]) ): # Loop as long as the end of LHR is not in an exon and the end of the LHR is inside the max length
-        endLHR -= 1; # shift LHR end upstream one bp
-
-    startLHR = max(endLHR - lengthLHR[1],0); # stores LHR start index according to preferred length, or 0 if not enough space before gene
-    failSearchStart = False; # true if no suitable LHR end region is found within given parameters.
-
-    # First search for end region
-    while not goodOligo(geneGB.origin[max(endLHR-endsLength,0):endLHR], minTmEnds) and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchStart and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
-        endLHR -= 1; # shift endLHR upstream
-
-    if not goodOligo(geneGB.origin[max(endLHR-endsLength,0):endLHR], minTmEnds): # if no suitable end region found,
-        endLHR = min(gRNAUpstream.index[0],gene.index[1]-(3*codingGene)); # saves end index of LHR by default as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon)
-        while not geneGB.checkInExon(endLHR) and endLHR > lengthLHR[2]: # Loop as long as the end of LHR is not in an exon and the end of the LHR is inside the max length
-            endLHR -= 1; # shift LHR end upstream one bp
-
-        failSearchStart = True; # changes failSearchStart status
-        log = log + "\nWarning: No LHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the last " + str(endsLength) + " bp of LHR, \nno excessive homopolymers or AT repeats, with a max distance of " + str(maxDistanceFromGRNA) + " bp between end of LHR and gRNA. \nDefaulted to ending right before start of gRNA most upstream." + "\n"; # give a warning
-
-    # Then search for start region; modify end region if necessary
-    while not goodOligo(geneGB.origin[startLHR:(startLHR+endsLength)], minTmEnds) and gRNAUpstream.index[0]-endLHR <= maxDistanceFromGRNA and geneGB.checkInExon(endLHR-1): # if no start region has been found, and still within max distance from gRNA and inside exon,
-        # find new end region if necessary
-        while not goodOligo(geneGB.origin[max(endLHR-endsLength,0):endLHR], minTmEnds) and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchStart and geneGB.checkInExon(endLHR-1): # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, and still within exon,
-            endLHR -= 1; # shift endLHR upstream
-
-        if gBlockDefault and gene.index[1]-(3*codingGene)-endLHR < minGBlockSize: # if defaulting to a gBlock for any recoded region and the current recoded region is smaller than the minimum gBlock size,
-            endLHR = gene.index[1]-(3*codingGene) - minGBlockSize; # extend recoded region to minimum gBlock size
-
-        # search for starts upstream
-        while not goodOligo(geneGB.origin[startLHR:(startLHR+endsLength)], minTmEnds) and endLHR-startLHR <= lengthLHR[2] and startLHR > 0: # while no suitable start region found and still within max length of LHR and inside gene file,
-            startLHR -= 1; # shift startLHR upstream
-
-        # if not found upstream
-        if not goodOligo(geneGB.origin[startLHR:(startLHR+endsLength)], minTmEnds) and endLHR-startLHR > lengthLHR[2]: # if no start region found this way,
-            startLHR = endLHR - lengthLHR[1]; # return to preferred position
-            # search downstream
-            while not goodOligo(geneGB.origin[startLHR:(startLHR+endsLength)], minTmEnds) and endLHR-startLHR >= lengthLHR[0]: # while no suitable start region found and still within min length of LHR,
-                startLHR += 1; # shift startLHR downstream
-
-        if not goodOligo(geneGB.origin[startLHR:(startLHR+endsLength)], minTmEnds) and geneGB.checkInExon(endLHR-1): # if still not found and still inside exon,
-            endLHR -= 1; # shifts end of LHR upstream
-
-
-
-    if not goodOligo(geneGB.origin[startLHR:(startLHR+endsLength)], minTmEnds): # if no suitable start region found,
-        # resets endLHR
-        endLHR = min(gRNAUpstream.index[0],gene.index[1]-(3*codingGene)); # saves end index of LHR as whatever is more upstream between the start of the gRNA or the end of the gene (minus the stop codon) (in Python indexing, i.e. not included in LHR).
-        if gBlockDefault and endLHR < gene.index[1]-(3*codingGene) and endLHR > gene.index[1]-(3*codingGene) - minGBlockSize: # if defaulting to a gBlock for any recoded region, there is a recoded region, and it is under the minimum gBlock size,
-            endLHR = gene.index[1]-(3*codingGene) - minGBlockSize; # extend recoded region to minimum gBlock size
-
-        while not goodOligo(geneGB.origin[max(endLHR-endsLength,0):endLHR], minTmEnds) and gRNAUpstream.index[0]-endLHR < maxDistanceFromGRNA and not failSearchStart and geneGB.checkInExon(endLHR-1) and endLHR > lengthLHR[2]: # while no suitable end region found, still within max distance from gRNA, the search for a suitable end region hasn't failed yet, still within exon, and the end of the LHR is inside the max length
-            endLHR -= 1; # shift endLHR upstream
-
-        startLHR = endLHR - lengthLHR[1]; # stores LHR start index according to preferred length by default
-        log = log + "\nWarning: No LHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the first " + str(endsLength) + " bp of LHR, \nno excessive homopolymers or AT repeats, with a max distance of " + str(maxDistanceFromGRNA) + " bp between end of LHR and gRNA. \nDefaulted to starting so that the LHR size is equal to preferred size of " + str(lengthLHR[1]) + "\n"; # give a warning
-
-    # Now we optimize the resulting LHR by adjusting start sequence around the given range
-    searchIndexes = [int(startLHR+optimizeRange[0]), int(startLHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better start point.
-    for i in range(searchIndexes[0], searchIndexes[1]): # iterates across optimization range
-        if i >= endsLength: # if inside gene file,
-            oldTm = meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) # old Tm to compare
-            if meltingTemp(geneGB.origin[i:(i+endsLength)]) > oldTm and goodOligo(geneGB.origin[i:(i+endsLength)],oldTm) and lengthLHR[0] >= endLHR-i >= lengthLHR[2]: # if this start point has a better Tm, has no cutsites, is synthesizable, and is still within bounds,
-                startLHR = i; # make this the starting position
-
-
-
-    searchIndexesEnd = [int(endLHR+optimizeRange[0]), min(int(endLHR+optimizeRange[1]),gene.index[1]-(3*codingGene))]; # list with indexes across which we are going to search for a better end point, can't be after end of gene (or start of stop codon, to be precise)
-    for i in range(searchIndexesEnd[0], searchIndexesEnd[1]): # iterates across optimization range
-        oldTm = meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) # old Tm to compare
-        if meltingTemp(geneGB.origin[max(i-endsLength,0):i]) > oldTm and goodOligo(geneGB.origin[max(i-endsLength,0):i],oldTm) and lengthLHR[2] >= i-startLHR >= lengthLHR[0] and i < gRNAUpstream.index[0] and geneGB.checkInExon(i) and i <= gene.index[1]-(3*codingGene) and (not gBlockDefault or (i <= gene.index[1]-(3*codingGene) - minGBlockSize) or (i == gene.index[1]-(3*codingGene)) ): # if this end point has a better Tm, and is still within bounds, before gRNA and within exon, and if it allows for a gBlock of the minimum size or no gBlock at all if gBlocks are being used as default, and not in stop codon,
-            endLHR = i; # make this the ending position
-
-
-
-
-    for site in filterCutSites: # for every cut site being filtered
-        if findFirst(site,geneGB.origin[startLHR:endLHR]) > -1 or findFirst(revComp(site),geneGB.origin[startLHR:endLHR]) > -1: # if cut site found,
-            log = log + "\nWarning: LHR sequence for gene " + gene.label + ": \n" + geneGB.origin[startLHR:endLHR] + "\ncontains restriction site " + site + "\n"; # add warning to log
-
-
-    # creates var to store finished LHR as annotation
-    LHR = GenBankAnn(gene.label + " LHR", "misc_feature", geneGB.origin[startLHR:endLHR], False, [startLHR,endLHR], annColors['LHRColor']); # creates GenBankAnn object to hold LHR
-
-    log = log + "LHR for gene " + gene.label + " selected.\n\n"; # logs this process finished
-    return {"out":LHR, "log":log}; # returns LHR GenBankAnn object
+def chooseRHR5Prime(geneGB, gene, lengthRHR=[450,500,650], minTmEnds=55, endsLength=40, optimizeRange=[-20,10], maxDistanceFromGRNA=500, gBlockDefault=True, minGBlockSize=125, codingGene=True, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
+    return chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthHR=lengthRHR, minTmEnds=minTmEnds, endsLength=endsLength, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]);
 
 
 """
-Selects an appropriate LHR for the given gene. GenBank sequence object given as
+Selects an appropriate HR for the given gene. GenBank sequence object given as
 argument (geneGB) must have an annotation with label=gene, at least one
 annotation with gRNA in label (or some similar indicator), and the length of the
 gene must be at least lengthLHR[2]. lengthLHR is [min, preferred, max] length in
@@ -168,353 +30,133 @@ distance in bp between end of LHR and start of gRNA.
 LHR: Left Homologous Region used for chromosomal integration by homologous
 recombination during repair.
 """
-def chooseLHR5Prime(geneGB, gene, lengthLHR=[450,500,750], minTmEnds=59, endsLength=40, optimizeRange=[-20,20], maxDistanceFromGene=500, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
-    #TODO: debug cases in which LHR has to be shifted
-    log = ""; # init log
-    gRNAs = []; # List of all gRNAs
-    gRNAUpstream = GenBankAnn(); # init var to hold gRNA
+def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
+    log = "" # init log
+    gRNAs = [] # List of all gRNAs
+    gRNAExt = GenBankAnn() # init var to hold gRNA
     if len(gRNAs) == 0: # if no gRNAs found
-        gRNAs = geneGB.findAnnsLabel("gRNA"); # List of all gRNAs
-        gRNAUpstream = gRNAs[0]; # will store gRNA most upstream
+        gRNAs = geneGB.findAnnsLabel("gRNA") # List of all gRNAs
+        gRNAExt = gRNAs[0] # will store gRNA most extreme
         for g in gRNAs: # loops across gRNAs
-            if g.index[0] < gRNAUpstream.index[0]: # if more upstream
-                gRNAUpstream = g; # replace as most upstream
+            if ((doingHR=='LHR')*2-1) * g.index[0] < ((doingHR=='LHR')*2-1) * gRNAExt.index[0]: # if more extreme
+                gRNAExt = g # replace as most upstream
+
+
+
+    genes = geneGB.findAnnsType("gene") # list of all genes, used to verify LHR doesn't start inside any genes (truncating them)
+
+    # Declare variables and check assertions
+    seqBeg = 0
+    seqEnd = len(geneGB.origin)
+    lenMin = lengthHR[0]
+    lenMax = lengthHR[2]
+    genBeg = gene.index[0]
+    genEnd = gene.index[1]
+    nxtGen = min( [ seqEnd ] + [ (genEnd>g.index[0]) * seqEnd + g.index[0] for g in genes ] ) # start of next gene downstream
+    gRNAEx = gRNAExt.index[doingHR == 'RHR'] # position of most extreme gRNA to be avoided
 
+    if not ( (seqBeg<=lenMin) and (lenMin<=lenMax) and (lenMax<=genBeg) and (genBeg<=genEnd) and (genEnd<=seqEnd) and (seqEnd-genEnd>=lenMax) ) : # If assertions don't hold,
+        log = log + "\nERROR: Not enough space on either side of gene for maximum HR size, or min and max HR lengths are switched. Aborting." + "\n" # give a warning
 
+    # Initialize region
 
-    genes = geneGB.findAnnsType("gene"); # list of all genes, used to verify LHR doesn't start inside any genes (truncating them)
+    regBeg = max( genBeg-lenMax-1, seqBeg ) if doingHR == 'LHR' else max( (targetExtreme == 'end') * genEnd, gRNAEx ) # beginning of possible LHR or RHR region
+    regEnd = min( genEnd, gRNAEx ) if doingHR == 'LHR' else min( nxtGen+lenMax, seqEnd ) # end of possible LHR or RHR region
 
-    endLHR = min(gene.index[0], gRNAUpstream.index[0]); # saves end index of LHR as one bp before gene or before most upstream gRNA.
-    failSearchEnd = False; # true if no suitable LHR start region is found within given parameters.
+    # Partitioning
+    cutSites = [] # will store cut site indeces
+    for site in filterCutSites: # for every cut site,
+        cutSites = cutSites + findMotif( geneGB.origin[regBeg:regEnd], site ) # store all its occurrences
 
-    cutSite = max([max(findMotif(site,geneGB.origin[max(endLHR-lengthLHR[0],gene.index[0]):endLHR])) for site in filterCutSites]) # find last RE cutsite
-    while endLHR-cutSite < lengthLHR[0] and cutSite > lengthLHR[0]: # as long as there isn't enough space for LHR between cut site and end, and there is space left in file,
-        endLHR = cutSite; # shift end of LHR to upstream of cut site
-        cutSite = max([max(findMotif(site,geneGB.origin[max(endLHR-lengthLHR[0],gene.index[0]):endLHR])) for site in filterCutSites]) # find last RE cutsite
+    cutSites = sorted(cutSites) # sort by ascending index
+    regBegArr = [regBeg] + cutSites # start of possible HR regions
+    regEndArr = cutSites + [regEnd] # Ends of possible HR regions
 
-    # First search for end region
-    while meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and gene.index[0] - endLHR <= maxDistanceFromGene and endLHR - lengthLHR[0] > 0 and not geneGB.checkInExon(endLHR-1): # while no suitable start region found, still within max distance from gene, not beyond the border of the chromosome, the search for a suitable start region hasn't failed yet, and start of LHR is not downstream of the start of a gene,
-        endLHR -= 1; # shift endLHR upstream
+    regIdxArr = [  ] # will store indexes of possible HR regions
+    for i in range( len(regBegArr) ): # for every partition,
+        if abs( regBegArr[i]-regEndArr[i] ) >= lenMin: # if enough space for HR in partition,
+            regIdxArr.append( [ regBegArr[i],regEndArr[i] ] ) # add to valid partition index array
 
-    if meltingTemp(geneGB.origin[max(endLHR-endsLength,0):endLHR]) < minTmEnds and ( gene.index[0] - endLHR > maxDistanceFromGene or geneGB.checkInExon(endLHR) or endLHR - lengthLHR[0] <= 0 ): # if no suitable start region found,
-        endLHR = min(gene.index[0], gRNAUpstream.index[0]); # saves start index of LHR as one bp before gene or 1 bp before most downstream gRNA by default
-        failSearchEnd = True; # changes failSearchEnd status
-        log = log + "\nWarning: No LHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the last " + str(endsLength) + " bp of LHR, \nwith a max distance of " + str(maxDistanceFromGene) + " bp between end of LHR and start of gene. \nDefaulted to ending right before start of gene or most upstream gRNA." + "\n"; # give a warning
 
-    startLHR = max(endLHR - lengthLHR[1],0); # stores LHR start index according to preferred length, or the first base in file if not enough space before gene
-    # search for start upstream
-    while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR <= lengthLHR[2] and startLHR > 0: # while no suitable end region found, still within max length of LHR, and still inside gene file,
-        startLHR -= 1; # shift startLHR upstream
+    if len(regIdxArr) < 1: # if no valid partitions,
+        regIdxArr = [ [ regBeg, regEnd ] ] # default to region
+        log = log + "\nWarning: No "+doingHR+" without restriction enzyme cut sites inside it \nand without excluding a downstream gene found, check output manually!" + "\n" # give a warning
 
-    # if not found upstream
-    if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR > lengthLHR[2]: # if no end region found this way,
-        startLHR = endLHR - lengthLHR[1]; # return to preferred position
-        # search upstream
-        while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR >= lengthLHR[0]: # while no suitable start region found and still within min length of LHR,
-            startLHR += 1; # shift startLHR downstream
+    # Find beginning and ending indeces
+    begIntArr = [ [ regIdxArr[i][0], regIdxArr[i][1]-lenMin ] for i in range(len(regIdxArr)) ] # intervals to search for beginnings
+    endIntArr = [ [ regIdxArr[i][0]+lenMin, regIdxArr[i][1] ] for i in range(len(regIdxArr)) ] # intervals to search for ends
+    terIdxArr = [ begIntArr, endIntArr ] # contains array of possible beginning search intervals, and array of possible ending search intervals
 
+    # Iteration search
+    step = -1 if doingHR == 'LHR' else 1 # step direction for LHR is -1, 1 for RHR
+    ss = step * (step<0) # search start position in partitions, start from end (-1) if doing LHR or from start (0) if RHR
+    a = terIdxArr[ss+1][ss][ss] # for LHR, start anchor terminal search as the last ending of the final partition; for RHR, start with the first beginning of the first partition
+    b = terIdxArr[ss][ss][ss] # for LHR, start oppos. terminal search as the last beginning of the final partition; for RHR, start with the first ending of the first partition
+    #a = a if a>=0 else a + len( geneGB.origin ) # if wrapping around back of seq, set to positive indexing
+    #b = b if b>=0 else b + len( geneGB.origin ) # if wrapping around back of seq, set to positive indexing
+    p = ss if ss>=0 else ss + len( begIntArr )  # will keep track of partition if wrapping around back of partitions, set to positive indexing
 
-    if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and gene.index[0]-endLHR <= maxDistanceFromGene and not geneGB.checkInExon(endLHR) and endLHR-lengthLHR[0] > 0: # if still not found and within bounds and start of LHR is not upstream of the start of a gene and not too close to start of gene file,
-        # Then modify end region, search for start region;
-        while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and gene.index[0]-endLHR <= maxDistanceFromGene and not geneGB.checkInExon(endLHR-1): # if no end region has been found and start of LHR is not downstream of the start of a gene,
-            endLHR -= 1; # shifts end of LHR upstream
+    i = [ min(a,b), max(a,b) ] # search each terminus start position in sequence terminus, start from end if doing LHR or from start if RHR, flipped for loop
+    bestHR = [ i,
+        [ isTricky( geneGB.origin[ i[0]:i[0]+endsLength ] ),
+            isTricky( geneGB.origin[ i[1]-endsLength:i[1] ] ) ],
+        [ meltingTemp( geneGB.origin[ i[0]:i[0]+endsLength ] ),
+            meltingTemp( geneGB.origin[ i[1]-endsLength:i[1] ] ) ] ] # save indeces, synthesis problems, and melting temperatures of best HR so far, initial guess as default
 
-            # find new end region if necessary
-            while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gene.index[0] - endLHR <= maxDistanceFromGene and not geneGB.checkInExon(endLHR-1) and not failSearchEnd: # while no suitable start region found, still within max distance from gene, the search for a suitable start region hasn't failed yet, and start of LHR is not downstream of the start of a gene,
-                endLHR -= 1; # shift endLHR upstream
+    satisfiedHR = not ( ( bestHR[1][0] + bestHR[1][1] + ( bestHR[2][0] < minTmEnds ) + ( bestHR[2][1] < minTmEnds ) ) > 0 ) # keep track of whether or not adequate HR has been found
 
-            # search for start upstream
-            while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR <= lengthLHR[2] and startLHR > 0: # while no suitable end region found and still within max length of LHR and still inside gene file,
-                startLHR -= 1; # shift startLHR upstream
+    while 0 <= p and p < len(regIdxArr) and not satisfiedHR: # while partitions not exhausted and no good HR found,
+        bestInPart = bestHR # will store best anchors in this partition
+        ter = (step<0) # which terminus we're adjusting, 0 is beginning and 1 is ending, start with ending if LHR and beginning if RHR (will get switched at start of next loop)
+        a = terIdxArr[ss+1][p][ss] # for LHR, start anchor terminal search as the last ending of the final partition; for RHR, start with the first beginning of the first partition
+        b = terIdxArr[ss][p][ss] # for LHR, start oppos. terminal search as the last beginning of the final partition; for RHR, start with the first ending of the first partition
+        i = [ min(a,b), max(a,b) ] # search each terminus start position in sequence terminus, start from end if doing LHR or from start if RHR, flipped for loop
 
-            # if not found upstream
-            if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR > lengthLHR[2]: # if no end region found this way,
-                startLHR = endLHR - lengthLHR[1]; # return to preferred position
-                # search downstream
-                while meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and endLHR-startLHR >= lengthLHR[0]: # while no suitable start region found and still within min length of LHR,
-                    startLHR += 1; # shift startLHR downstream
+        bestInTer = [ i, [True,True], [0,0] ] # will keep track of last two terminus searches, initialize as default
+        while ( terIdxArr[0][p][0] <= i[0] and i[0] <= terIdxArr[0][p][1] ) and ( terIdxArr[1][p][0] <= i[1] and i[1] <= terIdxArr[1][p][1] ) and i[0] < nxtGen and not satisfiedHR: # while not having exhausted this terminus and not having found a good HR
+            if lenMin > i[1]-i[0] or i[1]-i[0] > lenMax: # if size is wrong,
+                while ( lenMin > i[1]-i[0] or i[1]-i[0] > lenMax ) and ( terIdxArr[ter][p][0] <= i[ter] and i[ter] <= terIdxArr[ter][p][1] ) and i[0] < nxtGen: # while not within size bounds and still within search range,
+                    i[ter] += step # move terminus until within size constraints
 
 
+            bestInTer[0][ter], bestInTer[1][ter], bestInTer[2][ter] = i[ter], True, 0 # will store best in this terminus search, initialize as default
+            satisfiedTer = not ( ( bestInTer[1][ter] + ( bestInTer[2][ter] < minTmEnds ) ) ) # keep track of whether or not adequate HR has been found
+            while ( terIdxArr[ter][p][0] <= i[ter] and i[ter] <= terIdxArr[ter][p][1] ) and i[0] < nxtGen and not satisfiedTer: # while within search range and no good terminus found,
+                extReg = geneGB.origin[ min(i[ter],i[ter]+(2*(not ter)-1)*endsLength):max(i[ter],i[ter]+(2*(not ter)-1)*endsLength) ] # extreme region to be analyzed
+                tricky = isTricky( extReg ) # true if this terminus contains homopolymers or AT repeats
+                tm = meltingTemp( extReg ) # Tm for this terminus
+                lenHR = i[1] - i[0] # length of HR as it stands
+                if (not tricky) and tm >= minTmEnds: # if sufficiently good,
+                    bestInTer[0][ter], bestInTer[1][ter], bestInTer[2][ter] = i[ter], tricky, tm # save as best in this terminus search
+                    satisfiedTer = True # satisfied with this terminus
+                    if ( lenMin <= lenHR and lenHR <= lenMax ):
+                        bestInPart[0][ter], bestInPart[1][ter], bestInPart[2][ter] = i[ter], tricky, tm
+                        if ( ( bestInTer[1][0]+bestInTer[1][1] <= bestHR[1][0]+bestHR[1][1] ) and ( ( ( ( bestInTer[2][0]<minTmEnds ) + ( bestInTer[2][0]<minTmEnds ) < ( bestHR[2][0]<minTmEnds ) + ( bestHR[2][0]<minTmEnds ) ) or ( bestInTer[2][0]+bestInTer[2][1] >= bestHR[2][0]+bestHR[2][1] ) ) and ( bestInTer[1][0]+bestInTer[1][1] == bestHR[1][0]+bestHR[1][1] ) ) ) : # if size is right and right length and better than best overall
+                            bestHR = bestInPart # save as best overall
+                            satisfiedHR = not ( ( bestHR[1][0] + bestHR[1][1] + ( bestHR[2][0] < minTmEnds ) + ( bestHR[2][1] < minTmEnds ) ) ) # keep track of whether or not adequate HR has been found
 
-    if meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) < minTmEnds and ( gene.index[0] - endLHR > maxDistanceFromGene or geneGB.checkInExon(endLHR) ): # if no suitable start region found,
-        endLHR = min(gene.index[0], gRNAUpstream.index[0]); # saves end index of LHR as one bp before gene or 1 bp before most upstream gRNA by default
-        while meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) < minTmEnds and gene.index[0]-endLHR <= maxDistanceFromGene and not failSearchEnd and not geneGB.checkInExon(endLHR-1): # while no suitable start region found, still within max distance from gene, the search for a suitable start region hasn't failed yet, and start of LHR is not downstream of the start of a gene,
-            endLHR -= 1; # shift endLHR upstream
 
-        startLHR = max([endLHR - lengthLHR[1],0]); # stores LHR end index according to preferred length by default, or max length available if there is not enough sequence space on the chromosome before the gene start
-        log = log + "\nWarning: No LHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the first " + str(endsLength) + " bp of LHR, \nwith a max distance of " + str(maxDistanceFromGene) + " bp between end of LHR and start of gene. \nDefaulted to starting at preferred size of " + str(lengthLHR[1]) + "\n"; # give a warning
+                else: # if not sufficiently good
+                    if tricky < bestInTer[1] or ( tricky == bestInTer[1] and tm > bestInTer[2] ): # if at least better than best of this terminus,
+                        bestInTer[0][ter], bestInTer[1][ter], bestInTer[2][ter] = i[ter], tricky, tm # save as best in this terminus search
+                        if ( lenMin <= lenHR and lenHR <= lenMax ):
+                            bestInPart[0][ter], bestInPart[1][ter], bestInPart[2][ter] = i[ter], tricky, tm
+                            if ( ( bestInTer[1][0]+bestInTer[1][1] <= bestHR[1][0]+bestHR[1][1] ) and ( ( ( ( bestInTer[2][0]<minTmEnds ) + ( bestInTer[2][0]<minTmEnds ) < ( bestHR[2][0]<minTmEnds ) + ( bestHR[2][0]<minTmEnds ) ) or ( bestInTer[2][0]+bestInTer[2][1] >= bestHR[2][0]+bestHR[2][1] ) ) and ( bestInTer[1][0]+bestInTer[1][1] == bestHR[1][0]+bestHR[1][1] ) ) ) : # if size is right and right length and better than best overall
+                                bestHR = bestInPart # save as best overall
 
-    # Now we optimize the resulting LHR by adjusting start and stop sequences around the given range
-    searchIndexesEnd = [int(startLHR+optimizeRange[0]), int(startLHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better start point.
-    for i in range(searchIndexesEnd[1], searchIndexesEnd[0]): # iterates across optimization range
-        if meltingTemp(geneGB.origin[ max([i,0]):min([i+endsLength,endsLength]) ]) > meltingTemp(geneGB.origin[startLHR:(startLHR+endsLength)]) and lengthLHR[2] >= endLHR-i >= lengthLHR[0]: # if this end point has a better Tm and is still within bounds,
-            if i > 0: # if inside gene file,
-                startLHR = i; # make this the starting position
 
 
+                    i[ter] += step # advance or decrease base index according to search direction
 
 
-    searchIndexesStart = [int(endLHR+optimizeRange[0]), int(endLHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better end point.
-    for i in range(searchIndexesStart[0], searchIndexesStart[1], -1): # iterates across optimization range in reverse
-        if meltingTemp(geneGB.origin[(i-endsLength):i]) > meltingTemp(geneGB.origin[(endLHR-endsLength):endLHR]) and lengthLHR[2] >= i-startLHR >= lengthLHR[0] and i < gRNAUpstream.index[0] and not geneGB.checkInExon(i): # if this start point has a better Tm and is still within bounds and after gRNA and not after a start of a gene,
-            endLHR = i; # make this the ending position
+            ter = not ter # switch which terminus we're adjusting, 0 is beginning and 1 is ending
 
+        p += step # advance or decrease partition according to search direction
 
-    if endLHR-startLHR < lengthLHR[0]+searchIndexesEnd[0]-searchIndexesEnd[1]: # if LHR is smaller than it should be (gene too close to the end of chromosome, for example)
-        log = log + "\ERROR: LHR found for gene " + geneGB.name + " \nis smaller than allowed by design, with a length of " + str(endLHR-startLHR) + " bp. Maybe gene was too close to start/end of chromosome?\n"; # give a warning
+    if not satisfiedHR:
+        log = log + "Warning: No "+doingHR+" without restriction enzyme cut sites inside it, \nwithout excluding a downstream gene found, with adequate Tm at ends and \nwithout excessive homopolymers at ends found, check output manually!" + "\n" # give a warning
 
-    for site in filterCutSites: # for every cut site being filtered
-        if findFirst(site,geneGB.origin[startLHR:endLHR]) > -1 or findFirst(revComp(site),geneGB.origin[startLHR:endLHR]) > -1: # if cut site found,
-            log = log + "\nWarning: LHR sequence for gene " + gene.label + ": \n" + geneGB.origin[startLHR:endLHR] + "\ncontains restriction site " + site + "\n"; # add warning to log
+    log = log + doingHR + " for gene " + gene.label + " selected.\n\n"; # logs this process finished
+    LHR = GenBankAnn( gene.label + " " + doingHR, "misc_feature", geneGB.origin[ bestHR[0][0]:bestHR[0][1] ], False, [ bestHR[0][0],bestHR[0][1] ], annColors[doingHR+'Color'] ) # creates GenBankAnn object to hold LHR
 
-    # creates var to store finished LHR as annotation
-    LHR = GenBankAnn(gene.label + " LHR", "misc_feature", geneGB.origin[startLHR:endLHR], False, [startLHR,endLHR], annColors['LHRColor']); # creates GenBankAnn object to hold LHR
-
-    log = log + "LHR for gene " + gene.label + " selected.\n\n"; # logs this process finished
-
-    return {"out":LHR, "log":log}; # returns LHR GenBankAnn object
-
-
-
-"""
-Selects an appropriate RHR for the given gene. GenBank sequence object given as
-argument (geneGB) must have an annotation with label=gene, at least one
-annotation with "gRNA" in label (or some similar indicator), and at least
-lengthRHR[2] + maxDistanceFromGene - optimizeRange[0] + optimizeRange[1]
-bp of 3' UTR (about 1000 bp is fine). lengthRHR is [min, preferred, max]
-length in bp of RHR. minTmEnds is min melting temp in extremes of RHR.
-endsLength is length of extremes of the RHR contemplated in analysis.
-optimizeRange is a list with the index positions relative to the start of the
-RHR over which the start of the LHR is optimized once it is chosen.
-maxDistanceFromGRNA is maximum distance in bp between end of RHR and start of
-gRNA.
-RHR: Right Homologous Region used for chromosomal integration by homologous
-recombination during repair.
-"""
-def chooseRHR3Prime(geneGB, gene, lengthRHR=[450,500,750], minTmEnds=59, endsLength=40, optimizeRange=[-20,20], maxDistanceFromGene=500, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
-    #TODO: debug cases in which RHR has to be shifted
-    log = ""; # init log
-    gRNAs = []; # List of all gRNAs
-    gRNADownstream = GenBankAnn(); # init var to hold gRNA
-    if len(gRNAs) == 0: # if no gRNAs found
-        gRNAs = geneGB.findAnnsLabel("gRNA"); # List of all gRNAs
-        gRNADownstream = gRNAs[0]; # will store gRNA most downstream
-        for g in gRNAs: # loops across gRNAs
-            if g.index[0] > gRNADownstream.index[0]: # if more downstream
-                gRNADownstream = g; # replace as most downstream
-
-
-
-    genes = geneGB.findAnnsType("gene"); # list of all genes, used to verify RHR doesn't start inside any genes (truncating them)
-
-    startRHR = max(gene.index[1], gRNADownstream.index[1]); # saves start index of RHR as one bp after gene or after most downstream gRNA.
-    failSearchStart = False; # true if no suitable RHR start region is found within given parameters.
-
-    cutSite = min([findFirst(site,geneGB.origin[startRHR:max(startRHR+lengthLHR[0],len(geneGB.origin))]) for site in filterCutSites]) # find first RE cutsite
-    while cutSite-startRHR < lengthLHR[0] and len(geneGB.origin)-cutSite-max([len(s) for s in filterCutSites]) > lengthLHR[0]: # as long as there isn't enough space for LHR between cut site and end, and there is space left in file,
-        endLHR = cutSite + max([len(s) for s in filterCutSites]); # shift end of LHR to upstream of cut site
-        cutSite = min([findFirst(site,geneGB.origin[startRHR:max(startRHR+lengthLHR[0],len(geneGB.origin))]) for site in filterCutSites]) # find last RE cutsite
-
-    # First search for start region
-    while ( meltingTemp(geneGB.origin[startRHR:min(startRHR+endsLength,len(geneGB.origin))]) < minTmEnds or isTricky(geneGB.origin[startRHR:min(startRHR+endsLength,len(geneGB.origin))]) ) and startRHR - gene.index[1] <= maxDistanceFromGene and startRHR + lengthRHR[0] < len(geneGB.origin) and not geneGB.checkInExon(startRHR): # while no suitable start region found or start tricky to synthesize, still within max distance from gene, not beyond the border of the chromosome, the search for a suitable start region hasn't failed yet, start of RHR is not downstream of the start of a gene,
-        startRHR += 1; # shift startRHR downstream
-
-    if ( meltingTemp(geneGB.origin[startRHR:min(startRHR+endsLength,len(geneGB.origin))]) < minTmEnds or isTricky(geneGB.origin[startRHR:min(startRHR+endsLength,len(geneGB.origin))]) ) and ( startRHR - gene.index[1] > maxDistanceFromGene or geneGB.checkInExon(startRHR-1) ): # if no suitable start region found,
-        startRHR = max(gene.index[1], gRNADownstream.index[1]); # saves start index of RHR as one bp after gene or 1 bp after most downstream gRNA by default
-        failSearchStart = True; # changes failSearchStart status
-        log = log + "\nWarning: No RHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the first " + str(endsLength) + " bp of RHR, \nno homopolymers or excessive TA repeats, with a max distance of " + str(maxDistanceFromGene) + " bp between end of gene and start of RHR. \nDefaulted to starting right after end of gene or most downstream gRNA." + "\n"; # give a warning
-
-    endRHR = min(startRHR + lengthRHR[1],len(geneGB.origin)-1); # stores RHR start index according to preferred length, or the last base in file if not enough space after gene
-    # search for end downstream
-    while ( meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds or isTricky(geneGB.origin[(endRHR-endsLength):endRHR]) ) and endRHR-startRHR <= lengthRHR[2] and endRHR < len(geneGB.origin)-1: # while no suitable end region found, still within max length of RHR, and still inside gene file,
-        endRHR += 1; # shift endRHR downstream
-
-    # if not found downstream
-    if ( meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds or isTricky(geneGB.origin[(endRHR-endsLength):endRHR]) ) and endRHR-startRHR > lengthRHR[2]: # if no end region found this way,
-        endRHR = startRHR + lengthRHR[1]; # return to preferred position
-        # search upstream
-        while ( meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds or isTricky(geneGB.origin[(endRHR-endsLength):endRHR]) ) and endRHR-startRHR >= lengthRHR[0]: # while no suitable start region found and still within min length of RHR,
-            endRHR -= 1; # shift endRHR upstream
-
-
-    if ( meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds or isTricky(geneGB.origin[(endRHR-endsLength):endRHR]) ) and startRHR-gene.index[1] <= maxDistanceFromGene and not geneGB.checkInExon(startRHR-1) and startRHR+lengthRHR[0] < len(geneGB.origin)-1: # if still not found and within bounds and start of RHR is not downstream of the start of a gene and not too close to end of gene file,
-        # Then modify start region, search for end region;
-        while ( meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) or isTricky(geneGB.origin[(endRHR-endsLength):endRHR]) ) < minTmEnds and startRHR-gene.index[1] <= maxDistanceFromGene and not geneGB.checkInExon(startRHR): # if no end region has been found and start of RHR is not downstream of the start of a gene,
-            startRHR += 1; # shifts start of RHR downstream
-
-            # find new start region if necessary
-            while ( meltingTemp(geneGB.origin[startRHR:(startRHR+endsLength)]) < minTmEnds or isTricky(geneGB.origin[startRHR:(startRHR+endsLength)]) ) and startRHR - gene.index[1] <= maxDistanceFromGene and not geneGB.checkInExon(startRHR) and not failSearchStart: # while no suitable start region found, still within max distance from gene, the search for a suitable start region hasn't failed yet, and start of RHR is not downstream of the start of a gene,
-                startRHR += 1; # shift startRHR downstream
-
-            # search for end downstream
-            while ( meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds or isTricky(geneGB.origin[(endRHR-endsLength):endRHR]) ) and endRHR-startRHR <= lengthRHR[2] and endRHR < len(geneGB.origin)-1: # while no suitable end region found and still within max length of RHR and still inside gene file,
-                endRHR += 1; # shift endRHR downstream
-
-            # if not found downstream
-            if ( meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds or isTricky(geneGB.origin[(endRHR-endsLength):endRHR]) ) and endRHR-startRHR > lengthRHR[2]: # if no end region found this way,
-                endRHR = startRHR + lengthRHR[1]; # return to preferred position
-                # search upstream
-                while ( meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds or isTricky(geneGB.origin[(endRHR-endsLength):endRHR]) ) and endRHR-startRHR >= lengthRHR[0]: # while no suitable start region found and still within min length of RHR,
-                    endRHR -= 1; # shift endRHR upstream
-
-
-
-    if ( meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds or isTricky(geneGB.origin[(endRHR-endsLength):endRHR]) ) and ( startRHR-gene.index[1] > maxDistanceFromGene or geneGB.checkInExon(startRHR-1) ): # if no suitable end region found,
-        startRHR = max(gene.index[1], gRNADownstream.index[1]); # saves start index of RHR as one bp after gene or 1 bp after most downstream gRNA by default
-        while ( meltingTemp(geneGB.origin[startRHR:startRHR+endsLength)]) < minTmEnds or isTricky(geneGB.origin[startRHR:startRHR+endsLength]) ) and startRHR-gene.index[1] <= maxDistanceFromGene and not failSearchStart and not geneGB.checkInExon(startRHR): # while no suitable start region found, still within max distance from gene, the search for a suitable start region hasn't failed yet, and start of RHR is not downstream of the start of a gene,
-            startRHR += 1; # shift startRHR downstream
-
-        endRHR = min([startRHR + lengthRHR[1],len(geneGB.origin)]); # stores RHR end index according to preferred length by default, or max length available if there is not enough sequence space on the chromosome after the gene end
-        log = log + "\nWarning: No RHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the last " + str(endsLength) + " bp of RHR, \nwith a max distance of " + str(maxDistanceFromGene) + " bp between start of RHR and end of gene. \nDefaulted to ending at preferred size of " + str(lengthRHR[1]) + "\n"; # give a warning
-
-    # Now we optimize the resulting RHR by adjusting start and stop sequences around the given range
-    searchIndexesEnd = [int(endRHR+optimizeRange[0]), int(endRHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better end point.
-    for i in range(searchIndexesEnd[1], searchIndexesEnd[0], -1): # iterates across optimization range in reverse
-        if meltingTemp(geneGB.origin[ min([i-endsLength,len(geneGB.origin)-endsLength]):min([i,len(geneGB.origin)]) ]) > meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) and lengthRHR[2] >= i-startRHR >= lengthRHR[0]: # if this end point has a better Tm and is still within bounds,
-            if i < len(geneGB.origin): # if inside gene file,
-                endRHR = i; # make this the ending position
-
-
-
-
-    searchIndexesStart = [int(startRHR+optimizeRange[0]), int(startRHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better start point.
-    for i in range(searchIndexesStart[0], searchIndexesStart[1]): # iterates across optimization range
-        if meltingTemp(geneGB.origin[i:(i+endsLength)]) > meltingTemp(geneGB.origin[startRHR:(startRHR+endsLength)]) and lengthRHR[2] >= endRHR-i >= lengthRHR[0] and i >= gRNADownstream.index[1] and not geneGB.checkInExon(i-1): # if this start point has a better Tm and is still within bounds and after gRNA and not after a start of a gene,
-            startRHR = i; # make this the starting position
-
-
-    if endRHR-startRHR < lengthRHR[0]+searchIndexesEnd[0]-searchIndexesEnd[1]: # if RHR is smaller than it should be (gene too close to the end of chromosome, for example)
-        log = log + "\ERROR: RHR found for gene " + geneGB.name + " \nis smaller than allowed by design, with a length of " + str(endRHR-startRHR) + " bp. Maybe gene was too close to start/end of chromosome?\n"; # give a warning
-
-    for site in filterCutSites: # for every cut site being filtered
-        if findFirst(site,geneGB.origin[startRHR:endRHR]) > -1 or findFirst(revComp(site),geneGB.origin[startRHR:endRHR]) > -1: # if cut site found,
-            log = log + "\nWarning: RHR sequence for gene " + gene.label + ": \n" + geneGB.origin[startRHR:endRHR] + "\ncontains restriction site " + site + "\n"; # add warning to log
-
-    # creates var to store finished RHR as annotation
-    RHR = GenBankAnn(gene.label + " RHR", "misc_feature", geneGB.origin[startRHR:endRHR], False, [startRHR,endRHR], annColors['RHRColor']); # creates GenBankAnn object to hold RHR
-
-    log = log + "RHR for gene " + gene.label + " selected.\n\n"; # logs this process finished
-
-    return {"out":RHR, "log":log}; # returns RHR GenBankAnn object
-
-
-"""
-Selects an appropriate RHR for the given gene. GenBank sequence object given as
-argument (geneGB) must have an annotation with label=gene, at least one
-annotation with "gRNA" in label (or some similar indicator), and at least
-lengthRHR[2] + maxDistanceFromGene - optimizeRange[0] + optimizeRange[1]
-bp of 3' UTR (about 1000 bp is fine). lengthRHR is [min, preferred, max]
-length in bp of RHR. minTmEnds is min melting temp in extremes of RHR.
-endsLength is length of extremes of the RHR contemplated in analysis.
-optimizeRange is a list with the index positions relative to the start of the
-RHR over which the start of the RHR is optimized once it is chosen.
-maxDistanceFromGRNA is maximum distance in bp between end of RHR and start of
-gRNA.
-RHR: Right Homologous Region used for chromosomal integration by homologous
-recombination during repair.
-"""
-def chooseRHR5Prime(geneGB, gene, lengthRHR=[450,500,650], minTmEnds=55, endsLength=40, optimizeRange=[-20,10], maxDistanceFromGRNA=500, gBlockDefault=True, minGBlockSize=125, codingGene=True, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
-    #TODO: debug cases in which RHR has to be shifted, do case in which RHR is in intron?
-    log = ""; # init log
-    gRNAs = []; # List of all gRNAs
-    gRNADownstream = GenBankAnn(); # init var to hold gRNA
-    if len(gRNAs) == 0: # if no gRNAs found
-        gRNAs = geneGB.findAnnsLabel("gRNA"); # List of all gRNAs
-        gRNADownstream = gRNAs[0]; # will store gRNA most downstream
-        for g in gRNAs: # loops across gRNAs
-            if g.index[0] > gRNADownstream.index[0]: # if more downstream
-                gRNADownstream = g; # replace as most downstream
-
-
-
-    startRHR = max(gRNADownstream.index[1],gene.index[0]); # saves start index of RHR as whatever is more downstream between the end of the gRNA or the start of the gene (in Python indexing, i.e. not included in RHR).
-    if gBlockDefault and ((startRHR > gene.index[0] and startRHR < gene.index[0] - minGBlockSize) or (meltingTemp(geneGB.origin[startRHR:startRHR+endsLength]) < minTmEnds and startRHR-gene.index[0] < minGBlockSize)): # if defaulting to a gBlock for any recoded region and a) there is a recoded region, and it is under the minimum gBlock size, or b) if the RHR is supposed to start at the start of the gene, but this region does not make for a good RHR starting point,
-        startRHR = gene.index[0] + minGBlockSize; # extend recoded region to minimum gBlock size
-
-    while (not geneGB.checkInExon(startRHR)) and startRHR < gene.index[1] and startRHR < len(geneGB.origin)-lengthRHR[0]: # Loop as long as the start of RHR is not in an exon and the start of the RHR is inside the gene and there is enough room for RHR in file
-        startRHR += 1; # shift RHR start downstream one bp
-
-    endRHR = min(startRHR + lengthRHR[1],len(geneGB.origin)); # stores RHR start index according to preferred length, or end of file if not enough space after gene
-    failSearchEnd = False; # true if no suitable RHR end region is found within given parameters.
-
-    cutSite = min([findFirst(site,geneGB.origin[startRHR:max(startRHR+lengthLHR[0],len(geneGB.origin))]) for site in filterCutSites]) # find first RE cutsite
-    while cutSite-startRHR < lengthLHR[0] and len(geneGB.origin)-cutSite-max([len(s) for s in filterCutSites]) > lengthLHR[0]: # as long as there isn't enough space for LHR between cut site and end, and there is space left in file,
-        endLHR = cutSite + max([len(s) for s in filterCutSites]); # shift end of LHR to upstream of cut site
-        cutSite = min([findFirst(site,geneGB.origin[startRHR:max(startRHR+lengthLHR[0],len(geneGB.origin))]) for site in filterCutSites]) # find last RE cutsite
-
-    # First search for start region
-    while meltingTemp(geneGB.origin[startRHR:min(startRHR+endsLength,len(geneGB.origin))]) < minTmEnds and startRHR-gRNADownstream.index[1] < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(startRHR) and startRHR < gene.index[1]: # while no suitable start region found, still within max distance from gRNA, the search for a suitable start region hasn't failed yet, and still within exon,
-        startRHR += 1; # shift startRHR downstream
-
-    if meltingTemp(geneGB.origin[startRHR:min(startRHR+endsLength,len(geneGB.origin))]) < minTmEnds: # if no suitable start region found,
-        startRHR = max(gRNADownstream.index[1],gene.index[0]); # saves end index of RHR by default as whatever is more downstream between the start of the gRNA or the start of the gene
-        while not geneGB.checkInExon(startRHR) and startRHR < gene.index[1] and startRHR < len(geneGB.origin)-lengthRHR[2]: # Loop as long as the end of RHR is not in an exon and the end of the RHR is inside the max length
-            startRHR += 1; # shift RHR end downstream one bp
-
-        failSearchEnd = True; # changes failSearchEnd status
-        log = log + "\nWarning: No RHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the first " + str(endsLength) + " bp of RHR, \nwith a max distance of " + str(maxDistanceFromGRNA) + " bp between end of gRNA and RHR. \nDefaulted to starting right after end of gRNA most upstream." + "\n"; # give a warning
-
-    # Then search for start region; modify end region if necessary
-    while meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds and (startRHR-gRNADownstream.index[1] <= maxDistanceFromGRNA and geneGB.checkInExon(startRHR)): # if no end region has been found, and still within max distance from gRNA and inside exon,
-        # find new start region if necessary
-        while meltingTemp(geneGB.origin[startRHR:min(startRHR+endsLength,len(geneGB.origin))]) < minTmEnds and startRHR-gRNADownstream.index[1] < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(startRHR): # while no suitable start region found, still within max distance from gRNA, the search for a suitable start region hasn't failed yet, and still within exon,
-            startRHR += 1; # shift startRHR downstream
-
-        if gBlockDefault and startRHR-gene.index[0] < minGBlockSize: # if defaulting to a gBlock for any recoded region and the current recoded region is smaller than the minimum gBlock size,
-            startRHR = gene.index[0] + minGBlockSize; # extend recoded region to minimum gBlock size
-
-        # search for ends upstream
-        while meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds and endRHR-startRHR <= lengthRHR[2] and endRHR < len(geneGB.origin): # while no suitable end region found and still within max length of RHR and inside gene file,
-            endRHR += 1; # shift endRHR downstream
-
-        # if not found downstream
-        if meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds and endRHR-startRHR > lengthRHR[2]: # if no end region found this way,
-            endRHR = startRHR - lengthRHR[1]; # return to preferred position
-            # search downstream
-            while meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds and endRHR-startRHR > lengthRHR[0]: # while no suitable end region found and still within min length of RHR,
-                endRHR -= 1; # shift endRHR downstream
-
-        if meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds and geneGB.checkInExon(startRHR): # if still not found and still inside exon,
-            startRHR += 1; # shifts start of RHR downstream
-
-
-
-    if meltingTemp(geneGB.origin[(endRHR-endsLength):endRHR]) < minTmEnds: # if no suitable end region found,
-        # resets startRHR
-        startRHR = max(gRNADownstream.index[1],gene.index[0]); # saves end index of RHR as whatever is more downstream between the end of the gRNA or the start of the gene (in Python indexing, i.e. not included in RHR).
-        if gBlockDefault and startRHR > gene.index[0] and startRHR < gene.index[0] + minGBlockSize: # if defaulting to a gBlock for any recoded region, there is a recoded region, and it is under the minimum gBlock size,
-            startRHR = gene.index[0] + minGBlockSize; # extend recoded region to minimum gBlock size
-
-        while meltingTemp(geneGB.origin[startRHR:min(startRHR+endsLength,len(geneGB.origin))]) < minTmEnds and startRHR-gRNADownstream.index[1] < maxDistanceFromGRNA and not failSearchEnd and geneGB.checkInExon(startRHR) and startRHR < len(geneGB.origin) - lengthRHR[2]: # while no suitable start region found, still within max distance from gRNA, the search for a suitable start region hasn't failed yet, still within exon, and the end of the RHR is inside the max length
-            startRHR += 1; # shift startRHR downstream
-
-        endRHR = startRHR + lengthRHR[1]; # stores RHR start index according to preferred length by default
-        log = log + "\nWarning: No RHR found for gene " + geneGB.name + " \nwith more than " + str(minTmEnds) + " C melting temperature in the last " + str(endsLength) + " bp of RHR, \nwith a max distance of " + str(maxDistanceFromGRNA) + " bp between start of RHR and gRNA. \nDefaulted to ending so that the RHR size is equal to preferred size of " + str(lengthRHR[1]) + "\n"; # give a warning
-
-    # Now we optimize the resulting RHR by adjusting end sequence around the given range
-    searchIndexes = [int(endRHR+optimizeRange[0]), int(min(endRHR+optimizeRange[1],gene.index[1]))]; # list with indexes across which we are going to search for a better end point.
-    for i in range(searchIndexes[0], searchIndexes[1]): # iterates across optimization range
-        if i >= endsLength: # if inside gene file,
-            if meltingTemp(geneGB.origin[(i-endsLength):i]) > meltingTemp(geneGB.origin[(endRHR-endsLength):]) and lengthRHR[0] >= i-startRHR >= lengthRHR[2]: # if this end point has a better Tm and is still within bounds,
-                endRHR = i; # make this the starting position
-
-
-
-    searchIndexesEnd = [max(int(startRHR+optimizeRange[0]),gene.index[0]), int(startRHR+optimizeRange[1])]; # list with indexes across which we are going to search for a better start point, can't be before start of gene
-    for i in range(searchIndexesEnd[0], searchIndexesEnd[1]): # iterates across optimization range
-        if meltingTemp(geneGB.origin[i:min(i+endsLength,len(geneGB.origin))]) > meltingTemp(geneGB.origin[startRHR:min(startRHR+endsLength,len(geneGB.origin))]) and lengthRHR[2] >= endRHR-i >= lengthRHR[0] and i > gRNADownstream.index[1] and geneGB.checkInExon(i) and i >= gene.index[0] and (not gBlockDefault or (i >= gene.index[0] + minGBlockSize) or (i == gene.index[0]) ): # if this end point has a better Tm, and is still within bounds, after gRNA and within exon, and if it allows for a gBlock of the minimum size or no gBlock at all if gBlocks are being used as default
-            startRHR = i; # make this the starting position
-
-
-
-
-    for site in filterCutSites: # for every cut site being filtered
-        if findFirst(site,geneGB.origin[startRHR:endRHR]) > -1 or findFirst(revComp(site),geneGB.origin[startRHR:endRHR]) > -1: # if cut site found,
-            log = log + "\nWarning: RHR sequence for gene " + gene.label + ": \n" + geneGB.origin[startRHR:endRHR] + "\ncontains restriction site " + site + "\n"; # add warning to log
-
-
-    # creates var to store finished RHR as annotation
-    RHR = GenBankAnn(gene.label + " RHR", "misc_feature", geneGB.origin[startRHR:endRHR], False, [startRHR,endRHR], annColors['RHRColor']); # creates GenBankAnn object to hold RHR
-
-    log = log + "RHR for gene " + gene.label + " selected.\n\n"; # logs this process finished
-    return {"out":RHR, "log":log}; # returns RHR GenBankAnn object
+    return {"out":LHR, "log":log} # returns LHR GenBankAnn object

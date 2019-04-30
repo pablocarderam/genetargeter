@@ -17,7 +17,7 @@ from py.utils.BioUtils import *; # Imports utils
 from py.utils.GenBankToolbox import *; # Imports utils
 from py.genetargeter.constants import *; # Imports constants
 from py.genetargeter.gRNASelection import *; # Imports methods
-from py.genetargeter.HRSelection2 import *; # Imports methods
+from py.genetargeter.HRSelection import *; # Imports methods
 from py.genetargeter.recodeSelection import *; # Imports methods
 from py.genetargeter.plasmidConstruction import *; # Imports methods
 from py.genetargeter.primerSelection import *; # Imports methods
