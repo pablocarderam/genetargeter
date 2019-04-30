@@ -17,7 +17,7 @@ from py.utils.BioUtils import *; # Imports utils
 from py.utils.GenBankToolbox import *; # Imports utils
 from py.genetargeter.constants import *; # Imports constants
 from py.genetargeter.gRNASelection import *; # Imports methods
-from py.genetargeter.HRSelection import *; # Imports methods
+from py.genetargeter.HRSelection2 import *; # Imports methods
 from py.genetargeter.recodeSelection import *; # Imports methods
 from py.genetargeter.plasmidConstruction import *; # Imports methods
 from py.genetargeter.primerSelection import *; # Imports methods
@@ -283,9 +283,12 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     plasmidArmed.features.append(klenow[1]); # add rev primer to plasmid annotations
     primerString = primerString + "\n" + geneName + " gRNA Klenow oligo (fwd)," + klenow[0].seq + "\n" + geneName + " gRNA Klenow oligo (rev)," + klenow[1].seq; # write oligos to output string
 
-    gRNACassetteStart = plasmidArmed.findAnnsLabel("Lox")[0].index[0]; # gBlock starts at first Lox
-    gRNACassetteEnd = plasmidArmed.findAnnsLabel("RHR_vector overlap_lef")[0].index[1]; # gBlock ends at RHR_vector overlap_lef
+    gRNACassetteStart = -1 # will be filled in below
+    gRNACassetteEnd = -1
 
+    if plasmidType == "pSN054": # if using pSN150 instead of pSN054,
+        gRNACassetteStart = plasmidArmed.findAnnsLabel("Lox")[0].index[0]; # gBlock starts at first Lox
+        gRNACassetteEnd = plasmidArmed.findAnnsLabel("RHR_vector overlap_lef")[0].index[1]; # gBlock ends at RHR_vector overlap_lef
     if plasmidType == "pSN150": # if using pSN150 instead of pSN054,
         gRNACassetteStart = findFirst(plasmidArmed.origin, cut_BsiWI) + 1; # gBlock starts at BsiWI cut
         gRNACassetteEnd = findFirst(plasmidArmed.origin, cut_AsiSI) + 4; # gBlock ends at AsiSI cut

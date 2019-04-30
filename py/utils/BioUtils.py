@@ -124,8 +124,8 @@ def findMotif(pSeq, pMotif):
             start = index+1; # Move index start number
             indexes.append(index); # store index
 
-    if len(indexes) == 0: # If motif has not been found,
-        indexes = "Motif not found."; # say so.
+    #if len(indexes) == 0: # If motif has not been found,
+    #    indexes = "Motif not found."; # say so.
 
     return indexes;
 
@@ -424,6 +424,28 @@ def ambiguousSeqs(seq):
     return outSeqs;
 
 # Auxiliary methods
+"""
+Checks if a sequence is hard to synthesize.
+"""
+def isTricky(seq):
+    tricky = False;
+
+    if findFirst(seq,"TATATATATATATATATATA") > -1: # if 10 TA repeats found,
+        tricky = True; # it's tricky
+    elif findFirst(seq,"GCGCGCGCGCGCGC") > -1: # if 7 GC repeats found,
+        tricky = True; # it's tricky
+    elif findFirst(seq,"AAAAAAAAAAAAA") > -1: # if 13 A repeats found,
+        tricky = True; # it's tricky
+    elif findFirst(seq,"TTTTTTTTTTTTT") > -1: # if 13 T repeats found,
+        tricky = True; # it's tricky
+    elif findFirst(seq,"GGGGGGGGG") > -1: # if 9 G repeats found,
+        tricky = True; # it's tricky
+    elif findFirst(seq,"CCCCCCCCC") > -1: # if 9 C repeats found,
+        tricky = True; # it's tricky
+
+    return tricky;
+
+
 """
 Returns a random hex color code.
 """

@@ -27,8 +27,8 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
     LHR = geneGB.findAnnsLabel("LHR")[0]; # LHR annotation object
 
     annRecoded = GenBankAnn(); # creates GenBankAnn object to hold recoded region
-    if LHR.index[1] < gene.index[1]: # if end of LHR is inside gene
-        startRecode = LHR.index[1]; # start of recode region (start of gRNA most upstream)
+    if LHR.index[1] < gene.index[1]: # if end of LHR is inside gene (or before)
+        startRecode = max(LHR.index[1], gene.index[0]); # start of recode region (end of LHR or start of gene, most downstream)
         while not geneGB.checkInExon(startRecode): # while recode region start is in intron,
             startRecode += 1; # shift downstream
 
@@ -190,18 +190,7 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                     cutCheck += findFirst(site,recodedSeq); # Find cut site, register in cutCheck
                     cutCheck += findFirst(revComp(site),recodedSeq); # Find cut site in comp strand, register in cutCheck
 
-                if findFirst(recodedSeq,"TATATATATATATATATATA") > -1: # if 10 TA repeats found,
-                    tricky = True; # it's tricky
-                elif findFirst(recodedSeq,"GCGCGCGCGCGCGC") > -1: # if 7 GC repeats found,
-                    tricky = True; # it's tricky
-                elif findFirst(recodedSeq,"AAAAAAAAAAAAA") > -1: # if 13 A repeats found,
-                    tricky = True; # it's tricky
-                elif findFirst(recodedSeq,"TTTTTTTTTTTTT") > -1: # if 13 T repeats found,
-                    tricky = True; # it's tricky
-                elif findFirst(recodedSeq,"GGGGGGGGG") > -1: # if 9 G repeats found,
-                    tricky = True; # it's tricky
-                elif findFirst(recodedSeq,"CCCCCCCCC") > -1: # if 9 C repeats found,
-                    tricky = True; # it's tricky
+                tricky = isTricky(recodedSeq); # check if tricky to synthesize
 
                 if gcContent(recodedSeq[0:40]) < minGCEnd5Prime: # if the first bases don't have enough gc content
                     badStart = True;
@@ -262,7 +251,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
     annRecoded = GenBankAnn(); # creates GenBankAnn object to hold recoded region
     if RHR.index[0] > gene.index[0]: # if end of RHR is inside gene
-        endRecode = RHR.index[0]; # end of recode region (end of gRNA most downstream)
+        endRecode = min(RHR.index[0],gene.index[1]); # end of recode region (start of RHR or end of gene, most upstream)
         while not geneGB.checkInExon(endRecode): # while recode region end is in intron,
             endRecode -= 1; # shift upstream
 
