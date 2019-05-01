@@ -2,6 +2,7 @@
 from py.utils.BioUtils import *; # Imports utils
 from py.utils.GenBankToolbox import *; # Imports utils
 from py.genetargeter.constants import *; # Imports constants
+from gRNAScores.gRNAScoring import *; # Import scoring metrics
 
 """
 Chooses the region to be recoded to avoid gRNA targeting in already transfected

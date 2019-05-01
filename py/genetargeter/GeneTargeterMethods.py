@@ -155,70 +155,74 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                 LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='start', lengthHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, filterCutSites=filterCutSites); # chooses LHR
                 RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='start', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an RHR
 
-            if HRannotated: # if LHR and RHR are already annotated,
-                LHRlist = geneGB.findAnnsLabel("LHR"); # overwrite LHR annotations
-                if len(LHRlist) > 0: # if LHR found,
-                    LHR = LHRlist[0]; # save first LHR annotation as LHR
-                    outputDic["logFileStr"] = outputDic["logFileStr"] + "\nFound user LHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
-                else: # if no LHR found,
-                    outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user LHR annotation, used automatic annotation instead." + "\n"; # add warning to log
+            if LHR["out"] is None or RHR["out"] is None and not HRannotated: # if searches fail and HR's not provided,
+                outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"] + RHR["log"]; # add logs
+            else: # if successful,
+                if HRannotated: # if LHR and RHR are already annotated,
+                    LHRlist = geneGB.findAnnsLabel("LHR"); # overwrite LHR annotations
+                    if len(LHRlist) > 0: # if LHR found,
+                        LHR = LHRlist[0]; # save first LHR annotation as LHR
+                        outputDic["logFileStr"] = outputDic["logFileStr"] + "\nFound user LHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
+                    else: # if no LHR found,
+                        outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user LHR annotation, used automatic annotation instead." + "\n"; # add warning to log
+                        outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"]; # add logs
+                        LHR = LHR["out"]; # saves actual data
+                        geneGB.features.append(LHR); # adds LHR to gene annotations
+
+                    RHRlist = geneGB.findAnnsLabel("RHR"); # saves RHR annotation
+                    if len(RHRlist) > 0: # if RHR found,
+                        RHR = RHRlist[0]; # save first RHR annotation as RHR
+                        outputDic["logFileStr"] = outputDic["logFileStr"] + "\nFound user RHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
+                    else: # if no RHR found,
+                        outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user RHR annotation, used automatic annotation instead." + "\n"; # add warning to log
+                        outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
+                        RHR = RHR["out"]; # saves actual data
+                        geneGB.features.append(RHR); # adds RHR to gene annotations
+
+                    for site in filterCutSites: # for every cut site being filtered
+                        if findFirst(site,LHR.seq) > -1 or findFirst(revComp(site),LHR.seq) > -1: # if cut site found,
+                            outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: LHR sequence for gene " + gene.label + ": \n" + LHR + "\ncontains restriction site " + site + "\n"; # add warning to log
+                        if findFirst(site,RHR.seq) > -1 or findFirst(revComp(site),RHR.seq) > -1: # if cut site found,
+                            outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: RHR sequence for gene " + gene.label + ": \n" + RHR + "\ncontains restriction site " + site + "\n"; # add warning to log
+
+
+                else: # if HRs not annotated but successful,
                     outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"]; # add logs
                     LHR = LHR["out"]; # saves actual data
-                    geneGB.features.append(LHR); # adds LHR to gene annotations
-
-                RHRlist = geneGB.findAnnsLabel("RHR"); # saves RHR annotation
-                if len(RHRlist) > 0: # if RHR found,
-                    RHR = RHRlist[0]; # save first RHR annotation as RHR
-                    outputDic["logFileStr"] = outputDic["logFileStr"] + "\nFound user RHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
-                else: # if no RHR found,
-                    outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user RHR annotation, used automatic annotation instead." + "\n"; # add warning to log
                     outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
                     RHR = RHR["out"]; # saves actual data
+                    geneGB.features.append(LHR); # adds LHR to gene annotations
                     geneGB.features.append(RHR); # adds RHR to gene annotations
 
-                for site in filterCutSites: # for every cut site being filtered
-                    if findFirst(site,LHR.seq) > -1 or findFirst(revComp(site),LHR.seq) > -1: # if cut site found,
-                        outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: LHR sequence for gene " + gene.label + ": \n" + LHR + "\ncontains restriction site " + site + "\n"; # add warning to log
-                    if findFirst(site,RHR.seq) > -1 or findFirst(revComp(site),RHR.seq) > -1: # if cut site found,
-                        outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: RHR sequence for gene " + gene.label + ": \n" + RHR + "\ncontains restriction site " + site + "\n"; # add warning to log
 
 
-            else: # if HRs not annotated,
-                outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"]; # add logs
-                LHR = LHR["out"]; # saves actual data
-                outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
-                RHR = RHR["out"]; # saves actual data
-                geneGB.features.append(LHR); # adds LHR to gene annotations
-                geneGB.features.append(RHR); # adds RHR to gene annotations
+                recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
+                recodedHA = {}; # will contain recoded region with HA tag
+                if haTag: # if using HA tags,
+                    recodedHA = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, haTag=True, filterCutSites=filterCutSites); # defines region to be recoded with HA tag, returns recoded sequence
+                    recodedHA = recodedHA["out"]; # saves actual data
 
+                outputDic["logFileStr"] = outputDic["logFileStr"] + recoded["log"]; # add logs
+                outputDic["gRNATable"] = recoded["gRNATable"]; # saves gRNA output values
+                recoded = recoded["out"]; # saves actual data
 
+                plasmidArmed = insertTargetingElements(plasmid, gene.label, gRNA.seq, LHR.seq, recoded.seq, RHR.seq, plasmidType=plasmidType, haTag=False); # inserts targeting elements
+                plasmidArmedHA = ""; # will contain plasmid with HA tags
+                outputDicHA = copy.deepcopy(outputDic); # will store outputs
+                outputDicHA["logFileStr"] = outputDicHA["logFileStr"].replace(" **** \n\n", "_HA_Tag **** \n\n")
+                outputDic = postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=False); # generate and annotate assembly info
+                if haTag: # if using HA tags,
+                    plasmidArmedHA = insertTargetingElements(plasmid, gene.label, gRNA.seq, LHR.seq, recodedHA.seq, RHR.seq, plasmidType=plasmidType, haTag=True); # inserts targeting elements
+                    outputDicHA = postProcessPlasmid(geneName, geneGB, gene, plasmidArmedHA, recodedHA, outputDicHA, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=True); # generate and annotate assembly info
+                    outputDic["outputHA"] = outputDicHA; # if using HA tags, save design inside output dictionary
+                    if not useFileStrs: # if saving to files,
+                        output(outputDicHA["oligoFileStr"], path + "/" + geneName + plasmidType + "_" + enzyme + "HA_Tags_Oligos.csv",wipe=True); # saves oligos to file
+                        output(outputDicHA["logFileStr"], path + "/" + geneName + plasmidType + "_" + enzyme + "HA_Tags_Message_Log.txt",wipe=True); # saves message log to file
 
-            recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
-            recodedHA = {}; # will contain recoded region with HA tag
-            if haTag: # if using HA tags,
-                recodedHA = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, haTag=True, filterCutSites=filterCutSites); # defines region to be recoded with HA tag, returns recoded sequence
-                recodedHA = recodedHA["out"]; # saves actual data
-
-            outputDic["logFileStr"] = outputDic["logFileStr"] + recoded["log"]; # add logs
-            outputDic["gRNATable"] = recoded["gRNATable"]; # saves gRNA output values
-            recoded = recoded["out"]; # saves actual data
-
-            plasmidArmed = insertTargetingElements(plasmid, gene.label, gRNA.seq, LHR.seq, recoded.seq, RHR.seq, plasmidType=plasmidType, haTag=False); # inserts targeting elements
-            plasmidArmedHA = ""; # will contain plasmid with HA tags
-            outputDicHA = copy.deepcopy(outputDic); # will store outputs
-            outputDicHA["logFileStr"] = outputDicHA["logFileStr"].replace(" **** \n\n", "_HA_Tag **** \n\n")
-            outputDic = postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=False); # generate and annotate assembly info
-            if haTag: # if using HA tags,
-                plasmidArmedHA = insertTargetingElements(plasmid, gene.label, gRNA.seq, LHR.seq, recodedHA.seq, RHR.seq, plasmidType=plasmidType, haTag=True); # inserts targeting elements
-                outputDicHA = postProcessPlasmid(geneName, geneGB, gene, plasmidArmedHA, recodedHA, outputDicHA, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=True); # generate and annotate assembly info
-                outputDic["outputHA"] = outputDicHA; # if using HA tags, save design inside output dictionary
                 if not useFileStrs: # if saving to files,
-                    output(outputDicHA["oligoFileStr"], path + "/" + geneName + plasmidType + "_" + enzyme + "HA_Tags_Oligos.csv",wipe=True); # saves oligos to file
-                    output(outputDicHA["logFileStr"], path + "/" + geneName + plasmidType + "_" + enzyme + "HA_Tags_Message_Log.txt",wipe=True); # saves message log to file
+                    output(outputDic["oligoFileStr"], path + "/" + geneName + plasmidType + "_" + enzyme + "_Oligos.csv",wipe=True); # saves oligos to file
+                    output(outputDic["logFileStr"], path + "/" + geneName + plasmidType + "_" + enzyme + "_Message_Log.txt",wipe=True); # saves message log to file
 
-            if not useFileStrs: # if saving to files,
-                output(outputDic["oligoFileStr"], path + "/" + geneName + plasmidType + "_" + enzyme + "_Oligos.csv",wipe=True); # saves oligos to file
-                output(outputDic["logFileStr"], path + "/" + geneName + plasmidType + "_" + enzyme + "_Message_Log.txt",wipe=True); # saves message log to file
 
 
 
@@ -315,6 +319,8 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
 
     outputDic["logFileStr"] = outputDic["logFileStr"] + "\nVector constructed and written to file. End of process.\n"; # saves message log to file
     plasmidArmed.definition = (plasmidArmed.definition + "  " + outputDic["logFileStr"]).replace("\n","   "); # save logs to file definition to be viewed in benchling
+    editedLocus.definition = (editedLocus.definition + "  " + outputDic["logFileStr"]).replace("\n","   "); # save logs to file definition to be viewed in benchling
+    geneGB.definition = (geneGB.definition + "  " + outputDic["logFileStr"]).replace("\n","   "); # save logs to file definition to be viewed in benchling
 
     if geneOrientationNegative: # if gene was originally on comp strand,
         geneGB = geneGB.revComp(); # flip pre-editing locus

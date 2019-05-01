@@ -72,7 +72,7 @@ def offTargetScore(gRNA, method, enzyme, pamSeq, pamType, maxNumMisMatches=4, gL
         if enzyme == "Cas9": # if enzyme is Cas9
             gListFilePath = "gRNAScores/OffTarget_Scoring/gListCas9.txt"; # use this list
         elif enzyme == "Cas12": # if enzyme is Cas12
-            gListFilePath = "gRNAScores/OffTarget_Scoring/gListCas12.txt"; # use cas12 list
+            gListFilePath = "gRNAScores/OffTarget_Scoring/gListCpf1.txt"; # use cas12 list
 
 
     args = (binExecPath+platform, gRNA, gListFilePath, method, pamSeq, pamType, str(maxNumMisMatches), "no"); # stores command to be passed to console. "no" specifies output format as just scores.

@@ -346,6 +346,6 @@ scoreGRNAs(seqGRNAs,guideListList)
 #from gRNAScores.gRNADBBuilder import *
 #exportCFDMatrix(mm_scores)
 #offTargetScore("TTGTGTTCTCCATATATCGATGG","cfd");
-outStr = "\n".join(gListCas12);
-output(outStr, "gListCas12.txt");
+outStr = "\n".join(gListCpf1);
+output(outStr, "gListCpf1.txt");
 '''

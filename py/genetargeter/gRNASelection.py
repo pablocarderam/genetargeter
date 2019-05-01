@@ -19,14 +19,14 @@ gRNA: guide RNA used by CRISPR enzyme.
 Note: argument searchRange is in format [inside_gene,outside_gene] whether
 targeting 3' or 5' end.
 """
-def chooseGRNA(geneGB, gene, searchRange=[-700,125], PAM="NGG", minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", gBlockDefault=True, maxTier1GBlockSize=500, gBlockOverlapSize=40, codingGene=True, closestGene=-1, target3Prime=True, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
+def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, PAM="NGG", minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", gBlockDefault=True, maxTier1GBlockSize=500, gBlockOverlapSize=40, codingGene=True, closestGene=-1, target3Prime=True, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
     if closestGene < 0: # if closestGene parameter is default,
         closestGene = len(geneGB.origin); # set to total length of gene as default
 
     log = "Choosing gRNA with PAM sequence " + PAM + " for use with enzyme " + enzyme; # init log
     if not codingGene and searchRange[0] < 0: # if gene is non protein-coding and part of the search region is inside the gene,
         log += "\nSince this looks like a non protein-coding gene, the gRNA search range will be shifted to be entirely outside of the end of the gene."; # Notate change in search range
-        searchRange = [0,searchRange[1]-searchRange[0]]; # shift the search range
+        searchRange = [0,searchRangeNonCoding]; # move search range outside gene
 
     gRNATable = []; # will store information on each gRNA evaluated. Format: Label, Status, Enzyme, Position, Strand, GC_content, On-target_score, On-target_method, Aggregated_off-target_score, Max_pairwise_off-target_score, Off-target_method, >9_consecutive_A/T, 4-Homopolymer, Triple_T, Sequence, Recoded_sequence, Recoded_sequence_pairwise_off-target_score
     geneList = geneGB.findAnnsLabel(gene.label); # stores gene annotation
@@ -111,6 +111,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], PAM="NGG", minGCContent=0.3
                     if onTarget > minOnTargetScore: # if on-target score is passable,
                         offTargetScores = [];
                         if len(gRNAInfo) == 0: # if not found in DB
+                            print(gRNASeq)
                             offTargetScores = offTargetScore(gRNASeq,offTargetMethod,enzyme,pamSeq,PAM); # store off-target score
                         else: # if found in DB,
                             if offTargetMethod == "hsu": # if using Hsu
