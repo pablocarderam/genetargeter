@@ -73,7 +73,7 @@ Inserts the recoded region after the LHR, before the AsiSI cut site (leaves the
 Inserts RHR after I-SceI cut site, leaves the site intact with its recognition
     sequence.
 """
-def insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag=True):
+def insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag=True, KO=False):
     plas = copy.deepcopy(plasmid); # makes a copy of the plasmid object to modify without altering the original
 
     inLHR = findFirst(plas.origin, cut_FseI) + len(cut_FseI); # index of LHR start site (at end of FseI cut sequence)
@@ -82,6 +82,9 @@ def insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, R
     plas.features.append(annLHR); # adds annotation
 
     endRHR = findFirst(plas.origin, cut_AhdI) + 6; # index of RHR end site (middle of AhdI cut sequence)
+    if KO: # if knocking out,
+        endRHR = findFirst(plas.origin, cut_AsiSI) + 4; # index of RHR end site (middle of AsiSI cut sequence to keep gRNA as barcode)
+
     startRHR = endRHR; # assume keeping HA tag
     if not haTag: # if deleting HA tag,
         startRHR = findFirst(plas.origin, cut_NheI) + 1; # index of RHR start site (middle of NheI cut sequence)
@@ -125,6 +128,8 @@ def insertTargetingElements(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, pl
         out = insertTargetingElementsPSN054(plasmid, geneName, gRNA, LHR, recodedRegion, RHR); # use this method
     elif plasmidType == 'pSN150': # if using pSN150,
         out = insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag); # use other method
+    elif plasmidType == 'pSN150-KO': # if using pSN150-KO,
+        out = insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag, KO=True); # use other method
 
     return out;
 

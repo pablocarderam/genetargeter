@@ -37,6 +37,7 @@ def index():
 
 @socketio.on('sendGeneFile', namespace='/link')
 def gene_message(message):
+    print(message)
     # process input message into geneName, geneFileStr, HRann and other params
     msgList = message["data"].split(sep);
     queryNumber = msgList[0]; # number identifier

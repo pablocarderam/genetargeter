@@ -92,7 +92,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
                     strandString = '-'; # save that info
 
                 gRNATable.append(['Unlabeled','Rejected (low GC content)',enzyme,str(gRNAIndexes).replace(',',' to'),strandString,str(gc),'Not evaluated',onTargetMethod,'Not evaluated','Not evaluated',offTargetMethod,str(findFirst(gRNASeq.replace('T','A'),"AAAAAAAAAA") > -1),'Not evaluated','Not evaluated',gRNASeq,'Not recoded','-']); # starts storing info
-                if gc >= minGCContent and findFirst(gRNASeq.replace('T','A'),"AAAAAAAAAA") < 0: # if gc content is acceptable and does not contain 10 or more consecutive As or Ts,
+                if gc >= minGCContent*0.8 and findFirst(gRNASeq.replace('T','A'),"AAAAAAAAAA") < 0: # if gc content is acceptable and does not contain 10 or more consecutive As or Ts,
                     gRNAInfo = getGRNAInfoFromDB(extGRNASeq,enzyme); # access gRNA scores from DB
                     onTarget = 0;
                     if len(gRNAInfo) == 0: # if not found in DB
@@ -111,7 +111,6 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
                     if onTarget > minOnTargetScore: # if on-target score is passable,
                         offTargetScores = [];
                         if len(gRNAInfo) == 0: # if not found in DB
-                            print(gRNASeq)
                             offTargetScores = offTargetScore(gRNASeq,offTargetMethod,enzyme,pamSeq,PAM); # store off-target score
                         else: # if found in DB,
                             if offTargetMethod == "hsu": # if using Hsu
@@ -139,25 +138,31 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
                             if findFirst(site,gRNASeq) > -1 or findFirst(revComp(site),gRNASeq) > -1: # if cut site found,
                                 containsCutSite = site; # notate site
 
-                        if offTargetScores[0] >= minOffTargetScore and offTargetScores[1] <= maxOffTargetHitScore and not newGRNA.homopolymer and not newGRNA.tripleT and containsCutSite == "": # if total off-target score and max hit score are passable, and if no homopolymer or triple T, and if contains no cut sites,
+                        if gc >= minGCContent and offTargetScores[0] >= minOffTargetScore and offTargetScores[1] <= maxOffTargetHitScore and not newGRNA.homopolymer and not newGRNA.tripleT and containsCutSite == "": # if total off-target score and max hit score are passable, and if no homopolymer or triple T, and if contains no cut sites,
                             gRNAs.append(newGRNA); # add this gRNA's information to list.
                             gRNATable[len(gRNATable)-1][1] = 'Valid'; # Edit this gRNA's status
                         else: # if failed off-target score culling.
                             newGRNA.label = newGRNA.label + "(backup)"; # notify backup on label
                             backupGRNAs.append(newGRNA); # add this gRNA's information to backup list.
+
+                            gRNATable[len(gRNATable)-1][1] = "Possible backup " # contain messages
+                            if gc < minGCContent: # if failed GC check,
+                                gRNATable[len(gRNATable)-1][1] += '(low GC content); '; # Edit this gRNA's status
                             if offTargetScores[1] > maxOffTargetHitScore: # if failed max pairwise off-target check,
-                                gRNATable[len(gRNATable)-1][1] = 'Possible backup (high max pairwise off-target)'; # Edit this gRNA's status
-                            elif newGRNA.homopolymer: # if failed max pairwise off-target check,
-                                gRNATable[len(gRNATable)-1][1] = 'Possible backup (4-homopolymer)'; # Edit this gRNA's status
-                            elif newGRNA.tripleT: # if failed max pairwise off-target check,
-                                gRNATable[len(gRNATable)-1][1] = 'Possible backup (triple T)'; # Edit this gRNA's status
-                            elif containsCutSite: # if failed cut site check
-                                gRNATable[len(gRNATable)-1][1] = 'Possible backup (contains restriction cut site: ' + containsCutSite + ')'; # Edit this gRNA's status
+                                gRNATable[len(gRNATable)-1][1] += '(high max pairwise off-target); '; # Edit this gRNA's status
+                            if newGRNA.homopolymer: # if failed max pairwise off-target check,
+                                gRNATable[len(gRNATable)-1][1] += '(4-homopolymer); '; # Edit this gRNA's status
+                            if newGRNA.tripleT: # if failed max pairwise off-target check,
+                                gRNATable[len(gRNATable)-1][1] += '(triple T);'; # Edit this gRNA's status
+                            if containsCutSite: # if failed cut site check
+                                gRNATable[len(gRNATable)-1][1] += '(contains restriction cut site: ' + containsCutSite + ')'; # Edit this gRNA's status
 
 
 
-                elif gc > minGCContent : # if rejected due to low gc,
-                        gRNATable.append(['Unlabeled','Rejected (>9 consecutive A/Ts)',enzyme,str(gRNAIndexes).replace(',',' to'),strandString,str(gc),'Not evaluated',onTargetMethod,'Not evaluated','Not evaluated',offTargetMethod,str(findFirst(gRNASeq.replace('T','A'),"AAAAAAAAAA") > -1),'Not evaluated','Not evaluated',gRNASeq,'Not recoded','-']); # starts storing info
+                elif gc < minGCContent*0.8 : # if rejected due to low gc,
+                    gRNATable.append(['Unlabeled','Rejected (low GC content)',enzyme,str(gRNAIndexes).replace(',',' to'),strandString,str(gc),'Not evaluated',onTargetMethod,'Not evaluated','Not evaluated',offTargetMethod,str(findFirst(gRNASeq.replace('T','A'),"AAAAAAAAAA") > -1),'Not evaluated','Not evaluated',gRNASeq,'Not recoded','-']); # starts storing info
+                else: # if rejected due to low gc,
+                    gRNATable.append(['Unlabeled','Rejected (>9 consecutive A/Ts)',enzyme,str(gRNAIndexes).replace(',',' to'),strandString,str(gc),'Not evaluated',onTargetMethod,'Not evaluated','Not evaluated',offTargetMethod,str(findFirst(gRNASeq.replace('T','A'),"AAAAAAAAAA") > -1),'Not evaluated','Not evaluated',gRNASeq,'Not recoded','-']); # starts storing info
 
 
 
@@ -302,7 +307,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
 
         gRNATableString = "\n".join([",".join(g) for g in gRNATableNew]); # join array into csv string
         gRNATableString = "Values for rejected gRNAs, Rejected, "+enzyme+", "+str(searchStart)+" to "+str(searchEnd)+", +/-, <" + str(minGCContent) + ", <"+str(minOnTargetScore)+", "+onTargetMethod+", Not evaluated, Not evaluated, -, True, Not evaluated, Not evaluated, -, Not recoded, -\n" + gRNATableString; # Add rejected threshold
-        gRNATableString = "Values for backup gRNAs, Backup, "+enzyme+", "+str(searchStart)+" to "+str(searchEnd)+", +/-, >=" + str(minGCContent) + ", >="+str(minOnTargetScore)+", "+onTargetMethod+", <"+str(minOffTargetScore)+", <"+str(maxOffTargetHitScore)+", "+offTargetMethod+", False, True, True, -, Recoded if " + refCodon + " codon, >=threshold\n" + gRNATableString; # Add backup threshold
+        gRNATableString = "Values for backup gRNAs, Backup, "+enzyme+", "+str(searchStart)+" to "+str(searchEnd)+", +/-, >=" + str(minGCContent*0.8) + ", >="+str(minOnTargetScore)+", "+onTargetMethod+", <"+str(minOffTargetScore)+", <"+str(maxOffTargetHitScore)+", "+offTargetMethod+", False, True, True, -, Recoded if " + refCodon + " codon, >=threshold\n" + gRNATableString; # Add backup threshold
         gRNATableString = "Values for valid gRNAs, Valid, "+enzyme+", "+str(searchStart)+" to "+str(searchEnd)+", +/-, >=" + str(minGCContent) + ", >="+str(minOnTargetScore)+", "+onTargetMethod+", >="+str(minOffTargetScore)+", >="+str(maxOffTargetHitScore)+", "+offTargetMethod+", False, False, False, -, Recoded if " + refCodon + " codon, >=threshold\n" + gRNATableString; # Add valid threshold
         gRNATableString = "Label, Status, Enzyme, Position, Strand, GC_content, On-target_score, On-target_method, Aggregated_off-target_score, Max_pairwise_off-target_score, Off-target_method, >9_consecutive_A/T, 4-Homopolymer, Triple_T, Sequence, Recoded_sequence, Recoded_sequence_pairwise_off-target_score\n" + gRNATableString; # Add column heads
 

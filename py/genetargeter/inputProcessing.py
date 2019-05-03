@@ -11,7 +11,7 @@ Accepts GenBank string possibly with multiple mRNA splice forms.
 Returns dictionary of GenBank objects with only one mRNA and its exons/introns
 annotated. Keys are transcript names.
 """
-def preprocessInputFile(geneName, geneFileStr, useFileStrs=False):
+def preprocessInputFile(geneName, geneFileStr, useFileStrs=False, doingAltSplices=False):
     gbDict = {}; # will store GenBank objects to be returned
 
     geneGB = GenBank(); # initializes variable to hold gene GenBank object
@@ -50,6 +50,9 @@ def preprocessInputFile(geneName, geneFileStr, useFileStrs=False):
                 gbDict[mRNA.label] = newGB; # saves new GB object to output dictionary
 
 
+
+    if not doingAltSplices:
+        gbDict = {}
 
     if len(gbDict) == 0: # if no output saved until now,
         gbDict[geneName] = geneGB; # save original gb file as output

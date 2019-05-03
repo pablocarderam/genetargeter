@@ -129,6 +129,7 @@
 					Targeting system: &nbsp<select id="plasmidType">
 						<option value="pSN054" selected="selected">pSN054 (3' payload)</option>
 						<option value="pSN150">pSN150 (5' payload)</option>
+						<option value="pSN150-KO">pSN150 (KO construct)</option>
 					</select>
 				</p>
 				<label class="btn" id="optionsBtn" onclick="toggleOptions()">Show more options</label>
@@ -219,14 +220,14 @@
 							<div class="column-right">
 								<p class="head">Gibson Assembly</p>
 								Homologous region size*:
-								&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="gibMin" value="30"> bp <br>
-								&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="gibPref" value="40"> bp <br>
-								&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="gibMax" value="50"> bp <br>
+								&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="gibMin" value="20"> bp <br>
+								&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="gibPref" value="30"> bp <br>
+								&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="gibMax" value="40"> bp <br>
 								<br>
 								*Each primer is twice the homologous region size.
 								<p>
 									Minimum primer melting temperature:
-									<input class="txtInput" type="number" id="gibTemp" value="65"> ºC
+									<input class="txtInput" type="number" id="gibTemp" value="50"> ºC
 								</p>
 								<p>
 									Maximum melting temperature difference between primers:
@@ -238,7 +239,7 @@
 							<div class="column-leftcenter">
 								<p class="head">Guide RNA (gRNA) Selection</p>
 								<p>
-									Minimum GC content: &nbsp<input class="txtInput" type="number" id="gRNAGCContent" value="30"> % <br>
+									Minimum GC content: &nbsp<input class="txtInput" type="number" id="gRNAGCContent" value="25"> % <br>
 									CRISPR cutting enzyme:
 											<select id="enzymeType" onchange="changeEnzyme()">
 												<option value="Cas9" selected="selected">Cas9 (3' PAM)</option>

@@ -112,7 +112,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
 
 
-        elif plasmidType == "pSN150": # if using 5' plasmid
+        elif plasmidType == "pSN150" or plasmidType == "pSN150-KO": # if using 5' plasmid
             if enzyme == "Cas9": # if Cas9,
                 plasmid = pSN150_Cas9; # set plasmid
             elif enzyme == "Cas12": # if Cas12,
@@ -139,6 +139,9 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
         else: # if not,
             gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, filterCutSites=filterCutSites); # chooses gRNA.
 
+        if plasmidType=="pSN150-KO" and not len(gRNA['out'].label)>0: # if knocking out and no gRNA found,
+            gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=True, filterCutSites=filterCutSites); # look at downstream end as well
+
         outputDic["logFileStr"] = outputDic["logFileStr"] + gRNA["log"]; # add logs
         outputDic["gRNATable"] = gRNA["gRNATable"]; # saves gRNA output values
         gRNA = gRNA["out"]; # saves actual data
@@ -153,7 +156,10 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                 RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, filterCutSites=filterCutSites); # chooses RHR
             else: # if going for 5' payload, TODO: switch params?
                 LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='start', lengthHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, filterCutSites=filterCutSites); # chooses LHR
-                RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='start', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an RHR
+                if plasmidType == "pSN150-KO": # if knocking gene out,
+                    RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an RHR at end of gene!
+                elif plasmidType == "pSN150-KO": # otherwise
+                    RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='start', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an RHR at beginning
 
             if LHR["out"] is None or RHR["out"] is None and not HRannotated: # if searches fail and HR's not provided,
                 outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"] + RHR["log"]; # add logs
@@ -196,11 +202,13 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
 
 
-                recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
-                recodedHA = {}; # will contain recoded region with HA tag
-                if haTag: # if using HA tags,
-                    recodedHA = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, haTag=True, filterCutSites=filterCutSites); # defines region to be recoded with HA tag, returns recoded sequence
-                    recodedHA = recodedHA["out"]; # saves actual data
+                recoded = {"out":GenBankAnn(), "log":"", "gRNATable":""}; # will contain recoded region
+                if plasmidType != 'pSN150-KO': # if not knocking out,
+                    recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
+                    recodedHA = {}; # will contain recoded region with HA tag
+                    if haTag: # if using HA tags,
+                        recodedHA = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, haTag=True, filterCutSites=filterCutSites); # defines region to be recoded with HA tag, returns recoded sequence
+                        recodedHA = recodedHA["out"]; # saves actual data
 
                 outputDic["logFileStr"] = outputDic["logFileStr"] + recoded["log"]; # add logs
                 outputDic["gRNATable"] = recoded["gRNATable"]; # saves gRNA output values
@@ -292,13 +300,13 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
 
     if plasmidType == "pSN054": # if using pSN150 instead of pSN054,
         gRNACassetteStart = plasmidArmed.findAnnsLabel("Lox")[0].index[0]; # gBlock starts at first Lox
-        gRNACassetteEnd = plasmidArmed.findAnnsLabel("RHR_vector overlap_lef")[0].index[1]; # gBlock ends at RHR_vector overlap_lef
-    if plasmidType == "pSN150": # if using pSN150 instead of pSN054,
-        gRNACassetteStart = findFirst(plasmidArmed.origin, cut_BsiWI) + 1; # gBlock starts at BsiWI cut
-        gRNACassetteEnd = findFirst(plasmidArmed.origin, cut_AsiSI) + 4; # gBlock ends at AsiSI cut
+        gRNACassetteEnd = plasmidArmed.findAnnsLabel("RHR_vector overlap_left")[0].index[1]; # gBlock ends at RHR_vector overlap_left
+    if plasmidType == "pSN150" or plasmidType == "pSN150-KO": # if using pSN150 instead of pSN054,
+        gRNACassetteStart = plasmidArmed.findAnnsLabel("2A")[0].index[1]; # gBlock starts at BsiWI cut
+        gRNACassetteEnd = plasmidArmed.findAnnsLabel("T7 terminator")[0].index[1]; # gBlock ends at AsiSI cut
 
     gRNACassette = GenBankAnn("sgRNA cassette", "misc", plasmidArmed.origin[gRNACassetteStart:gRNACassetteEnd], False, [gRNACassetteStart,gRNACassetteEnd], annColors["otherAnnColor"]); # create cassette annotation
-    gRNAGBlock = createGBlock(plasmidArmed,gRNACassette,gibsonHomRange[1]); # annotates gBlock on plasmid
+    gRNAGBlock = createGBlock(plasmidArmed,gRNACassette,0); # annotates gBlock on plasmid
     outputDic["logFileStr"] = outputDic["logFileStr"] + gRNAGBlock["log"]; # add logs
     gRNAGBlock = gRNAGBlock["out"]; # saves actual data
     plasmidArmed.features.append(gRNAGBlock); # add to plasmid annotations

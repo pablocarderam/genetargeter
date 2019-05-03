@@ -87,68 +87,68 @@ def createGibsonPrimers(plasmid, part, rangeHom=[30,40,50], minMeltTemp=68, maxT
     endPF = part.index[0] + rangeHom[1]; # Fwd primer preferred end position
     primFwdSeq = plasmid.origin[startPF:endPF]; # Fwd primer sequence
 
-    if meltingTemp(primFwdSeq) < minMeltTemp or not primFwdSeq[len(primFwdSeq)-1].upper().replace("G","C") == "C": # if still no use
+    if meltingTemp(plasmid.origin[part.index[0]:endPF]) < minMeltTemp or not primFwdSeq[len(primFwdSeq)-1].upper().replace("G","C") == "C": # if still no use
         startPF = part.index[0] - rangeHom[0]; # Smallest fwd primer start position
         endPF = part.index[0] + rangeHom[0]; # Smallest fwd primer end position
         primFwdSeq = plasmid.origin[startPF:endPF]; # Fwd primer sequence
 
         maxIndexes = [startPF, endPF]; # store start and end positions of best primer in search range
-        while (meltingTemp(primFwdSeq) < minMeltTemp or not primFwdSeq[len(primFwdSeq)-1].upper().replace("G","C") == "C") and len(primFwdSeq)/2 <= rangeHom[2]: # while still no suitable Tm found and still within length parameters,
+        while (meltingTemp(plasmid.origin[part.index[0]:endPF]) < minMeltTemp or not primFwdSeq[len(primFwdSeq)-1].upper().replace("G","C") == "C") and len(primFwdSeq) <= rangeHom[2]*2: # while still no suitable Tm found and still within length parameters,
             startPF = startPF - 1; # shift primer start position upstream
             endPF = endPF + 1; # shift primer start position upstream
             primFwdSeq = plasmid.origin[startPF:endPF]; # Fwd primer sequence
-            if (meltingTemp(primFwdSeq) > meltingTemp(plasmid.origin[maxIndexes[0]:maxIndexes[1]]) or not plasmid.origin[maxIndexes[1]-1].upper().replace("G","C") == "C") and primFwdSeq[len(primFwdSeq)-1].upper().replace("G","C") == "C": # if this primer has higher Tm than the max or the current max has no gc clamp, and this one does have a gc clamp,
+            if (meltingTemp(plasmid.origin[part.index[0]:endPF]) > meltingTemp(plasmid.origin[part.index[0]:maxIndexes[1]]) or not plasmid.origin[maxIndexes[1]-1].upper().replace("G","C") == "C") and primFwdSeq[len(primFwdSeq)-1].upper().replace("G","C") == "C": # if this primer has higher Tm than the max or the current max has no gc clamp, and this one does have a gc clamp,
                 maxIndexes = [startPF, endPF]; # store start and end positions of this primer
 
         startPF = maxIndexes[0]; # Fwd primer default start position
         endPF = maxIndexes[1]; # Fwd primer default end position
         primFwdSeq = plasmid.origin[startPF:endPF]; # Fwd primer sequence
-        if meltingTemp(primFwdSeq) < minMeltTemp: # if still no use
-            log = log + "\nWarning: Best Gibson fwd primer for sequence " + part.label + " under given constraints has a Tm of " + str(meltingTemp(primFwdSeq)) + ", below the given threshold of " + str(minMeltTemp) + "\n"; # give warning
+        if meltingTemp(plasmid.origin[part.index[0]:endPF]) < minMeltTemp: # if still no use
+            log = log + "\nWarning: Best Gibson fwd primer for sequence " + part.label + " under given constraints has a Tm of " + str(meltingTemp(plasmid.origin[part.index[0]:endPF])) + ", below the given threshold of " + str(minMeltTemp) + "\n"; # give warning
 
 
     startPR = part.index[1] - rangeHom[1]; # Rev primer start position
     endPR = part.index[1] + rangeHom[1]; # Rev primer end position
     primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
 
-    if meltingTemp(primRevSeq) < minMeltTemp or meltingTemp(primFwdSeq)-meltingTemp(primRevSeq) > maxTempDif or not primRevSeq[len(primRevSeq)-1].upper().replace("G","C") == "C": # if still no use
+    if meltingTemp(plasmid.origin[startPR:part.index[1]]) < minMeltTemp or meltingTemp(plasmid.origin[startPR:part.index[1]])-meltingTemp(plasmid.origin[startPR:part.index[1]]) > maxTempDif or not primRevSeq[len(primRevSeq)-1].upper().replace("G","C") == "C": # if still no use
         startPR = part.index[1] - rangeHom[0]; # Smallest fwd primer start position
         endPR = part.index[1] + rangeHom[0]; # Smallest fwd primer end position
         primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
 
         maxIndexes = [startPR, endPR]; # store start and end positions of best primer in search range
-        while (meltingTemp(primRevSeq) < minMeltTemp or meltingTemp(primFwdSeq)-meltingTemp(primRevSeq) > maxTempDif or not primRevSeq[len(primRevSeq)-1].upper().replace("G","C") == "C") and rangeHom[0] <= len(primRevSeq)/2 <= rangeHom[2]: # while still no suitable Tm found and still within length parameters,
+        while (meltingTemp(plasmid.origin[startPR:part.index[1]]) < minMeltTemp or meltingTemp(plasmid.origin[startPR:part.index[1]])-meltingTemp(plasmid.origin[startPR:part.index[1]]) > maxTempDif or not primRevSeq[len(primRevSeq)-1].upper().replace("G","C") == "C") and rangeHom[0]*2 <= len(primRevSeq) <= rangeHom[2]*2: # while still no suitable Tm found and still within length parameters,
             startPR = startPR - 1; # shift primer start position upstream
             endPR = endPR + 1; # shift primer start position upstream
             primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
-            if meltingTemp(primRevSeq) > meltingTemp(plasmid.origin[maxIndexes[0]:maxIndexes[1]]) and primRevSeq[len(primRevSeq)-1].upper().replace("G","C") == "C": # if this primer has higher Tm than the max and has gc clamp,
+            if meltingTemp(plasmid.origin[startPR:part.index[1]]) > meltingTemp(plasmid.origin[maxIndexes[0]:part.index[1]]) and primRevSeq[len(primRevSeq)-1].upper().replace("G","C") == "C": # if this primer has higher Tm than the max and has gc clamp,
                 maxIndexes = [startPR, endPR]; # store start and end positions of this primer
 
         startPR = maxIndexes[0]; # Rev primer default start position
         endPR = maxIndexes[1]; # Rev primer default end position
         primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
-        if meltingTemp(primRevSeq) < minMeltTemp: # if still no use
-            log = log + "\nWarning: Best Gibson rev primer for sequence " + part.label + " under given constraints has a Tm of " + str(meltingTemp(primRevSeq)) + ", below the given threshold of " + str(minMeltTemp) + "\n"; # give warning
-        elif meltingTemp(primFwdSeq)-meltingTemp(primRevSeq) > maxTempDif: # if temp difference exceeds specs
+        if meltingTemp(plasmid.origin[startPR:part.index[1]]) < minMeltTemp: # if still no use
+            log = log + "\nWarning: Best Gibson rev primer for sequence " + part.label + " under given constraints has a Tm of " + str(meltingTemp(plasmid.origin[startPR:part.index[1]])) + ", below the given threshold of " + str(minMeltTemp) + "\n"; # give warning
+        elif meltingTemp(plasmid.origin[part.index[0]:endPF])-meltingTemp(plasmid.origin[startPR:part.index[1]]) > maxTempDif: # if temp difference exceeds specs
             startPR = maxIndexes[0]; # Rev primer default start position
             endPR = maxIndexes[1]; # Rev primer default end position
             primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
             primFwdSeq = primFwdSeq.upper(); # to uppercase
-            lastBase = len(primFwdSeq)-2; # stores possible end points of fwd primer
-            while not primFwdSeq[lastBase-1].upper().replace("G","C") == "C" and lastBase > rangeHom[0]: # find next G or C upstream
+            lastBase = endPF-2; # stores possible end points of fwd primer
+            while not plasmid.origin[lastBase-1].upper().replace("G","C") == "C" and lastBase-part.index[0] > rangeHom[0]: # find next G or C upstream
                 lastBase -= 1;
 
-            while meltingTemp(primFwdSeq[0:lastBase])-meltingTemp(primRevSeq) > maxTempDif and meltingTemp(primFwdSeq[0:lastBase]) > minMeltTemp and lastBase > rangeHom[0]*2: # while T diff is still out of bounds and still within bounds of Fwd primer,
+            while meltingTemp(plasmid.origin[part.index[0]:lastBase])-meltingTemp(plasmid.origin[startPR:part.index[1]]) > maxTempDif and meltingTemp(plasmid.origin[part.index[0]:lastBase]) > minMeltTemp and lastBase-part.index[0] > rangeHom[0]: # while T diff is still out of bounds and still within bounds of Fwd primer,
                 lastBase -= 1;
-                while not primFwdSeq[lastBase-1].upper().replace("G","C") == "C" and lastBase > rangeHom[0]: # find next G or C upstream
+                while not plasmid.origin[lastBase-1].upper().replace("G","C") == "C" and lastBase-part.index[0] > rangeHom[0]: # find next G or C upstream
                     lastBase -= 1;
 
 
-            if meltingTemp(primFwdSeq[0:lastBase])-meltingTemp(primRevSeq) < maxTempDif and meltingTemp(primFwdSeq[0:lastBase]) > minMeltTemp: # while T diff is still out of bounds and still within bounds of Fwd primer,
-                endPF = endPF - (len(primFwdSeq)-lastBase);
+            if meltingTemp(plasmid.origin[part.index[0]:lastBase])-meltingTemp(plasmid.origin[startPR:part.index[1]]) < maxTempDif and meltingTemp(plasmid.origin[0:lastBase]) > minMeltTemp: # while T diff is still out of bounds and still within bounds of Fwd primer,
+                endPF = lastBase;
                 primFwdSeq = plasmid.origin[startPF:endPF];
             else: # if temp difference still exceeds specs
-                log = log + "\nWarning: Gibson primers for sequence " + part.label + " under given constraints have a Tm difference of " + str(meltingTemp(primFwdSeq)-meltingTemp(primRevSeq)) + ", above the given threshold of " + str(maxTempDif) + "\n"; # give warning
+                log = log + "\nWarning: Gibson primers for sequence " + part.label + " under given constraints have a Tm difference of " + str(meltingTemp(plasmid.origin[part.index[0]:endPF])-meltingTemp(plasmid.origin[startPR:part.index[1]])) + ", above the given threshold of " + str(maxTempDif) + "\n"; # give warning
 
     annPrimFwd = GenBankAnn(part.label + " Gibson Primer (Fwd)", "misc_feature", primFwdSeq, False, [startPF,endPF], annColors['primerColor']); # creates GenBankAnn object to hold fwd primer
     annPrimRev = GenBankAnn(part.label + " Gibson Primer (Rev)", "misc_feature", primRevSeq, True, [startPR,endPR], annColors['primerColor']); # creates GenBankAnn object to hold rev primer

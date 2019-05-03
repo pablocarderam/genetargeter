@@ -40,6 +40,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
     genBeg = gene.index[0]
     genEnd = gene.index[1]
     nxtGen = min( [ seqEnd ] + [ (genEnd>g.index[0]) * seqEnd + g.index[0] for g in genes ] ) # start of next gene downstream
+    prvGen = max( [ seqBeg ] + [ (genBeg>g.index[1]) * g.index[1] for g in genes ] ) # end of previous gene upstream
     gRNAEx = gRNAExt.index[doingHR == 'RHR'] # position of most extreme gRNA to be avoided
 
     if not ( (seqBeg<=lenMin) and (lenMin<=lenMax) and (lenMax<=genBeg) and (genBeg<=genEnd) and (genEnd<=seqEnd) and (seqEnd-genEnd>=lenMax) ) : # If assertions don't hold,
@@ -48,8 +49,9 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
     # Initialize region
 
-    regBeg = max( genBeg-lenMax-1, seqBeg ) if doingHR == 'LHR' else max( (targetExtreme == 'end') * genEnd, gRNAEx, min(gBlockDefault*(genBeg+minGBlockSize),nxtGen-lenMin) ) # beginning of possible LHR or RHR region
-    regEnd = min( genEnd-3*codingGene, gRNAEx, max(gBlockDefault*(gRNAEx<genEnd)*(genEnd-minGBlockSize-3), (targetExtreme == 'end')*genEnd + genBeg) ) if doingHR == 'LHR' else min( nxtGen+lenMax, seqEnd ) # end of possible LHR or RHR region
+    regBeg = max( (targetExtreme == 'end') * (genBeg-lenMax-1), prvGen ) if doingHR == 'LHR' else max( (targetExtreme == 'end') * genEnd, gRNAEx, min(gBlockDefault*(genBeg+minGBlockSize),nxtGen-lenMin) ) # beginning of possible LHR or RHR region
+    regEnd = min( genEnd-3*codingGene, gRNAEx, max(gBlockDefault*(gRNAEx<genEnd)*(targetExtreme == 'end')*(genEnd-minGBlockSize-3), (targetExtreme == 'end')*seqEnd + genBeg) ) if doingHR == 'LHR' else min( nxtGen, seqEnd ) # end of possible LHR or RHR region
+
     if regBeg > seqEnd-lenMin or regEnd < seqBeg+lenMin: # if not enough space for the HR on the sequence file,
         log = log + "\nERROR: Not enough space on either side of gene for HR chosen. Aborting." + "\n" # give an error
         return {"out":None, "log":log}

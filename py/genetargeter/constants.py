@@ -28,7 +28,8 @@ cut_NheI = "gctagc"; # NheI cut site
 # Cut sites to check for each plasmid
 cut_sites = {
     'pSN054' : [cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI],
-    'pSN150' : [cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]
+    'pSN150' : [cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI],
+    'pSN150-KO' : [cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]
     }
 
 # Other sequences

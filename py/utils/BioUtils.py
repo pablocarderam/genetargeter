@@ -434,9 +434,9 @@ def isTricky(seq):
         tricky = True; # it's tricky
     elif findFirst(seq,"GCGCGCGCGCGCGC") > -1: # if 7 GC repeats found,
         tricky = True; # it's tricky
-    elif findFirst(seq,"AAAAAAAAAAAAA") > -1: # if 13 A repeats found,
+    elif findFirst(seq,"AAAAAAAAAA") > -1: # if 10 A repeats found, (used to be 13) 
         tricky = True; # it's tricky
-    elif findFirst(seq,"TTTTTTTTTTTTT") > -1: # if 13 T repeats found,
+    elif findFirst(seq,"TTTTTTTTTT") > -1: # if 10 T repeats found,
         tricky = True; # it's tricky
     elif findFirst(seq,"GGGGGGGGG") > -1: # if 9 G repeats found,
         tricky = True; # it's tricky

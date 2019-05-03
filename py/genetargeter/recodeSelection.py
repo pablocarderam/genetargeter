@@ -262,7 +262,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
             if ann.type == "exon": # if annotation is exon
                 if gene.index[0] < ann.index[1] < endRecode: # if annotation is an exon ending after gene start and before recode end,
                     intronStartIndices.append(ann.index[1]); # add this intron start index
-                if gene.index[0] < ann.index[1] < endRecode: # if annotation is an exon ending before recode end,
+                if gene.index[0] < ann.index[0] < endRecode: # if annotation is an exon starting before recode end,
                     intronEndIndices.append(ann.index[0]); # add this intron end index
 
 

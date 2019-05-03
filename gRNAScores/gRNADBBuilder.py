@@ -13,6 +13,8 @@ from py.utils.BioUtils import *;
 from gRNAScores.Rule_Set_2_scoring_v1.analysis.rs2_score_calculator import *; # Import Doench et al. (2016) on-target scoring module
 from gRNAScores.CFD_Scoring.cfd_score_calculator import *; # Import Doench et al. (2016) off-target scoring module
 import subprocess;
+import multiprocessing
+import joblib as jl
 
 mm_scores,pam_scores = get_mm_pam_scores_remote();
 
@@ -256,7 +258,21 @@ def onScore(pSeq,aa_cut=-1,per_peptide=-1):
         return score
     else:
         print >> sys.stderr, 'Calculates on-target scores for sgRNAs with NGG PAM only.'
+'''
+def scoreGRNA(g):
+    gOffScoreHsu = offTargetScore(g,'hsu');
+    gOffScoreCFD = offTargetScore(g,'cfd');
+    gGCContent = gcContent(g[:len(g)-3]);
+    return g +","+ str(gGCContent) +","+ str(gOffScoreCFD[0]) +","+ str(gOffScoreCFD[1]) +","+ str(gOffScoreCFD[2]) +","+ str(gOffScoreHsu[0]) +","+ str(gOffScoreHsu[1]) +","+ str(gOffScoreHsu[2]) +"\n";
 
+def scoreGRNAs(gRNAs):
+    outStr = "gRNA,GC Content,Total off-target score (Doench et al. 2016), Max off-target score (Doench et al. 2016), Number of off-target scores (Doench et al. 2016), Total off-target score (Hsu et al. 2013), Max off-target score (Hsu et al. 2013), Number of off-target scores (Hsu et al. 2013)\n";
+    n_cores = multiprocessing.cpu_count()
+    res = jl.Parallel(n_jobs=n_cores,verbose=8)(jl.delayed(scoreGRNA)(g) for g in gRNAs)
+    outStr = outStr + "".join(res)
+
+    output(outStr,"gRNAOutput.csv");
+'''
 
 def scoreGRNAs(gRNAs):
     outStr = "gRNA,GC Content,Total off-target score (Doench et al. 2016), Max off-target score (Doench et al. 2016), Number of off-target scores (Doench et al. 2016), Total off-target score (Hsu et al. 2013), Max off-target score (Hsu et al. 2013), Number of off-target scores (Hsu et al. 2013)\n";
@@ -283,8 +299,14 @@ def timeFunc(gList):
 
 
 
-def offTargetScore(gRNA, method, gListFilePath="gRNAScores/OffTarget_Scoring/gList.txt"):
-    args = ("gRNAScores/OffTarget_Scoring/offTargetScoring", gRNA, gListFilePath, method, "no");
+def offTargetScore(gRNA, method, gListFilePath="gRNAScores/OffTarget_Scoring/gListCas9.txt",pamType="NGG",mm='4'):
+    if pamType=="NGG":
+        pam = gRNA[20:23]
+
+    elif pamType=="TTTV":
+        pam = gRNA[0:4]
+
+    args = ("gRNAScores/OffTarget_Scoring/offTargetScoringBinLinux", gRNA, gListFilePath, method, pam, pamType, mm, "no");
     popen = subprocess.Popen(args, stdout=subprocess.PIPE);
     popen.wait();
     output = popen.stdout.read();
@@ -348,4 +370,10 @@ scoreGRNAs(seqGRNAs,guideListList)
 #offTargetScore("TTGTGTTCTCCATATATCGATGG","cfd");
 outStr = "\n".join(gListCpf1);
 output(outStr, "gListCpf1.txt");
+
+from gRNAScores.gRNADBBuilder import *
+gs = buildPfalGRNADB("all_genes.fasta")
+gs = list(dict.fromkeys(gs))
+scoreGRNAs(gs)
+
 '''
