@@ -12,8 +12,8 @@ from py.genetargeter.inputProcessing import *; # input handling
 
 # Imports from Websockets tutorial:
 import os
-from gevent import monkey
-monkey.patch_all()
+import eventlet
+eventlet.monkey_patch()
 
 import time
 from flask import Flask, render_template, session, request
