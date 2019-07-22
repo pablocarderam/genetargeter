@@ -17,7 +17,7 @@ monkey.patch_all()
 
 import time
 from flask import Flask, render_template, session, request
-from flask_socketio import SocketIO, emit, disconnect
+from flask_socketio import SocketIO, emit, disconnect, join_room
 
 app = Flask(__name__)
 app.debug = True # change in dev/prod
@@ -35,10 +35,16 @@ def index():
     return render_template("index.html");
 
 
+@socketio.on('join', namespace='/link')
+def createChannel(msg):
+    print('Client joined: ' + msg['channel'])
+    join_room(msg['channel'])
+
 @socketio.on('sendGeneFile', namespace='/link')
 def gene_message(message):
     print(message)
     # process input message into geneName, geneFileStr, HRann and other params
+    channel_id = message['channel'] # get this channel id
     msgList = message["data"].split(sep);
     queryNumber = msgList[0]; # number identifier
     geneFileStr = msgList[1];
@@ -88,8 +94,8 @@ def gene_message(message):
             outMsgHA = outMsgHA + sep + outputHA["geneName"] + sep + outputHA["geneFileStr"] + sep + outputHA["plasmidFileStr"] + sep + outputHA["editedLocusFileStr"] + sep + outputHA["oligoFileStr"] + sep + outputHA["gRNATable"] + sep + outputHA["logFileStr"];
             sendMsg(outMsgHA, "geneOutput");
 
-    sendMsg('Process complete',"misc");
-    sendMsg(outMsg, "geneOutput");
+    sendMsg('Process complete',"misc",channel_id);
+    sendMsg(outMsg, "geneOutput",channel_id);
 
 
 @socketio.on('misc', namespace='/link')
@@ -97,8 +103,8 @@ def misc_message(message):
     print message['data'] + " :: received"
 
 
-def sendMsg(msg,pType):
-    socketio.emit(pType, {'data': msg}, namespace='/link');
+def sendMsg(msg,pType,channel_id):
+    socketio.emit(pType, {'data': msg}, namespace='/link', room=channel_id);
     print pType + " :: sent"
 
 
