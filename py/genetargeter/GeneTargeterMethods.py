@@ -218,10 +218,10 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                 plasmidArmedHA = ""; # will contain plasmid with HA tags
                 outputDicHA = copy.deepcopy(outputDic); # will store outputs
                 outputDicHA["logFileStr"] = outputDicHA["logFileStr"].replace(" **** \n\n", "_HA_Tag **** \n\n")
-                outputDic = postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=False); # generate and annotate assembly info
+                outputDic = postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=False, gBlockDefault=gBlockDefault); # generate and annotate assembly info
                 if haTag: # if using HA tags,
                     plasmidArmedHA = insertTargetingElements(plasmid, gene.label, gRNA.seq, LHR.seq, recodedHA.seq, RHR.seq, plasmidType=plasmidType, haTag=True); # inserts targeting elements
-                    outputDicHA = postProcessPlasmid(geneName, geneGB, gene, plasmidArmedHA, recodedHA, outputDicHA, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=True); # generate and annotate assembly info
+                    outputDicHA = postProcessPlasmid(geneName, geneGB, gene, plasmidArmedHA, recodedHA, outputDicHA, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=True, gBlockDefault=gBlockDefault); # generate and annotate assembly info
                     outputDic["outputHA"] = outputDicHA; # if using HA tags, save design inside output dictionary
                     if not useFileStrs: # if saving to files,
                         output(outputDicHA["oligoFileStr"], path + "/" + geneName + plasmidType + "_" + enzyme + "HA_Tags_Oligos.csv",wipe=True); # saves oligos to file
@@ -239,7 +239,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
     return outputDic; # returns output dictionary
 
-def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic, path, useFileStrs, geneOrientationNegative, plasmidType="pSN054", enzyme="Cas9", gibsonHomRange=[30,40,50], gibTemp=65, gibTDif=5, minGBlockSize=10, haTag=False):
+def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic, path, useFileStrs, geneOrientationNegative, plasmidType="pSN054", enzyme="Cas9", gibsonHomRange=[30,40,50], gibTemp=65, gibTDif=5, minGBlockSize=10, haTag=False, gBlockDefault=True):
     gRNAOnPlasmid = plasmidArmed.findAnnsLabel(gene.label + " gRNA")[0]; # saves gRNA annotation actually on plasmid
     if len(recoded.seq) > 0: # if there actually is a recoded region,
         recodedOnPlasmid = plasmidArmed.findAnnsLabel(gene.label + " Recoded")[0]; # saves recoded annotation actually on plasmid
@@ -250,8 +250,14 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     primerString = "Primer name,Sequence"; # "OLIGOS for construct targeting gene " + geneName + "\n\n"; # String will save all primer information to be written to file
 
     #TODO: Check what changes with pSN150 from here to end of method (check createPrimers, createGBlock, createKlenowOligos, createGibsonPrimers, editLocus)
-    if len(recoded.seq) > 0 and len(recoded.seq) + gibsonHomRange[1]*2 >= minGBlockSize: # if there is a recoded region and length of recoded region plus homology regions necessary for Gibson Assembly is greater or equal to minimum gBlock size,
-        gBlock = createGBlock(plasmidArmed,recodedOnPlasmid,gibsonHomRange[1]); # annotates gBlock on plasmid
+    print [len(recoded.seq),len(recoded.seq) + gibsonHomRange[1]*2, minGBlockSize, gBlockDefault]
+    if len(recoded.seq) > 0 and ( len(recoded.seq) + gibsonHomRange[1]*2 >= minGBlockSize or gBlockDefault ): # if there is a recoded region and length of recoded region plus homology regions necessary for Gibson Assembly is greater or equal to minimum gBlock size, or gBlocks are default
+        recodedGBlock = recodedOnPlasmid # by default take gBlock as recoded region
+        if len(recoded.seq) + gibsonHomRange[1]*2 < minGBlockSize: # if min gBlock size not achieved and gBlocks are default,
+            extIndex = ( minGBlockSize - gibsonHomRange[1]*2 - len(recoded.seq) ) + recodedOnPlasmid.index[1] # new endpoint of gBlock such that it satisfies minimum gBlock length
+            recodedGBlock = GenBankAnn(gene.label + " gBlock extension", "misc_feature", plasmidArmed.origin[recodedOnPlasmid.index[0]:extIndex], False, [recodedOnPlasmid.index[0],extIndex]) # make extended recoded region gBlock annotation
+
+        gBlock = createGBlock(plasmidArmed,recodedGBlock,gibsonHomRange[1]); # annotates gBlock on plasmid
         outputDic["logFileStr"] = outputDic["logFileStr"] + gBlock["log"]; # add logs
         gBlock = gBlock["out"]; # saves actual data
         plasmidArmed.features.append(gBlock); # add to plasmid annotations

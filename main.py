@@ -42,7 +42,7 @@ def createChannel(msg):
 
 @socketio.on('sendGeneFile', namespace='/link')
 def gene_message(message):
-    print(message)
+    # print(message)
     # process input message into geneName, geneFileStr, HRann and other params
     channel_id = message['channel'] # get this channel id
     msgList = message["data"].split(sep);

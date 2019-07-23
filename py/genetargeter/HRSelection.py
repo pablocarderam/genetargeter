@@ -25,7 +25,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
         gRNAs = geneGB.findAnnsLabel("gRNA") # List of all gRNAs
         gRNAExt = gRNAs[0] # will store gRNA most extreme
         for g in gRNAs: # loops across gRNAs
-            if ((doingHR=='LHR')*2-1) * g.index[0] < ((doingHR=='LHR')*2-1) * gRNAExt.index[0]: # if more extreme (upstream for end targeting, downsteam for beginning targeting),
+            if ((doingHR=='LHR')*2-1) * g.index[0] < ((doingHR=='LHR')*2-1) * gRNAExt.index[0]: # if more extreme (upstream for end targeting, downstream for beginning targeting),
                 gRNAExt = g # replace as most extreme
 
 
@@ -39,9 +39,9 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
     lenMax = lengthHR[2]
     genBeg = gene.index[0]
     genEnd = gene.index[1]
-    nxtGen = min( [ seqEnd ] + [ (genEnd>g.index[0]) * seqEnd + g.index[0] for g in genes ] ) # start of next gene downstream
-    prvGen = max( [ seqBeg ] + [ (genBeg>g.index[1]) * g.index[1] for g in genes ] ) # end of previous gene upstream
-    gRNAEx = gRNAExt.index[doingHR == 'RHR'] # position of most extreme gRNA to be avoided
+    nxtGen = min( [ seqEnd ] + [ (genEnd>g.index[0]) * seqEnd + g.index[0] for g in genes ] ) # start of next gene downstream (or end of file)
+    prvGen = max( [ seqBeg ] + [ (genBeg>g.index[1]) * g.index[1] for g in genes ] ) # end of previous gene upstream (or start of file)
+    gRNAEx = gRNAExt.index[doingHR == 'RHR'] # position of most extreme gRNA to be avoided (takes start or end as relevant for each HR)
 
     if not ( (seqBeg<=lenMin) and (lenMin<=lenMax) and (lenMax<=genBeg) and (genBeg<=genEnd) and (genEnd<=seqEnd) and (seqEnd-genEnd>=lenMax) ) : # If assertions don't hold,
         log = log + "\nERROR: Not enough space on either side of gene for maximum HR size, or you mixed up min and max HR lengths. Aborting." + "\n" # give a warning
@@ -49,8 +49,20 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
     # Initialize region
 
-    regBeg = max( (targetExtreme == 'end') * (genBeg-lenMax-1), prvGen ) if doingHR == 'LHR' else max( (targetExtreme == 'end') * genEnd, gRNAEx, min(gBlockDefault*(genBeg+minGBlockSize),nxtGen-lenMin) ) # beginning of possible LHR or RHR region
-    regEnd = min( genEnd-3*codingGene, gRNAEx, max(gBlockDefault*(gRNAEx<genEnd)*(targetExtreme == 'end')*(genEnd-minGBlockSize-3), (targetExtreme == 'end')*seqEnd + genBeg) ) if doingHR == 'LHR' else min( nxtGen, seqEnd ) # end of possible LHR or RHR region
+    regBeg = max( (targetExtreme == 'end') * (genBeg-lenMax-1), prvGen ) if doingHR == 'LHR' else max( (targetExtreme == 'end') * genEnd, (targetExtreme == 'start') * genBeg, gRNAEx) # beginning of possible LHR or RHR region
+        # LHR:
+        #   if 3' target, start at most downstream between max upstream position and end of previous gene.
+        #   if 5' target, start at most downstream between start of file and end of previous gene.
+        # RHR:
+        #   if 3' target, start at most downstream between end of gene, end of last gRNA
+        #   if 5' target, start at most downstream between start of gene, end of last gRNA
+    regEnd = min( genEnd-3*codingGene, gRNAEx, (targetExtreme == 'end')*seqEnd + genBeg ) if doingHR == 'LHR' else min( nxtGen, seqEnd ) # end of possible LHR or RHR region
+        # LHR:
+        #   if 3' target, end at most upstream between gene end (before stop codon if coding) and most upstream gRNA start
+        #   if 5' target, end at most upstream between start of gene and most upstream gRNA start point
+        # RHR:
+        #   if 3' target, end at most upstream between next gene and end of file
+        #   if 5' target, end at most upstream between next gene and end of file (same)
 
     if regBeg > seqEnd-lenMin or regEnd < seqBeg+lenMin: # if not enough space for the HR on the sequence file,
         log = log + "\nERROR: Not enough space on either side of gene for HR chosen. Aborting." + "\n" # give an error
