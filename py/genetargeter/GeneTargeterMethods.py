@@ -214,13 +214,15 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                 outputDic["gRNATable"] = recoded["gRNATable"]; # saves gRNA output values
                 recoded = recoded["out"]; # saves actual data
 
-                plasmidArmed = insertTargetingElements(plasmid, gene.label, gRNA.seq, LHR.seq, recoded.seq, RHR.seq, plasmidType=plasmidType, haTag=False); # inserts targeting elements
+                bestGRNA = geneGB.findAnnsLabel("(chosen)")[0]; # saves RHR annotation
+
+                plasmidArmed = insertTargetingElements(plasmid, gene.label, bestGRNA.seq, LHR.seq, recoded.seq, RHR.seq, plasmidType=plasmidType, haTag=False); # inserts targeting elements
                 plasmidArmedHA = ""; # will contain plasmid with HA tags
                 outputDicHA = copy.deepcopy(outputDic); # will store outputs
                 outputDicHA["logFileStr"] = outputDicHA["logFileStr"].replace(" **** \n\n", "_HA_Tag **** \n\n")
                 outputDic = postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=False, gBlockDefault=gBlockDefault); # generate and annotate assembly info
                 if haTag: # if using HA tags,
-                    plasmidArmedHA = insertTargetingElements(plasmid, gene.label, gRNA.seq, LHR.seq, recodedHA.seq, RHR.seq, plasmidType=plasmidType, haTag=True); # inserts targeting elements
+                    plasmidArmedHA = insertTargetingElements(plasmid, gene.label, bestGRNA.seq, LHR.seq, recodedHA.seq, RHR.seq, plasmidType=plasmidType, haTag=True); # inserts targeting elements
                     outputDicHA = postProcessPlasmid(geneName, geneGB, gene, plasmidArmedHA, recodedHA, outputDicHA, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=True, gBlockDefault=gBlockDefault); # generate and annotate assembly info
                     outputDic["outputHA"] = outputDicHA; # if using HA tags, save design inside output dictionary
                     if not useFileStrs: # if saving to files,

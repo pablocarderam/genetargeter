@@ -237,6 +237,8 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
                 countBackups +=1; # advances counter
                 if g.gc >= maxGC: # if this gRNA has a greater or equal GC content,
                     gRNAExtreme = g; # set as most extreme gRNA
+                    maxGC = g.gc # set max gc for evaluation
+                    bestGRNA = g # set as best gRNA
 
 
 
@@ -315,6 +317,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
         if len(backupGRNAs) + len(gRNAs) == 0: # If there were absolutely no gRNAs under these settings,
             log = log + "\n" + "ERROR: no gRNAs found. Please modify your criteria or select and annotate one manually.\n\n"; # say so
 
+        bestGRNA.label = bestGRNA.label + " (chosen)"
 
     return {"out":gRNAExtreme, "log":log, "gRNATable":gRNATableString}; # returns gRNA and log
 
