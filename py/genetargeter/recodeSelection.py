@@ -85,7 +85,7 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
         recodeSeq = recodeSeq[frame:len(recodeSeq)]; # adjust recode region
 
         cutSeqs = filterCutSites + [g.seq for g in gRNAs]; # list of all cut seqs. all gRNAs in gene are to be included as cut sequences
-        cutCheck = 0; # variable used to check if cut sequences are present. Initially greater than -1*len(cutSeqs) since all gRNAs are present.
+        cutCheck = True; # variable used to check if no cut sequences are present.
         offScore = 100; # stores off-target score. Default is 100% due to the fact that gRNA sequence is the same.
         count = 0; # iteration counter
         recodedSeq = recodeSeq; # assign recoded sequence to same as original
@@ -95,11 +95,11 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
             badStart = False; # True if first bases have low melting temp (important for Gibson assembly)
             candidateFound = False; # signal possible candidate found
             bestRecodedSeq = recodedSeq; # will store best candidate sequence
-            while cutCheck > -2*len(cutSeqs) or offScore > offScoreThreshold or tricky or badStart: # while cutCheck is greater than what you would expect for no hits in all cut sequences plus the gRNAs on both positive and comp strands, or while the pairwise off-target score is over the threshold, or while there are difficult-to-synthesize structures in the recoded region, or while the first 40 bp have a bad gc content
+            while not cutCheck or offScore > offScoreThreshold or tricky or badStart: # while cutCheck shows hits in a cut sequences, or while the pairwise off-target score is over the threshold, or while there are difficult-to-synthesize structures in the recoded region, or while the first 40 bp have a bad gc content
                 if count > 0: # if recoded region has failed checks once,
                     codonSampling = True; # forces codonSampling to true if so
 
-                cutCheck = 0; # reset cutCheck
+                cutCheck = True; # reset cutCheck
                 offScore = 0; # reset offScore
                 tricky = False; # reset tricky Boolean
                 badStart = False; # reset badStart Boolean
@@ -188,15 +188,15 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
 
                 for site in cutSeqs: # for every cut site being filtered,
-                    cutCheck += findFirst(site,recodedSeq); # Find cut site, register in cutCheck
-                    cutCheck += findFirst(revComp(site),recodedSeq); # Find cut site in comp strand, register in cutCheck
+                    cutCheck = cutCheck * ( findFirst(recodedSeq,site) < 0 ); # Find cut site, register in cutCheck
+                    cutCheck = cutCheck * ( findFirst(recodedSeq,revComp(site)) < 0 ); # Find cut site in comp strand, register in cutCheck
 
                 tricky = isTricky(recodedSeq); # check if tricky to synthesize
 
                 if gcContent(recodedSeq[0:40]) < minGCEnd5Prime: # if the first bases don't have enough gc content
                     badStart = True;
 
-                if not tricky and offScore <= offScoreThreshold and cutCheck <= -2*len(cutSeqs): # if parameters other than badStart are ok and this sequence has better start than previous best,
+                if not tricky and offScore <= offScoreThreshold and cutCheck: # if parameters other than badStart are ok and this sequence has better start than previous best,
                     if not candidateFound: # if no candidate found until now,
                         bestRecodedSeq = recodedSeq; # make this new best
                     elif gcContent(recodedSeq[0:40]) > gcContent(bestRecodedSeq[0:40]):
@@ -313,7 +313,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
             recodeSeq = ha_tag + recodeSeq; # add HA tag to start of recoded region
 
         cutSeqs = filterCutSites + [g.seq for g in gRNAs]; # list of all cut seqs. all gRNAs in gene are to be included as cut sequences
-        cutCheck = 0; # variable used to check if cut sequences are present. Initially greater than -1*len(cutSeqs) since all gRNAs are present.
+        cutCheck = True; # variable used to check if cut sequences are present. Initially false since all gRNAs are present.
         offScore = 100; # stores off-target score. Default is 100% due to the fact that gRNA sequence is the same.
         count = 0; # iteration counter
         recodedSeq = recodeSeq; # assign recoded sequence to same as original
@@ -323,11 +323,11 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
             badStart = False; # True if first bases have low melting temp (important for Gibson assembly)
             candidateFound = False; # signal possible candidate found
             bestRecodedSeq = recodedSeq; # will store best candidate sequence
-            while cutCheck > -2*len(cutSeqs) or offScore > offScoreThreshold or tricky or badStart: # while cutCheck is greater than what you would expect for no hits in all cut sequences plus the gRNAs on both positive and comp strands, or while the pairwise off-target score is over the threshold, or while there are difficult-to-synthesize structures in the recoded region, or while the first 40 bp have a bad gc content
+            while not cutCheck or offScore > offScoreThreshold or tricky or badStart: # while cutCheck is greater than what you would expect for no hits in all cut sequences plus the gRNAs on both positive and comp strands, or while the pairwise off-target score is over the threshold, or while there are difficult-to-synthesize structures in the recoded region, or while the first 40 bp have a bad gc content
                 if count > 0: # if recoded region has failed checks once,
                     codonSampling = True; # forces codonSampling to true if so
 
-                cutCheck = 0; # reset cutCheck
+                cutCheck = True; # reset cutCheck
                 offScore = 0; # reset offScore
                 tricky = False; # reset tricky Boolean
                 badStart = False; # reset badStart Boolean
@@ -416,26 +416,15 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
 
                 for site in cutSeqs: # for every cut site being filtered,
-                    cutCheck += findFirst(site,recodedSeq); # Find cut site, register in cutCheck
-                    cutCheck += findFirst(revComp(site),recodedSeq); # Find cut site in comp strand, register in cutCheck
+                    cutCheck = cutCheck * ( findFirst(recodedSeq,site) < 0 ); # Find cut site, register in cutCheck
+                    cutCheck = cutCheck * ( findFirst(recodedSeq,revComp(site)) < 0 ); # Find cut site in comp strand, register in cutCheck
 
-                if findFirst(recodedSeq,"TATATATATATATATATATA") > -1: # if 10 TA repeats found,
-                    tricky = True; # it's tricky
-                elif findFirst(recodedSeq,"GCGCGCGCGCGCGC") > -1: # if 7 GC repeats found,
-                    tricky = True; # it's tricky
-                elif findFirst(recodedSeq,"AAAAAAAAAAAAA") > -1: # if 13 A repeats found,
-                    tricky = True; # it's tricky
-                elif findFirst(recodedSeq,"TTTTTTTTTTTTT") > -1: # if 13 T repeats found,
-                    tricky = True; # it's tricky
-                elif findFirst(recodedSeq,"GGGGGGGGG") > -1: # if 9 G repeats found,
-                    tricky = True; # it's tricky
-                elif findFirst(recodedSeq,"CCCCCCCCC") > -1: # if 9 C repeats found,
-                    tricky = True; # it's tricky
+                tricky = isTricky(recodedSeq); # check if tricky to synthesize
 
                 if gcContent(recodedSeq[0:40]) < minGCEnd5Prime: # if the first bases don't have enough gc content
                     badStart = True;
 
-                if not tricky and offScore <= offScoreThreshold and cutCheck <= -2*len(cutSeqs): # if parameters other than badStart are ok and this sequence has better start than previous best,
+                if not tricky and offScore <= offScoreThreshold and cutCheck: # if parameters other than badStart are ok and this sequence has better start than previous best,
                     if not candidateFound: # if no candidate found until now,
                         bestRecodedSeq = recodedSeq; # make this new best
                     elif gcContent(recodedSeq[0:40]) > gcContent(bestRecodedSeq[0:40]):
