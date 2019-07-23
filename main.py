@@ -20,7 +20,7 @@ from flask import Flask, render_template, session, request
 from flask_socketio import SocketIO, emit, disconnect, join_room
 
 app = Flask(__name__)
-app.debug = True # change in dev/prod
+app.debug = False #True # change in dev/prod
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
