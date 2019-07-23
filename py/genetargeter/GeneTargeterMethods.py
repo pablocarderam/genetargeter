@@ -337,8 +337,9 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     geneGB.definition = (geneGB.definition + "  " + outputDic["logFileStr"]).replace("\n","   "); # save logs to file definition to be viewed in benchling
 
     if geneOrientationNegative: # if gene was originally on comp strand,
-        geneGB = geneGB.revComp(); # flip pre-editing locus
-        editedLocus = editedLocus.revComp(); # flip post-editing locus
+        # don't flip back by request
+        pass # geneGB = geneGB.revComp(); # flip pre-editing locus
+        # editedLocus = editedLocus.revComp(); # flip post-editing locus
 
     haName = ""; # default no HA tags notated in name
     if haTag: # if using HA tags,
