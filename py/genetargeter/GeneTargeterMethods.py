@@ -262,6 +262,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
         outputDic["logFileStr"] = outputDic["logFileStr"] + gBlock["log"]; # add logs
         gBlock = gBlock["out"]; # saves actual data
         plasmidArmed.features.append(gBlock); # add to plasmid annotations
+        gBlockString = ">" + geneName + "_" + plasmidType + "_" + enzyme + "_" + "_Recoded_Region_gBlock\n" + gBlock.seq + "\n\n" # save to filestring
 
         primGBlock = createPrimers(plasmidArmed, gBlock); # creates gBlock primers
         outputDic["logFileStr"] = outputDic["logFileStr"] + primGBlock["log"]; # add logs
@@ -317,6 +318,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     outputDic["logFileStr"] = outputDic["logFileStr"] + gRNAGBlock["log"]; # add logs
     gRNAGBlock = gRNAGBlock["out"]; # saves actual data
     plasmidArmed.features.append(gRNAGBlock); # add to plasmid annotations
+    gBlockString = ">" + geneName + "_" + plasmidType + "_" + enzyme + "_sgRNA_Cassette_gBlock\n" + gRNAGBlock.seq + "\n\n" # save to filestring
 
     primGRNAGBlock = createPrimers(plasmidArmed, gRNAGBlock); # creates gBlock primers
     outputDic["logFileStr"] = outputDic["logFileStr"] + primGRNAGBlock["log"]; # add logs
@@ -354,6 +356,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     outputDic["plasmidFileStr"] = plasmidArmed.save(path + "/" + plasmidType + "_" + enzyme + "_" + geneName + haName, saveToFile=(not useFileStrs)); # saves plasmid
     outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + geneName + plasmidType + "_" + enzyme + haName + "_Locus_Post-editing.gb", saveToFile=(not useFileStrs)); # saves edited locus
     outputDic["oligoFileStr"] = primerString; # saves primers to file
+    outputDic["gBlockFileStr"] = gBlockString; # saves gBlocks to file
     outputDic["newPlasmid"] = plasmidArmed; # saves new plasmid to output dictionary
     outputDic["newGene"] = geneGB; # saves new plasmid to output dictionary
     outputDic["editedLocus"] = editedLocus; # saves edited locus to output dictionary

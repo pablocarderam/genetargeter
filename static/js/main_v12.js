@@ -339,10 +339,10 @@ function displayGeneOutput(files) {
 
 
 function downloadOutput() {
-    var fileTypes = ["Locus_Pre-editing_","Plasmid_","Locus_Post-editing_","Oligos_","sgRNA_Table_","Message_File_"];
+    var fileTypes = ["Locus_Pre-editing_","Plasmid_","Locus_Post-editing_","Oligos_","gBlocks_","sgRNA_Table_","Message_File_"];
     var enzyme = document.getElementById('enzymeType').value;
     var plasmid = document.getElementById('plasmidType').value;
-    var fileExt = [".gb",".gb",".gb",".csv",".csv",".txt"];
+    var fileExt = [".gb",".gb",".gb",".csv",".fasta",".csv",".txt"];
     for (var j = 1; j < currentOutput.length; j++) {
         if (j%(fileTypes.length+1) > 0 && currentOutput[j].length > 1) {
             var geneName = currentOutput[Math.floor(j/(fileTypes.length+1))*7] + nonCoding;

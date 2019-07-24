@@ -39,9 +39,15 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
     lenMax = lengthHR[2]
     genBeg = gene.index[0]
     genEnd = gene.index[1]
-    nxtGen = min( [ seqEnd ] + [ (genEnd>g.index[0]) * seqEnd + g.index[0] for g in genes ] ) # start of next gene downstream (or end of file)
-    prvGen = max( [ seqBeg ] + [ (genBeg>g.index[1]) * g.index[1] for g in genes ] ) # end of previous gene upstream (or start of file)
     gRNAEx = gRNAExt.index[doingHR == 'RHR'] # position of most extreme gRNA to be avoided (takes start or end as relevant for each HR)
+    nxtGen = min( [ seqEnd ] + [ (genEnd>g.index[1]) * seqEnd + g.index[0] for g in genes ] ) # start of next gene downstream (or end of file)
+    prvGen = max( [ seqBeg ] + [ (genBeg>g.index[0]) * g.index[1] for g in genes ] ) # end of previous gene upstream (or start of file)
+    if nxtGen < genEnd and doingHR == 'LHR': # if next gene starts before end of our gene,
+        log = log + "\nWarning: Gene overlap on the 5' end detected, proceeding anyway." + "\n" # give a warning
+        nxtGen = seqEnd # default to end of file
+    if prvGen > genBeg and doingHR == 'RHR': # if previous gene starts before end of our gene,
+        log = log + "\nWarning: Gene overlap on the 3' end detected, proceeding anyway." + "\n" # give a warning
+        prvGen = 0 # default to start of file
 
     if not ( (seqBeg<=lenMin) and (lenMin<=lenMax) and (lenMax<=genBeg) and (genBeg<=genEnd) and (genEnd<=seqEnd) and (seqEnd-genEnd>=lenMax) ) : # If assertions don't hold,
         log = log + "\nERROR: Not enough space on either side of gene for maximum HR size, or you mixed up min and max HR lengths. Aborting." + "\n" # give a warning
