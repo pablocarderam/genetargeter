@@ -197,9 +197,9 @@ def createGBlock(plasmid, part, overlapSize):
         if gcContent(gBlockSeq[i:i+20]) < 0.05: # If gc content of 20 bp gBlock window is too low or tricky sequences are present
             tricky = True; # might be tricky'''
 
-    if findFirst(gBlockSeq,"TATATATATATATATATATA") > -1: # if 10 TA repeats found,
+    if findFirst(gBlockSeq.replace("T", "A"),"AAAAAAAAAAAAAAAAAAAA") > -1: # if 20 continuous T/A nucleotides found,
         tricky = True; # it's tricky
-    elif findFirst(gBlockSeq,"GCGCGCGCGCGCGC") > -1: # if 7 GC repeats found,
+    elif findFirst(gBlockSeq.replace("G", "C"),"CCCCCCCCCCCCCC") > -1: # if 14 continuous G/C nucleotides found,
         tricky = True; # it's tricky
     elif findFirst(gBlockSeq,"AAAAAAAAAAAAA") > -1: # if 13 A repeats found,
         tricky = True; # it's tricky
