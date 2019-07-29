@@ -1,6 +1,4 @@
-# GeneTargeter
-
-<img src="static/assets/roundLogoNilesLab.png" width="400px" title="Niles Lab Logo">
+# GeneTargeter <img align="right" src="static/assets/roundLogoNilesLab.png" width="200px" title="Niles Lab Logo">
 
 GeneTargeter creates custom gene-editing constructs developed by the [Niles Lab at MIT](http://web.mit.edu/nileslab/), designed for knock-out or conditional knock-down in [_Plasmodium falciparum_](http://www.who.int/mediacentre/factsheets/fs094/en/),  by delivering a 3' or 5' UTR post-transcriptional regulatory element payload to a specific given gene.
 
@@ -48,6 +46,8 @@ Off-target Zhang Lab scoring matrix obtained December 27, 2016 from the online [
 Off-target gRNA database built from the _P. falciparum_ genome first published by [ Gardner et al. (2002)](https://dx.doi.org/10.1038/nature01097) and subsequently edited by the [PlasmoDB](http://plasmodb.org/plasmo/) community.
 
 Codon frequency tables obtained from the [High-performance Integrated Virtual Environment-Codon Usage Tables (HIVE-CUT) database](https://hive.biochemistry.gwu.edu/cuts/about) [(Athey et al., 2017)](https://dx.doi.org/10.1186/s12859-017-1793-7).
+
+Niles Lab logo made by Alejandra Falla.
 
 
 ## Authors
