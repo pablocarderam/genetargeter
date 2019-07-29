@@ -1,1 +1,1 @@
-web: python main.py #used for heroku
+web: python main.py 
