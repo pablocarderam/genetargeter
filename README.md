@@ -6,6 +6,8 @@ Most applications can be served well through the web application running at [gen
 
 NOTE: the app sometimes takes a good 30 seconds to load if nobody's used it in a while.
 
+___
+
 However, if you really want to run it locally, you can do so as follows:
 
 ## Installation
