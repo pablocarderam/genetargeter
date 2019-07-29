@@ -316,8 +316,8 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
         log = log + "\n" + str(countBackups) + " backup gRNAs with possible off-target effects annotated.\n\n"
         if len(backupGRNAs) + len(gRNAs) == 0: # If there were absolutely no gRNAs under these settings,
             log = log + "\n" + "ERROR: no gRNAs found. Please modify your criteria or select and annotate one manually.\n\n"; # say so
-
-        bestGRNA.label = bestGRNA.label + " (chosen)"
+        else: # if there are any gRNAs,
+            bestGRNA.label = bestGRNA.label + " (chosen)" # there should be a best one
 
     return {"out":gRNAExtreme, "log":log, "gRNATable":gRNATableString}; # returns gRNA and log
 

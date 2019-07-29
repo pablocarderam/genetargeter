@@ -1,0 +1,51 @@
+
+##########################################################
+###                                                    ###
+###             GENETARGETER PARAMETER FILE            ###
+### Contact pablocarderam@gmail.com with any questions ###
+###                                                    ###
+##########################################################
+
+# ALL BOOLEAN PARAMETERS SHOULD BE ENCODED AS True OR False
+# ALL PARAMETERS THAT ARE NON-NUMERIC AND NON BOOLEAN SHOULD BE IN QUOTES
+
+### Plasmid vector content ###
+plasmidType           : 'pSN054'        # Vector backbone to be used ('pSN054', 'pSN150', 'pSN150-KO' for 3', 5', and for gene knock-outs, respectively) QUOTES ("" or '') NEEDED
+haTag                 : 'Auto'          # Adds HA protein tag to 5' end if using pSN150; if 'Auto', adds only if gene has no reported signal peptide ('Auto'/True/False, QUOTES ("" or '') NEEDED FOR AUTO)
+
+### Plasmid assembly ###
+filterCutSites        : 'Auto'          # Checks designs for restriction enzyme cut sites specified as [ "ggccggcc", "gcgatcgc", "gctagc" ]
+                                        # If 'Auto' (QUOTES ("" or '') NEEDED FOR AUTO), checks for predetermined lists according to plasmid type:
+                                        # 'pSN054' : FseI, AsiSI, IPpoI, ISceI, AflII, AhdI
+                                        # 'pSN150' : FseI,AsiSI,IPpoI,ISceI,AflII,AhdI,BsiWI, NheI
+                                        # 'pSN150-KO' : FseI, AsiSI, IPpoI, ISceI, AflII, AhdI, BsiWI, NheI
+gibsonHomRange        : [20,30,40]      # Length in bp of homology on each side used for Gibson assembly primer design [minimum, preferred, maximum]
+gibTemp               : 50              # Minimum Gibson primer melting temperature in ºC
+gibTDif               : 5               # Maximum melting temperature difference between Gibson primers in ºC
+gBlockDefault         : True            # Defaults to always using gene fragment synthesis for recoded regions, if any (instead of Klenow oligos for smaller regions) (True, False)
+minGBlockSize         : 125             # Minimum gene fragment size in bp (extends fragment if under minimum size if gBlockDefault is True, otherwise uses Klenow oligos)
+codonOptimize         : 'T. gondii'     # Codon usage table used for recodonization when recoding gene fragment region, if any ('P. falciparum 3D7', 'P. vivax', 'T. gondii', 'E. coli K12', 'S. cerevisiae', 'H. sapiens', 'R. norvegicus', 'scramble') QUOTES ("" or '') NEEDED
+codonSampling         : False           # Codon optimization algorithm used to select codons when recodonizing recoded region, if any (True, False for Codon Sampling and CAI maximization, respectively) (http://omicsomics.blogspot.com/2009/04/is-codon-optimization-bunk.html)
+
+### Homologous region design ###
+HRannotated           : False           # Uses gRNA, LHR, and/or RHR already annotated on plasmid rather than software selected (True, False)
+lengthLHR             : [450,500,750]   # Length in bp of Left Homologous Region (LHR) [minimum, preferred, maximum]
+lengthRHR             : [450,500,750]   # Length in bp of Right Homologous Region (LHR) [minimum, preferred, maximum]
+optimRangeLHR         : [-20,20]        # Range in bp over which a higher melting temperature will be searched for selected LHR starts and ends [upstream, downstream]
+optimRangeRHR         : [-20,20]        # Range in bp over which a higher melting temperature will be searched for selected RHR starts and ends [upstream, downstream]
+endSizeLHR            : 40              # Length in bp of region at start and end of LHR to be taken into account when evaluating optimal starts and ends
+endSizeRHR            : 40              # Length in bp of region at start and end of RHR to be taken into account when evaluating optimal starts and ends
+endTempLHR            : 55              # Minimum temperature in ºC that LHR start and end regions must have
+endTempRHR            : 55              # Minimum temperature in ºC that RHR start and end regions must have
+maxDistLHR            : 500             # Maximum distance in bp between LHR end and gRNA (if targeting 5') or gene start (if targeting 3' end)
+maxDistRHR            : 500             # Maximum distance in bp between gene end (if targeting 5') or gRNA (if targeting 3' end) and RHR start
+
+### gRNA Selection ###
+enzyme                : 'Cas9'          # Enzyme type used in plasmid ('Cas9', 'Cas12') QUOTES ("" or '') NEEDED
+PAM                   : 'NGG'           # Protospacer-Adjacent Motif (PAM) to be searched for when defining candidate gRNA sequences (most commonly 'NGG' for Cas9 and 'TTTV' for Cas12) QUOTES ("" or '') NEEDED
+minGRNAGCContent      : 25              # Minimum GC content of gRNA (%)
+onTargetMethod        : 'azimuth'       # Algorithm used to score on-target gRNA activity ('azimuth','ruleset2','cindel'); Doench et al. (2016) scores obtained from gradient-boosted regression trees of SpCas9 data. Kim et al. (2017) scores determined through logistic regression of AsCas12 data.
+minOnTargetScore      : 35              # Minimum on-target score for gRNAs (numeric, 0 to 100; 35 and 20 are useful cutoffs for azimuth/ruleset2 and cindel, respectively)
+offTargetMethod       : 'cfd'           # Algorithm used to score off-target gRNA activity ('cfd','hsu'); CFD scores are more accurate in Cas9-edited mammalian cells (Doench et al., 2016). Hsu et al. (2013) scores are used by crispr.mit.edu and Benchling, and are used as proxies for Cas12. Individual scores are aggregated as per crispr.mit.edu.
+minOffTargetScore     : 20              # Minimum off-target score for gRNAs (numeric, 0 to 100; 20 and 75 are useful cutoffs for cfd and hsu, respectively)
+maxOffTargetHitScore  : 50              # Maximum off-target score for gRNAs (numeric, 0 to 100; 50 and 5 are useful cutoffs for cfd and hsu, respectively)

@@ -442,3 +442,20 @@ function changeEnzyme() {
     changeOffScoringMethod();
     changeOnScoringMethod();
 }
+
+function changeUTRTarget() {
+    if (document.getElementById('plasmidType').value === 'pSN054') {
+        document.getElementById('maxDistLHRTxt').value = document.getElementById('maxDistLHRTxt').value.replace('gRNA','gene');
+        document.getElementById('maxDistRHRTxt').value = document.getElementById('maxDistRHRTxt').value.replace('gene','gRNA');
+        document.getElementById('maxDistRHR').value = 500;
+    }
+    else {
+      document.getElementById('maxDistRHRTxt').value = document.getElementById('maxDistRHRTxt').value.replace('gRNA','gene');
+      document.getElementById('maxDistLHRTxt').value = document.getElementById('maxDistLHRTxt').value.replace('gene','gRNA');
+      if (document.getElementById('plasmidType').value === 'pSN150-KO') {
+          document.getElementById('maxDistRHR').value = 5000;
+      }
+    }
+    changeOffScoringMethod();
+    changeOnScoringMethod();
+}

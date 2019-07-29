@@ -59,7 +59,7 @@ HRannotated is true if the GenBank file given as input includes manual LHR and
 filterCutSites is a list of strings containing cut sequences to be filtered if
     user provides LHR and RHR.
 """
-def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,650], lengthRHR=[450,500,750], gibsonHomRange=[30,40,50], optimRangeLHR=[-20,10], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="azimuth", minOnTargetScore=30, offTargetMethod="cfd", offTargetThreshold=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG", gBlockDefault=True, plasmidType="pSN054", haTag=True, sigPep=False): # cfd, 0.5, 35; hsu, 75, 5
+def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,750], lengthRHR=[450,500,750], gibsonHomRange=[20,30,40], optimRangeLHR=[-20,20], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="azimuth", minOnTargetScore=30, offTargetMethod="cfd", minOffTargetScore=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG", gBlockDefault=True, plasmidType="pSN054", haTag=True, sigPep=False, outputDir=''): # cfd, 0.5, 35; hsu, 75, 5
 
     outputDicHA = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":"", "gRNATable":""}; # dictionary containing keys to all values being returned for HA-containing design
     outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":"", "gRNATable":"", "outputHA":outputDicHA}; # dictionary containing keys to all values being returned
@@ -71,7 +71,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
     if useFileStrs: # if we are using file strings,
         path = ""; # sets an empty path, needed for save functions of class GenBank
     else: # If we're using files,
-        path = "output/" + geneName; # string with path to this gene's directory in output folder
+        path = outputDir; # string with path to this gene's directory in output folder
         if not os.path.exists(path): # if a directory for this gene does not exist already,
             os.mkdir(path); # makes new directory
 
@@ -134,13 +134,13 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
         if HRannotated: # if using manual annotations
             gRNA = findGRNA(geneGB, gene); # finds gRNA most upstream annotated manually.
             if len(gRNA["out"].label) == 0: # if no manual annotation found,
-                gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, filterCutSites=filterCutSites); # chooses gRNA.
+                gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=minOffTargetScore, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, filterCutSites=filterCutSites); # chooses gRNA.
 
         else: # if not,
-            gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, filterCutSites=filterCutSites); # chooses gRNA.
+            gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=minOffTargetScore, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, filterCutSites=filterCutSites); # chooses gRNA.
 
         if plasmidType=="pSN150-KO" and not len(gRNA['out'].label)>0: # if knocking out and no gRNA found,
-            gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=offTargetThreshold, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=True, filterCutSites=filterCutSites); # look at downstream end as well
+            gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=minOffTargetScore, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=True, filterCutSites=filterCutSites); # look at downstream end as well
 
         outputDic["logFileStr"] = outputDic["logFileStr"] + gRNA["log"]; # add logs
         outputDic["gRNATable"] = gRNA["gRNATable"]; # saves gRNA output values
@@ -226,18 +226,25 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                     outputDicHA = postProcessPlasmid(geneName, geneGB, gene, plasmidArmedHA, recodedHA, outputDicHA, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=True, gBlockDefault=gBlockDefault); # generate and annotate assembly info
                     outputDic["outputHA"] = outputDicHA; # if using HA tags, save design inside output dictionary
                     if not useFileStrs: # if saving to files,
-                        output(outputDicHA["oligoFileStr"], path + "/" + geneName + plasmidType + "_" + enzyme + "HA_Tags_Oligos.csv",wipe=True); # saves oligos to file
-                        output(outputDicHA["logFileStr"], path + "/" + geneName + plasmidType + "_" + enzyme + "HA_Tags_Message_Log.txt",wipe=True); # saves message log to file
+                        output(outputDicHA["oligoFileStr"], path + "/" + "Oligos_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.csv",wipe=True); # saves oligos to file
+                        output(outputDicHA["logFileStr"], path + "/" + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.txt",wipe=True); # saves message log to file
+                        output(outputDicHA["gRNATable"], path + "/" + "sgRNA_Table_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.txt",wipe=True); # saves message log to file
+                        output(outputDicHA["gBlockFileStr"], path + "/" + "gBlocks_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.fasta",wipe=True); # saves message log to file
 
                 if not useFileStrs: # if saving to files,
-                    output(outputDic["oligoFileStr"], path + "/" + geneName + plasmidType + "_" + enzyme + "_Oligos.csv",wipe=True); # saves oligos to file
-                    output(outputDic["logFileStr"], path + "/" + geneName + plasmidType + "_" + enzyme + "_Message_Log.txt",wipe=True); # saves message log to file
+                    output(outputDic["oligoFileStr"], path + "/" + "Oligos_" + geneName +"_"+ plasmidType + "_" + enzyme + ".csv",wipe=True); # saves oligos to file
+                    output(outputDic["logFileStr"], path + "/" + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
+                    output(outputDic["gRNATable"], path + "/" + "sgRNA_Table_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
+                    output(outputDic["gBlockFileStr"], path + "/" + "gBlocks_" + geneName +"_"+ plasmidType + "_" + enzyme + ".fasta",wipe=True); # saves message log to file
 
 
-
+        else: # if no gRNAs found,
+            output(outputDic["logFileStr"], path + "/" + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
 
     else: # if no gene found,
         outputDic["logFileStr"] = outputDic["logFileStr"] + "\nERROR: No gene annotations found in this file with name " + geneName + "\nProcess terminated.\n";
+        if not useFileStrs: # if saving to files,
+            output(outputDic["logFileStr"], path + "/" + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
 
     return outputDic; # returns output dictionary
 
@@ -346,15 +353,15 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
 
     haName = ""; # default no HA tags notated in name
     if haTag: # if using HA tags,
-        haName = "HA_tags"; # include in name
+        haName = "_HA_tags"; # include in name
 
     geneGB.name = geneName + "_" + plasmidType + "_" + enzyme + "_" + haName + "_Locus_Pre-editing"; # save file type in genbank locus
     plasmidArmed.name = geneName + "_" + plasmidType + "_" + enzyme + "_" + haName; # save file type in genbank locus
     editedLocus.name = geneName + "_" + plasmidType + "_" + enzyme + "_" + haName + "_Locus_Post-editing"; # save file type in genbank locus
 
-    outputDic["geneFileStr"] = geneGB.save(path + "/" + geneName + plasmidType + "_" + enzyme + "_Locus_Pre-editing.gb", saveToFile=(not useFileStrs)); # saves annotated gene
-    outputDic["plasmidFileStr"] = plasmidArmed.save(path + "/" + plasmidType + "_" + enzyme + "_" + geneName + haName, saveToFile=(not useFileStrs)); # saves plasmid
-    outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + geneName + plasmidType + "_" + enzyme + haName + "_Locus_Post-editing.gb", saveToFile=(not useFileStrs)); # saves edited locus
+    outputDic["geneFileStr"] = geneGB.save(path + "/" + "Locus_Pre-editing" + geneName + "_" + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves annotated gene
+    outputDic["plasmidFileStr"] = plasmidArmed.save(path + "/" + "Plasmid_" + geneName + "_" + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves plasmid
+    outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + "Locus_Post-editing_" + geneName + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves edited locus
     outputDic["oligoFileStr"] = primerString; # saves primers to file
     outputDic["gBlockFileStr"] = gBlockString; # saves gBlocks to file
     outputDic["newPlasmid"] = plasmidArmed; # saves new plasmid to output dictionary
