@@ -1,8 +1,6 @@
 /* JS Document */
 /* Main js */
 
-//TODO: make javascript store all incoming message files and query server once all have been received.
-
 var backToTopShown = true; // used to control back-to-top button appearance and disappearance
 var currentOutput = []; // saves current output array to download multiple times if desired
 var nonCoding = ''; // tag if noncoding
@@ -15,6 +13,8 @@ var validCredentials = false;
 function init() {
     document.getElementById("backToTopBtn").style.opacity = 0;
     EPPZScrollTo.scrollVerticalToElementById('Title', 0); // scroll to start at init
+    document.body.style.background = "linear-gradient(rgba(76, 103, 0, 0.75),rgba(76, 0, 0, 0.45)), url('../static/assets/bkgr/bkgr_" + Math.ceil(Math.random()*3).toString() + ".jpg') no-repeat center center fixed";
+    document.body.style.backgroundSize = "cover"
 }
 
 function askCredentials() {
