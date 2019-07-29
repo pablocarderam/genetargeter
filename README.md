@@ -1,6 +1,6 @@
 # GeneTargeter
 
-<img src="static/assets/roundLogoNilesLab.png" width="100px" title="Niles Lab Logo">
+<img src="static/assets/roundLogoNilesLab.png" width="400px" title="Niles Lab Logo">
 
 GeneTargeter creates custom gene-editing constructs developed by the [Niles Lab at MIT](http://web.mit.edu/nileslab/), designed for knock-out or conditional knock-down in [_Plasmodium falciparum_](http://www.who.int/mediacentre/factsheets/fs094/en/),  by delivering a 3' or 5' UTR post-transcriptional regulatory element payload to a specific given gene.
 
