@@ -9,12 +9,13 @@ var fileCounter = 0; // used in coloring output file lines
 var numFilesUploaded = 0;
 var disconnected = false; // true when connection is lost in middle of operations
 var validCredentials = false;
+var numBkgrs = 15;
 
 function init() {
     document.getElementById("backToTopBtn").style.opacity = 0;
     EPPZScrollTo.scrollVerticalToElementById('Title', 0); // scroll to start at init
-    document.body.style.background = "linear-gradient(rgba(76, 103, 0, 0.75),rgba(76, 0, 0, 0.45)), url('../static/assets/bkgr/bkgr_" + Math.ceil(Math.random()*3).toString() + ".jpg') no-repeat center center fixed";
-    document.body.style.backgroundSize = "cover"
+    document.body.style.background = "linear-gradient(rgba(150, 200, 50, 0.4),rgba(76, 0, 0, 0.45)), url('../static/assets/bkgr/bkgr_" + Math.ceil(Math.random()*numBkgrs).toString() + ".jpg') no-repeat center center fixed";
+    document.body.style.backgroundSize = "cover";
 }
 
 function askCredentials() {
