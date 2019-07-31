@@ -101,7 +101,7 @@ def runAll(args=None):
 
     if os.path.isdir(geneFile): # if path given is a directory,
         files = os.listdir(geneFile) # get full list
-        n_jobs = max(len(files),multiprocessing.cpu_count()) # jobs is max of num cores and files
+        n_jobs = min(len(files),multiprocessing.cpu_count()) # jobs is min of num cores and files
         jl.Parallel(n_jobs=n_jobs,verbose=8) (jl.delayed(parallelRun)(os.path.join(geneFile,f),params,outputDir) for f in files)
 
     else:
