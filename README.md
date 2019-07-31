@@ -12,10 +12,22 @@ However, if you really want to run it locally, you can do so as follows:
 
 ## Installation
 
-Clone the repo and run setup from within the main directory:
+You will need a [Python 2.7](https://www.python.org/downloads/release/python-2716/) distribution (>2.7.10 recommended) to run GeneTargeter locally. Consider using [Virtualenv](https://virtualenv.pypa.io) to set up a Python 2.7 environment, especially if you have Python 3 as your default distribution. To install Virtualenv using [Pip](https://pip.pypa.io) and create a virtual environment to run GeneTargeter in, use
 
 ```bash
-git clone git://github.com/schacon/grit.git
+virtualenv --python=/usr/bin/python2.7 venv
+source venv/bin/activate
+```
+
+You can exit the virtual environment when you're done using GeneTargeter with
+```bash
+deactivate
+```
+
+To install GeneTargeter, make sure you are running Python 2.7 in your local environment. Then, clone the repo and run setup from within the main directory:
+
+```bash
+git clone git://github.com/pablocarderam/genetargeter.git
 cd GeneTargeter
 python setup.py install
 ```
