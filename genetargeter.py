@@ -44,17 +44,19 @@ Takes file
 Returns a string with file contents
 """
 def getGeneFileStr(pFile):
-    txt = open(pFile); # Access given file
-    d = txt.read(); # Read file
-    txt.close(); # close file
-
-    return d; # returns dictionary
+    if pFile[-3:] == '.gb':
+        txt = open(pFile); # Access given file
+        d = txt.read(); # Read file
+        txt.close(); # close file
+        return d; # returns dictionary
+    else:
+        print 'ERROR in '+pFile+' : only GenBank files processed.'
 
 def runGene(geneName, geneFileStr, params, outputDir):
     for l in params: # for every line in parameter file,
         exec(l) # execute its content
 
-    minGRNAGCContent=minGRNAGCContent/100 # convert to decimal
+    minGRNAGCContent=minGRNAGCContent/100.0 # convert to decimal
     outMsg = ""; # will store output message
     outMsgHA = "HA_Tag_Design-" # will store output message for HA tag design, if any
 
@@ -78,9 +80,13 @@ def runGene(geneName, geneFileStr, params, outputDir):
 
 
 def parallelRun(file,params,outputDir):
-    geneFileStr = getGeneFileStr(file);
-    geneName = file[file.rfind('/')+1:file.find('.')] # get gene name from file
-    runGene(geneName, geneFileStr, params, outputDir); # call result
+    print file[-10:]
+    if file[-3:] == '.gb':
+        geneFileStr = getGeneFileStr(file);
+        geneName = file[file.rfind('/')+1:file.find('.')] # get gene name from file
+        runGene(geneName, geneFileStr, params, outputDir); # call result
+
+    print file[-10:]+' done!'
 
 
 def runAll(args=None):
@@ -102,7 +108,7 @@ def runAll(args=None):
     if os.path.isdir(geneFile): # if path given is a directory,
         files = os.listdir(geneFile) # get full list
         n_jobs = min(len(files),multiprocessing.cpu_count()) # jobs is min of num cores and files
-        jl.Parallel(n_jobs=n_jobs,verbose=8) (jl.delayed(parallelRun)(os.path.join(geneFile,f),params,outputDir) for f in files)
+        jl.Parallel(n_jobs=n_jobs,verbose=10) (jl.delayed(parallelRun)(os.path.join(geneFile,f),params,outputDir) for f in files)
 
     else:
         geneFileStr = getGeneFileStr(geneFile);

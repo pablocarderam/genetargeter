@@ -163,6 +163,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
             if LHR["out"] is None or RHR["out"] is None and not HRannotated: # if searches fail and HR's not provided,
                 outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"] + RHR["log"]; # add logs
+                output(outputDic["logFileStr"], path + "/" + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
             else: # if successful,
                 if HRannotated: # if LHR and RHR are already annotated,
                     LHRlist = geneGB.findAnnsLabel("LHR"); # overwrite LHR annotations
@@ -359,9 +360,9 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     plasmidArmed.name = geneName + "_" + plasmidType + "_" + enzyme + "_" + haName; # save file type in genbank locus
     editedLocus.name = geneName + "_" + plasmidType + "_" + enzyme + "_" + haName + "_Locus_Post-editing"; # save file type in genbank locus
 
-    outputDic["geneFileStr"] = geneGB.save(path + "/" + "Locus_Pre-editing" + geneName + "_" + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves annotated gene
+    outputDic["geneFileStr"] = geneGB.save(path + "/" + "Locus_Pre-editing_" + geneName + "_" + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves annotated gene
     outputDic["plasmidFileStr"] = plasmidArmed.save(path + "/" + "Plasmid_" + geneName + "_" + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves plasmid
-    outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + "Locus_Post-editing_" + geneName + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves edited locus
+    outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + "Locus_Post-editing_" + geneName + "_" + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves edited locus
     outputDic["oligoFileStr"] = primerString; # saves primers to file
     outputDic["gBlockFileStr"] = gBlockString; # saves gBlocks to file
     outputDic["newPlasmid"] = plasmidArmed; # saves new plasmid to output dictionary

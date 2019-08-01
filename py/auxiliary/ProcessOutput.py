@@ -18,8 +18,9 @@ processOutput()
 def processOutput(dirPath='output/'):
     o=createOutputSummaryTable(dirPath);
     o=createOutputSummaryTableNonProtein(dirPath);
-    gbs=generateConcatGenBanks(dirPath);
-    createOutputDirStructure(dirPath);
+    #gbs=generateConcatGenBanks(dirPath);
+    #createOutputDirStructure(dirPath);
+    print 'Done postprocessing'
 
 
 def createOutputSummaryTable(dirPath):
