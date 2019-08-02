@@ -128,7 +128,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
         codingGene = True; # used further on to decide whether to take stop codons into account
         if not (compareSeq(gene.seq[len(gene.seq)-3:len(gene.seq)],"TAA") or compareSeq(gene.seq[len(gene.seq)-3:len(gene.seq)],"TAG") or compareSeq(gene.seq[len(gene.seq)-3:len(gene.seq)],"TGA") ) or ( "RNA" in (gene.type + "_" + gene.label).upper() and not "MRNA" in (gene.type + "_" + gene.label).upper() ): # if gene ends on a stop codon or has the word RNA in its name or type but isn't an mRNA,
-            outputDic["logFileStr"] = outputDic["logFileStr"] + "Note: this gene appears not to be a protein-coding sequence (it does not end on a stop codon).\n"; # starts message log to file
+            outputDic["logFileStr"] = outputDic["logFileStr"] + "Note: this gene appears not to be a protein-coding sequence (it does not end on a stop codon).\n\n"; # starts message log to file
             codingGene = False;
 
         if HRannotated: # if using manual annotations
@@ -169,9 +169,9 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                     LHRlist = geneGB.findAnnsLabel("LHR"); # overwrite LHR annotations
                     if len(LHRlist) > 0: # if LHR found,
                         LHR = LHRlist[0]; # save first LHR annotation as LHR
-                        outputDic["logFileStr"] = outputDic["logFileStr"] + "\nFound user LHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
+                        outputDic["logFileStr"] = outputDic["logFileStr"] + "Found user LHR annotation, replaced automatic annotation with it." + "\n\n"; # add warning to log
                     else: # if no LHR found,
-                        outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user LHR annotation, used automatic annotation instead." + "\n"; # add warning to log
+                        outputDic["logFileStr"] = outputDic["logFileStr"] + "Warning: Did not find user LHR annotation, used automatic annotation instead." + "\n\n"; # add warning to log
                         outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"]; # add logs
                         LHR = LHR["out"]; # saves actual data
                         geneGB.features.append(LHR); # adds LHR to gene annotations
@@ -179,18 +179,18 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                     RHRlist = geneGB.findAnnsLabel("RHR"); # saves RHR annotation
                     if len(RHRlist) > 0: # if RHR found,
                         RHR = RHRlist[0]; # save first RHR annotation as RHR
-                        outputDic["logFileStr"] = outputDic["logFileStr"] + "\nFound user RHR annotation, replaced automatic annotation with it." + "\n"; # add warning to log
+                        outputDic["logFileStr"] = outputDic["logFileStr"] + "Found user RHR annotation, replaced automatic annotation with it." + "\n\n"; # add warning to log
                     else: # if no RHR found,
-                        outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: Did not find user RHR annotation, used automatic annotation instead." + "\n"; # add warning to log
+                        outputDic["logFileStr"] = outputDic["logFileStr"] + "Warning: Did not find user RHR annotation, used automatic annotation instead." + "\n\n"; # add warning to log
                         outputDic["logFileStr"] = outputDic["logFileStr"] + RHR["log"]; # add logs
                         RHR = RHR["out"]; # saves actual data
                         geneGB.features.append(RHR); # adds RHR to gene annotations
 
                     for site in filterCutSites: # for every cut site being filtered
                         if findFirst(site,LHR.seq) > -1 or findFirst(revComp(site),LHR.seq) > -1: # if cut site found,
-                            outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: LHR sequence for gene " + gene.label + ": \n" + LHR + "\ncontains restriction site " + site + "\n"; # add warning to log
+                            outputDic["logFileStr"] = outputDic["logFileStr"] + "Warning: LHR sequence for gene " + gene.label + ": \n" + LHR + "\ncontains restriction site " + site + "\n\n"; # add warning to log
                         if findFirst(site,RHR.seq) > -1 or findFirst(revComp(site),RHR.seq) > -1: # if cut site found,
-                            outputDic["logFileStr"] = outputDic["logFileStr"] + "\nWarning: RHR sequence for gene " + gene.label + ": \n" + RHR + "\ncontains restriction site " + site + "\n"; # add warning to log
+                            outputDic["logFileStr"] = outputDic["logFileStr"] + "Warning: RHR sequence for gene " + gene.label + ": \n" + RHR + "\ncontains restriction site " + site + "\n\n"; # add warning to log
 
 
                 else: # if HRs not annotated but successful,
@@ -243,7 +243,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
             output(outputDic["logFileStr"], path + "/" + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
 
     else: # if no gene found,
-        outputDic["logFileStr"] = outputDic["logFileStr"] + "\nERROR: No gene annotations found in this file with name " + geneName + "\nProcess terminated.\n";
+        outputDic["logFileStr"] = outputDic["logFileStr"] + "ERROR: No gene annotations found in this file with name " + geneName + "\nProcess terminated.\n";
         if not useFileStrs: # if saving to files,
             output(outputDic["logFileStr"], path + "/" + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
 
@@ -280,7 +280,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
 
         primerString = primerString + "\n" + geneName + " gBlock primer (fwd)," + primGBlock[0].seq + "\n" + geneName + " gBlock primer (rev)," + primGBlock[1].seq; # write primers to output string
     elif len(recoded.seq) >= gibsonHomRange[0]/2: # if length of recoded region greater or equal to half of minimum size of homology region,
-        outputDic["logFileStr"] = outputDic["logFileStr"] + "gBlock deemed not feasible for recoded region of construct targeting gene " + geneName + ", used Klenow instead.\n"; # say so
+        outputDic["logFileStr"] = outputDic["logFileStr"] + "gBlock deemed not feasible for recoded region of construct targeting gene " + geneName + ", used Klenow instead.\n\n"; # say so
         klenowRecoded = createKlenowOligos(plasmidArmed, recodedOnPlasmid, gibsonHomRange[1]); # creates Klenow oligos
         outputDic["logFileStr"] = outputDic["logFileStr"] + klenowRecoded["log"]; # add logs
         klenowRecoded = klenowRecoded["out"]; # saves actual data
@@ -356,9 +356,9 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     if haTag: # if using HA tags,
         haName = "_HA_tags"; # include in name
 
-    geneGB.name = geneName + "_" + plasmidType + "_" + enzyme + "_" + haName + "_Locus_Pre-editing"; # save file type in genbank locus
-    plasmidArmed.name = geneName + "_" + plasmidType + "_" + enzyme + "_" + haName; # save file type in genbank locus
-    editedLocus.name = geneName + "_" + plasmidType + "_" + enzyme + "_" + haName + "_Locus_Post-editing"; # save file type in genbank locus
+    geneGB.name = "Locus_Pre-editing_" + geneName + "_" + plasmidType + "_" + enzyme + haName; # save file type in genbank locus
+    plasmidArmed.name = "Plasmid_" + geneName + "_" + plasmidType + "_" + enzyme + haName; # save file type in genbank locus
+    editedLocus.name = "Locus_Post-editing_" + geneName + "_" + plasmidType + "_" + enzyme + haName; # save file type in genbank locus
 
     outputDic["geneFileStr"] = geneGB.save(path + "/" + "Locus_Pre-editing_" + geneName + "_" + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves annotated gene
     outputDic["plasmidFileStr"] = plasmidArmed.save(path + "/" + "Plasmid_" + geneName + "_" + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves plasmid

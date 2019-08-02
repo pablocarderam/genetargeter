@@ -30,7 +30,8 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
 
 
-    genes = geneGB.findAnnsType("gene") # list of all genes, used to verify LHR doesn't start inside any genes (truncating them)
+    otherGenes = geneGB.findAnnsType("gene") # list of all other genes, used to verify HR doesn't start inside any genes (truncating them)
+    otherGenes.remove(gene) # remove
 
     # Declare variables and check assertions
     seqBeg = 0
@@ -40,22 +41,22 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
     genBeg = gene.index[0]
     genEnd = gene.index[1]
     gRNAEx = gRNAExt.index[doingHR == 'RHR'] # position of most extreme gRNA to be avoided (takes start or end as relevant for each HR)
-    nxtGen = min( [ seqEnd ] + [ (genEnd>g.index[1]) * seqEnd + g.index[0] for g in genes ] ) # start of next gene downstream (or end of file)
-    prvGen = max( [ seqBeg ] + [ (genBeg>g.index[0]) * g.index[1] for g in genes ] ) # end of previous gene upstream (or start of file)
-    if nxtGen < genEnd and doingHR == 'LHR': # if next gene starts before end of our gene,
-        log = log + "\nWarning: Gene overlap on the 5' end detected, proceeding anyway." + "\n" # give a warning
+    nxtGen = min( [ seqEnd ] + [ (genEnd>g.index[1]) * seqEnd + g.index[0] for g in otherGenes ] ) # start of next gene downstream (or end of file)
+    prvGen = max( [ seqBeg ] + [ (genBeg>g.index[0]) * g.index[1] for g in otherGenes ] ) # end of previous gene upstream (or start of file)
+    if nxtGen < genEnd and doingHR == 'RHR' and targetExtreme=='end': # if next gene starts before end of our gene and targeting 3',
+        log = log + "Warning: Gene overlap on the 3' end detected, proceeding anyway." + "\n\n" # give a warning
         nxtGen = seqEnd # default to end of file
-    if prvGen > genBeg and doingHR == 'RHR': # if previous gene starts before end of our gene,
-        log = log + "\nWarning: Gene overlap on the 3' end detected, proceeding anyway." + "\n" # give a warning
+    if prvGen > genBeg and doingHR == 'LHR' and targetExtreme!='end': # if previous gene starts before end of our gene and targeting 5',
+        log = log + "Warning: Gene overlap on the 5' end detected, proceeding anyway." + "\n\n" # give a warning
         prvGen = 0 # default to start of file
 
     if not ( (seqBeg<=lenMin) and (lenMin<=lenMax) and (lenMax<=genBeg) and (genBeg<=genEnd) and (genEnd<=seqEnd) and (seqEnd-genEnd>=lenMax) ) : # If assertions don't hold,
-        log = log + "\nERROR: Not enough space on either side of gene for maximum HR size, or you mixed up min and max HR lengths. Aborting." + "\n" # give a warning
+        log = log + "ERROR: Not enough space on either side of gene for maximum HR size, or you mixed up min and max HR lengths. Aborting." + "\n" # give a warning
         return {"out":None, "log":log}
 
     # Initialize region
 
-    regBeg = max( (targetExtreme == 'end') * (genBeg-lenMax-1), prvGen ) if doingHR == 'LHR' else max( (targetExtreme == 'end') * genEnd, (targetExtreme == 'start') * genBeg, gRNAEx) # beginning of possible LHR or RHR region
+    regBeg = max( (targetExtreme == 'end') * (genBeg-lenMax-1), prvGen ) if doingHR == 'LHR' else max( (targetExtreme == 'end') * genEnd, (targetExtreme != 'end') * genBeg, gRNAEx) # beginning of possible LHR or RHR region
         # LHR:
         #   if 3' target, start at most downstream between max upstream position and end of previous gene.
         #   if 5' target, start at most downstream between start of file and end of previous gene.
@@ -71,7 +72,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
         #   if 5' target, end at most upstream between next gene and end of file (same)
 
     if regBeg > seqEnd-lenMin or regEnd < seqBeg+lenMin: # if not enough space for the HR on the sequence file,
-        log = log + "\nERROR: Not enough space on either side of gene for HR chosen. Aborting." + "\n" # give an error
+        log = log + "ERROR: Not enough space on either side of gene for HR chosen. Aborting." + "\n" # give an error
         return {"out":None, "log":log}
 
     # Partitioning
@@ -91,7 +92,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
     if len(regIdxArr) < 1: # if no valid partitions,
         regIdxArr = [ [ regBeg, regEnd ] ] # default to region
-        log = log + "\nWarning: No "+doingHR+" without restriction enzyme cut sites inside it \nand without excluding a downstream gene found, check output manually!" + "\n" # give a warning
+        log = log + "Warning: No "+doingHR+" without restriction enzyme cut sites inside it \nand without excluding a downstream gene found, check output manually!" + "\n" # give a warning
 
 
     # Find beginning and ending indeces

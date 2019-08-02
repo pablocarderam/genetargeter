@@ -68,8 +68,8 @@ def runGene(geneName, geneFileStr, params, outputDir):
         if plasmidType == "pSN150" and ( haTagMsg == "Yes" or (haTagMsg == "Auto" and not sigPep) ): # if forcing HA tags or 5' end does not contain signal peptide and auto HA-tagging
             haTag = True; # use HA tags
 
-        if type(filterCutSites) == 'str': # if filterCutSites is string
-            filterCutSites = cut_sites[filterCutSites] # assume its a plasmid
+        if filterCutSites == "Auto": # if filterCutSites is automatic
+            filterCutSites = cut_sites[plasmidType] # set to its plasmid
 
         output = targetGene(gbName, geneGBs[gbName], codonOptimize=codonOptimize, useFileStrs=False, outputDir=outputDir, HRannotated=HRannotated,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=gibsonHomRange, optimRangeLHR=optimRangeLHR, optimRangeRHR=optimRangeRHR, endSizeLHR=endSizeLHR, endSizeRHR=endSizeRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minGBlockSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, onTargetMethod=onTargetMethod, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, minOffTargetScore=minOffTargetScore, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme, PAM=PAM, gBlockDefault=gBlockDefault, plasmidType=plasmidType, haTag=haTag, sigPep=sigPep, filterCutSites=filterCutSites); # call result
         # outMsg = outMsg + sep + output["geneName"] + sep + output["geneFileStr"] + sep + output["plasmidFileStr"] + sep + output["editedLocusFileStr"] + sep + output["oligoFileStr"] + sep + output["gBlockFileStr"] + sep + output["gRNATable"] + sep + output["logFileStr"];
@@ -80,13 +80,10 @@ def runGene(geneName, geneFileStr, params, outputDir):
 
 
 def parallelRun(file,params,outputDir):
-    print file[-10:]
     if file[-3:] == '.gb':
         geneFileStr = getGeneFileStr(file);
         geneName = file[file.rfind('/')+1:file.find('.')] # get gene name from file
         runGene(geneName, geneFileStr, params, outputDir); # call result
-
-    print file[-10:]+' done!'
 
 
 def runAll(args=None):

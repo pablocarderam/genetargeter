@@ -25,7 +25,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
 
     log = "Choosing gRNA with PAM sequence " + PAM + " for use with enzyme " + enzyme; # init log
     if not codingGene and searchRange[0] < 0: # if gene is non protein-coding and part of the search region is inside the gene,
-        log += "\nSince this looks like a non protein-coding gene, the gRNA search range will be shifted to be entirely outside of the end of the gene."; # Notate change in search range
+        log += "Since this looks like a non protein-coding gene, the gRNA search range will be shifted to be entirely outside of the end of the gene.\n\n"; # Notate change in search range
         searchRange = [0,searchRangeNonCoding]; # move search range outside gene
 
     gRNATable = []; # will store information on each gRNA evaluated. Format: Label, Status, Enzyme, Position, Strand, GC_content, On-target_score, On-target_method, Aggregated_off-target_score, Max_pairwise_off-target_score, Off-target_method, >9_consecutive_A/T, 4-Homopolymer, Triple_T, Sequence, Recoded_sequence, Recoded_sequence_pairwise_off-target_score
@@ -177,7 +177,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
         inUTR = False; # will be used to explain status in table
 
         if len(gRNAs) == 0: # if no gRNAs found,
-            log = log + "\nWarning: no acceptable gRNA with at least " + str(minGCContent*100) + "% GC content, " + str(minOnTargetScore) + " on-target score, " + str(minOffTargetScore) + " off-target total score, no 4-homopolymer sequences, and no TTT sequences found on gene " + gene.label + ".\n" + "Will use backup gRNA with highest GC content, if there are any backups."; # add warning to log
+            log = log + "Warning: no acceptable gRNA with at least " + str(minGCContent*100) + "% GC content, " + str(minOnTargetScore) + " on-target score, " + str(minOffTargetScore) + " off-target total score, no 4-homopolymer sequences, and no TTT sequences found on gene " + gene.label + ".\n" + "Will use backup gRNA with highest GC content, if there are any backups.\n\n"; # add warning to log
         else: # if gRNAs found,
             newList = []; # new list will only contain gRNAs within acceptable range
             if ( gRNAs[0].index[0] > gene.index[1]-(3*codingGene) and target3Prime ) or ( gRNAs[0].index[1] < gene.index[0] and not target3Prime ): # if most downstream gRNA starts after start of stop codon, or most upstream is before
@@ -216,7 +216,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
                         gRNAExtreme = g; # set this gRNA as most downstream
 
 
-            log = log + "\n" + str(len(gRNAs)) + " acceptable gRNAs were selected automatically on gene " + gene.label + ". \ngRNA 1 has GC content of " + str(bestGRNA.gc*100) + "%, on-target score of " + str(bestGRNA.onTarget)  + ", \nand aggregated off-target score of " + str(bestGRNA.offTarget[0]) + " (Method: " + offTargetMethod + ", Max. Hit Score: " + str(bestGRNA.offTarget[1]) + ", Num. hits: " + str(bestGRNA.offTarget[2]) + ")."; # add warning to log
+            log = log + str(len(gRNAs)) + " acceptable gRNAs were selected automatically on gene " + gene.label + ". \ngRNA 1 has GC content of " + str(bestGRNA.gc*100) + "%, on-target score of " + str(bestGRNA.onTarget)  + ", \nand aggregated off-target score of " + str(bestGRNA.offTarget[0]) + " (Method: " + offTargetMethod + ", Max. Hit Score: " + str(bestGRNA.offTarget[1]) + ", Num. hits: " + str(bestGRNA.offTarget[2]) + ").\n\n"; # add warning to log
 
         geneGB.features = geneGB.features + gRNAs; # add gRNAs to gene GenBank object features list
         countBackups = 0; # counts how many backup gRNAs are included
@@ -313,9 +313,9 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
         gRNATableString = "Values for valid gRNAs, Valid, "+enzyme+", "+str(searchStart)+" to "+str(searchEnd)+", +/-, >=" + str(minGCContent) + ", >="+str(minOnTargetScore)+", "+onTargetMethod+", >="+str(minOffTargetScore)+", >="+str(maxOffTargetHitScore)+", "+offTargetMethod+", False, False, False, -, Recoded if " + refCodon + " codon, >=threshold\n" + gRNATableString; # Add valid threshold
         gRNATableString = "Label, Status, Enzyme, Position, Strand, GC_content, On-target_score, On-target_method, Aggregated_off-target_score, Max_pairwise_off-target_score, Off-target_method, >9_consecutive_A/T, 4-Homopolymer, Triple_T, Sequence, Recoded_sequence, Recoded_sequence_pairwise_off-target_score\n" + gRNATableString; # Add column heads
 
-        log = log + "\n" + str(countBackups) + " backup gRNAs with possible off-target effects annotated.\n\n"
+        log = log + str(countBackups) + " backup gRNAs with possible off-target effects annotated.\n\n"
         if len(backupGRNAs) + len(gRNAs) == 0: # If there were absolutely no gRNAs under these settings,
-            log = log + "\n" + "ERROR: no gRNAs found. Please modify your criteria or select and annotate one manually.\n\n"; # say so
+            log = log + "ERROR: no gRNAs found. Please modify your criteria or select and annotate one manually.\n\n"; # say so
         else: # if there are any gRNAs,
             bestGRNA.label = bestGRNA.label + " (chosen)" # there should be a best one
 
@@ -335,7 +335,7 @@ def findGRNA(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISce
         if len(gRNAs) == 0: # if no gRNAs found
             gRNAs = geneGB.findAnnsLabel("gRNA"); # List of all gRNAs
             if len(gRNAs) == 0: # if no gRNAs found
-                log = log + "\nWarning: no gRNA found on gene " + gene.label + ", selecting one automatically.\n"; # add warning to log
+                log = log + "Warning: no gRNA found on gene " + gene.label + ", selecting one automatically.\n\n"; # add warning to log
             else: # if gRNAs found,
                 gRNAExtreme = gRNAs[0]; # will store gRNA most upstream
                 for g in gRNAs: # loops across gRNAs
@@ -351,7 +351,7 @@ def findGRNA(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISce
         gRNAExtreme = copy.deepcopy(gRNAExtreme); # fixes referencing issue. We want this to be a genuinenly new annotation
         for site in filterCutSites: # for every cut site being filtered
             if findFirst(site,gRNAExtreme.seq) > -1 or findFirst(revComp(site),gRNAExtreme.seq) > -1: # if cut site found,
-                log = log + "\nWarning: gRNA sequence for gene " + gene.label + ": \n" + gRNAExtreme + "\ncontains restriction site " + site + "\n"; # add warning to log
+                log = log + "Warning: gRNA sequence for gene " + gene.label + ": \n" + gRNAExtreme + "\ncontains restriction site " + site + "\n\n"; # add warning to log
 
 
         gRNAExtreme.label = gene.label + " gRNA"; # renames gRNA according to this program's convention

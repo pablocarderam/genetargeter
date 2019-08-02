@@ -150,12 +150,12 @@ def editLocus(geneName, gene, construct):
 
     if len(LHRlist) == 1: # if LHR found,
         LHR = LHRlist[0]; # save first LHR annotation as LHR
-        log = log + "Found LHR annotation for locus editing." + "\n"; # add warning to log
+        log = log + "Found LHR annotation for locus editing." + "\n\n"; # add warning to log
     elif len(LHRlist) == 0: # if no LHR found,
-        log = log + "ERROR: Did not find LHR annotations, genomic context file could not be built." + "\n"; # add warning to log
+        log = log + "ERROR: Did not find LHR annotations, genomic context file could not be built." + "\n\n"; # add warning to log
     else:
         LHR = LHRlist[0]; # save first LHR annotation as RHR
-        log = log + "Warning: Found multiple LHR annotations, genomic context file built with the first one found." + "\n"; # add warning to log
+        log = log + "Warning: Found multiple LHR annotations, genomic context file built with the first one found." + "\n\n"; # add warning to log
 
     RHRlistAll = construct.findAnnsLabel("RHR"); # saves RHR annotation
     RHRlist = []; # contain only exact matches
@@ -166,12 +166,12 @@ def editLocus(geneName, gene, construct):
 
     if len(RHRlist) == 1: # if LHR found,
         RHR = RHRlist[0]; # save first RHR annotation as RHR
-        log = log + "Found RHR annotation for locus editing." + "\n"; # add warning to log
+        log = log + "Found RHR annotation for locus editing." + "\n\n"; # add warning to log
     elif len(RHRlist) == 0: # if no LHR found,
-        log = log + "ERROR: Did not find RHR annotations, genomic context file could not be built." + "\n"; # add warning to log
+        log = log + "ERROR: Did not find RHR annotations, genomic context file could not be built." + "\n\n"; # add warning to log
     else:
         RHR = RHRlist[0]; # save first RHR annotation as RHR
-        log = log + "Warning: Found multiple RHR annotations, genomic context file built with the first one found." + "\n"; # add warning to log
+        log = log + "Warning: Found multiple RHR annotations, genomic context file built with the first one found." + "\n\n"; # add warning to log
 
     startInsertChrom = findFirst(gene.origin, LHR.seq) + len(LHR.seq); # find index of insertion start in the chromosomal DNA given
     endInsertChrom = findFirst(gene.origin, RHR.seq); # find index of insertion end in the chromosomal DNA given
@@ -193,6 +193,6 @@ def editLocus(geneName, gene, construct):
             editedLocus.features.append(editedAnn); # adds annotation to edited locus
 
 
-    log += "Edited locus (genomic context) file built.\n"; # add log entry
+    log += "Edited locus (genomic context) file built.\n\n"; # add log entry
 
     return {"out":editedLocus, "log":log}; # return dictionary

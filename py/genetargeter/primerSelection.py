@@ -28,7 +28,7 @@ def createPrimers(plasmid, part, rangeSize=[18,22,50], rangeMeltTemp=[55,62,65],
             startPF = maxIndexes[0]; # Fwd primer default start position
             endPF = maxIndexes[1]; # Fwd primer default end position
             primFwdSeq = plasmid.origin[startPF:endPF]; # Fwd primer sequence
-            log = log + "\nWarning: Best fwd primer for sequence " + part.label + " under given constraints has a Tm of " + str(meltingTemp(primFwdSeq)) + "\n"; # give warning
+            log = log + "Warning: Best fwd primer for sequence " + part.label + " under given constraints has a Tm of " + str(meltingTemp(primFwdSeq)) + "\n\n"; # give warning
 
 
     startPR = part.index[1] - rangeSize[1]; # Rev primer start position
@@ -49,7 +49,7 @@ def createPrimers(plasmid, part, rangeSize=[18,22,50], rangeMeltTemp=[55,62,65],
             startPR = maxIndexes[0]; # Rev primer default start position
             endPR = maxIndexes[1]; # Rev primer default end position
             primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
-            log = log + "\nWarning: Best rev primer for sequence " + part.label + " under given constraints has a Tm of " + str(meltingTemp(primRevSeq)) + "\n"; # give warning
+            log = log + "Warning: Best rev primer for sequence " + part.label + " under given constraints has a Tm of " + str(meltingTemp(primRevSeq)) + "\n\n"; # give warning
         if meltingTemp(primFwdSeq)-meltingTemp(primRevSeq) > maxTempDif: # if temp difference exceeds specs
             startPR = maxIndexes[0]; # Rev primer default start position
             endPR = maxIndexes[1]; # Rev primer default end position
@@ -66,7 +66,7 @@ def createPrimers(plasmid, part, rangeSize=[18,22,50], rangeMeltTemp=[55,62,65],
                 endPF = endPF - (len(primFwdSeq)-lastBase);
                 primFwdSeq = plasmid.origin[startPF:endPF];
             else: # if temp difference still exceeds specs
-                log = log + "\nWarning: Primers for sequence " + part.label + " under given constraints have a Tm difference of " + str(meltingTemp(primFwdSeq)-meltingTemp(primRevSeq)) + ", above the given threshold of " + str(maxTempDif)  + "\n"; # give warning
+                log = log + "Warning: Primers for sequence " + part.label + " under given constraints have a Tm difference of " + str(meltingTemp(primFwdSeq)-meltingTemp(primRevSeq)) + ", above the given threshold of " + str(maxTempDif)  + "\n\n"; # give warning
 
     annPrimFwd = GenBankAnn(part.label + " Primer (Fwd)", "misc_feature", primFwdSeq, False, [startPF,endPF], annColors['primerColor']); # creates GenBankAnn object to hold fwd primer
     annPrimRev = GenBankAnn(part.label + " Primer (Rev)", "misc_feature", primRevSeq, True, [startPR,endPR], annColors['primerColor']); # creates GenBankAnn object to hold rev primer
@@ -104,7 +104,7 @@ def createGibsonPrimers(plasmid, part, rangeHom=[30,40,50], minMeltTemp=68, maxT
         endPF = maxIndexes[1]; # Fwd primer default end position
         primFwdSeq = plasmid.origin[startPF:endPF]; # Fwd primer sequence
         if meltingTemp(plasmid.origin[part.index[0]:endPF]) < minMeltTemp: # if still no use
-            log = log + "\nWarning: Best Gibson fwd primer for sequence " + part.label + " under given constraints has a Tm of " + str(meltingTemp(plasmid.origin[part.index[0]:endPF])) + ", below the given threshold of " + str(minMeltTemp) + "\n"; # give warning
+            log = log + "Warning: Best Gibson fwd primer for sequence " + part.label + " under given constraints has a Tm of " + str(meltingTemp(plasmid.origin[part.index[0]:endPF])) + ", below the given threshold of " + str(minMeltTemp) + "\n\n"; # give warning
 
 
     startPR = part.index[1] - rangeHom[1]; # Rev primer start position
@@ -128,7 +128,7 @@ def createGibsonPrimers(plasmid, part, rangeHom=[30,40,50], minMeltTemp=68, maxT
         endPR = maxIndexes[1]; # Rev primer default end position
         primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
         if meltingTemp(plasmid.origin[startPR:part.index[1]]) < minMeltTemp: # if still no use
-            log = log + "\nWarning: Best Gibson rev primer for sequence " + part.label + " under given constraints has a Tm of " + str(meltingTemp(plasmid.origin[startPR:part.index[1]])) + ", below the given threshold of " + str(minMeltTemp) + "\n"; # give warning
+            log = log + "Warning: Best Gibson rev primer for sequence " + part.label + " under given constraints has a Tm of " + str(meltingTemp(plasmid.origin[startPR:part.index[1]])) + ", below the given threshold of " + str(minMeltTemp) + "\n\n"; # give warning
         elif meltingTemp(plasmid.origin[part.index[0]:endPF])-meltingTemp(plasmid.origin[startPR:part.index[1]]) > maxTempDif: # if temp difference exceeds specs
             startPR = maxIndexes[0]; # Rev primer default start position
             endPR = maxIndexes[1]; # Rev primer default end position
@@ -148,7 +148,7 @@ def createGibsonPrimers(plasmid, part, rangeHom=[30,40,50], minMeltTemp=68, maxT
                 endPF = lastBase;
                 primFwdSeq = plasmid.origin[startPF:endPF];
             else: # if temp difference still exceeds specs
-                log = log + "\nWarning: Gibson primers for sequence " + part.label + " under given constraints have a Tm difference of " + str(meltingTemp(plasmid.origin[part.index[0]:endPF])-meltingTemp(plasmid.origin[startPR:part.index[1]])) + ", above the given threshold of " + str(maxTempDif) + "\n"; # give warning
+                log = log + "Warning: Gibson primers for sequence " + part.label + " under given constraints have a Tm difference of " + str(meltingTemp(plasmid.origin[part.index[0]:endPF])-meltingTemp(plasmid.origin[startPR:part.index[1]])) + ", above the given threshold of " + str(maxTempDif) + "\n\n"; # give warning
 
     annPrimFwd = GenBankAnn(part.label + " Gibson Primer (Fwd)", "misc_feature", primFwdSeq, False, [startPF,endPF], annColors['primerColor']); # creates GenBankAnn object to hold fwd primer
     annPrimRev = GenBankAnn(part.label + " Gibson Primer (Rev)", "misc_feature", primRevSeq, True, [startPR,endPR], annColors['primerColor']); # creates GenBankAnn object to hold rev primer
@@ -211,7 +211,7 @@ def createGBlock(plasmid, part, overlapSize):
         tricky = True; # it's tricky
 
     if tricky: # if sequence seems tricky
-        log = log + "\nWarning: I suspect IDT might reject the gBlock created: \n" + gBlockSeq + "\n"; # warn user
+        log = log + "Warning: I suspect synthesis company might reject the gene fragment created: \n" + gBlockSeq + "\n\n"; # warn user
 
     annGBlock = GenBankAnn(part.label + " gBlock", "misc_feature", gBlockSeq, False, [startGBlock,endGBlock], annColors['gBlockColor']); # creates GenBankAnn object to hold gBlock
 

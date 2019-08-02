@@ -28,7 +28,7 @@ def createOutputSummaryTable(dirPath):
     for (dirpath, dirnames, filenames) in walk(dirPath):
         for f in filenames:
             if f.find("Message_File") > -1:
-                geneName = f[13:28];
+                geneName = f[15:30];
                 msg = "\n".join(loadSeqs(dirPath+f));
                 results = [""]*12;
                 if geneName in geneResults:
@@ -120,7 +120,7 @@ def createOutputSummaryTable(dirPath):
         geneResults[g].append(bestOption);
         tabStr = tabStr + g + "," + ",".join(geneResults[g]) + "\n";
 
-    output(tabStr,"resultsTable.csv");
+    output(tabStr,"resultsTable.csv", wipe=True);
     return tabStr;
 
 
@@ -227,7 +227,7 @@ def createOutputSummaryTableNonProtein(dirPath):
         geneResults[g].append(bestOption);
         tabStr = tabStr + g + "," + ",".join(geneResults[g]) + "\n";
 
-    output(tabStr,"resultsTableNonProtein.csv");
+    output(tabStr,"resultsTableNonProtein.csv", wipe=True);
     return tabStr;
 
 
@@ -359,7 +359,7 @@ def outputResultsTable(rDict1,rDict2):
     for c in rDict1:
         outStr = outStr + c + ", " + rDict1[c] + ", " + rDict2[c] + "\n";
 
-    output(outStr, "outResultsTable.csv");
+    output(outStr, "outResultsTable.csv", wipe=True);
 
 
 def processErrorFiles(dirPath):
@@ -377,7 +377,7 @@ def processErrorFiles(dirPath):
 
 
 
-    output(outStr,'outResultsTable.csv')
+    output(outStr,'outResultsTable.csv', wipe=True)
 
 '''
 NOT NEEDED ANY MORE:

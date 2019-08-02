@@ -207,7 +207,7 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                 count += 1; # advances iteration counter
                 if count > 6000: # if out of iteration limit,
                     if not candidateFound: # if no candidate without cut sequences found,
-                        log = log + "\nWarning: Recoded region for gene " + gene.label + " could not reshuffle gRNA cut sites enough to fulfill the maximum off-target score threshold, or contains at least one of the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
+                        log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle gRNA cut sites enough to fulfill the maximum off-target score threshold, or contains at least one of the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
 
                     break; # escape loop
 
@@ -435,7 +435,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                 count += 1; # advances iteration counter
                 if count > 6000: # if out of iteration limit,
                     if not candidateFound: # if no candidate without cut sequences found,
-                        log = log + "\nWarning: Recoded region for gene " + gene.label + " could not reshuffle gRNA cut sites enough to fulfill the maximum off-target score threshold, or contains at least one of the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
+                        log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle gRNA cut sites enough to fulfill the maximum off-target score threshold, or contains at least one of the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
 
                     break; # escape loop
 
