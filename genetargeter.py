@@ -60,7 +60,7 @@ def runGene(geneName, geneFileStr, params, outputDir):
     outMsg = ""; # will store output message
     outMsgHA = "HA_Tag_Design-" # will store output message for HA tag design, if any
 
-    geneGBs = preprocessInputFile(geneName, geneFileStr, useFileStrs=True); # obtain gb file(s) to be processed
+    geneGBs = preprocessInputFile(geneName, geneFileStr, useFileStrs=True, doingAltSplices=True); # obtain gb file(s) to be processed
 
     for gbName in geneGBs: # for every gb
         sigPep = chkSignalPeptide5Prime(gbName,signalPDB); # signalP info
@@ -72,11 +72,6 @@ def runGene(geneName, geneFileStr, params, outputDir):
             filterCutSites = cut_sites[plasmidType] # set to its plasmid
 
         output = targetGene(gbName, geneGBs[gbName], codonOptimize=codonOptimize, useFileStrs=False, outputDir=outputDir, HRannotated=HRannotated,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=gibsonHomRange, optimRangeLHR=optimRangeLHR, optimRangeRHR=optimRangeRHR, endSizeLHR=endSizeLHR, endSizeRHR=endSizeRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minGBlockSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, onTargetMethod=onTargetMethod, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, minOffTargetScore=minOffTargetScore, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme, PAM=PAM, gBlockDefault=gBlockDefault, plasmidType=plasmidType, haTag=haTag, sigPep=sigPep, filterCutSites=filterCutSites); # call result
-        # outMsg = outMsg + sep + output["geneName"] + sep + output["geneFileStr"] + sep + output["plasmidFileStr"] + sep + output["editedLocusFileStr"] + sep + output["oligoFileStr"] + sep + output["gBlockFileStr"] + sep + output["gRNATable"] + sep + output["logFileStr"];
-        # if haTag and plasmidType == "pSN150": # if using HA tags and pSN150,
-        #     outputHA = output["outputHA"]; # save HA outputs
-        #     outMsgHA = outMsgHA + sep + outputHA["geneName"] + sep + outputHA["geneFileStr"] + sep + outputHA["plasmidFileStr"] + sep + outputHA["editedLocusFileStr"] + sep + outputHA["oligoFileStr"] + sep + outputHA["gRNATable"] + sep + outputHA["logFileStr"];
-        #     sendMsg(outMsgHA, "geneOutput");
 
 
 def parallelRun(file,params,outputDir):

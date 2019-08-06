@@ -78,7 +78,7 @@ def gene_message(message):
     plasmidType = msgList[29];
     haTagMsg = msgList[30];
 
-    geneGBs = preprocessInputFile(geneName, geneFileStr, useFileStrs=True); # obtain gb file(s) to be processed
+    geneGBs = preprocessInputFile(geneName, geneFileStr, useFileStrs=True, doingAltSplices=True); # obtain gb file(s) to be processed
     outMsg = queryNumber; # will store output message
     outMsgHA = "HA_Tag_Design-" + str(queryNumber); # will store output message for HA tag design, if any
     for gbName in geneGBs: # for every gb
