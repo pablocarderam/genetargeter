@@ -31,7 +31,8 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
 
     otherGenes = geneGB.findAnnsType("gene") # list of all other genes, used to verify HR doesn't start inside any genes (truncating them)
-    otherGenes.remove(gene) # remove
+    if gene in otherGenes: # if this gene found in list
+        otherGenes.remove(gene) # remove
 
     # Declare variables and check assertions
     seqBeg = 0
@@ -41,8 +42,13 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
     genBeg = gene.index[0]
     genEnd = gene.index[1]
     gRNAEx = gRNAExt.index[doingHR == 'RHR'] # position of most extreme gRNA to be avoided (takes start or end as relevant for each HR)
-    nxtGen = min( [ seqEnd ] + [ (genEnd>g.index[1]) * seqEnd + g.index[0] for g in otherGenes ] ) # start of next gene downstream (or end of file)
-    prvGen = max( [ seqBeg ] + [ (genBeg>g.index[0]) * g.index[1] for g in otherGenes ] ) # end of previous gene upstream (or start of file)
+    nxtGen = min( [ seqEnd ] + [ (genEnd>g.index[1]) * (genBeg>g.index[0]) * seqEnd + g.index[0] for g in otherGenes ] ) # start of next gene downstream (or end of file, exclude gene that comprehends target (alternative splicing))
+    prvGen = max( [ seqBeg ] + [ (genBeg>g.index[0]) * (genEnd>g.index[1]) * g.index[1] for g in otherGenes ] ) # end of previous gene upstream (or start of file, exclude gene that comprehends target (alternative splicing))
+    parGen = None # parent gene to check alternative transcripts
+    for g in otherGenes: # check every gene
+        if genBeg>g.index[0] and genEnd<g.index[1]: # if one of the other genes comprehends this one
+            log = log + "Warning: target is a possible alternative transcript, proceeding anyway." + "\n\n" # give a warning
+
     if nxtGen < genEnd and doingHR == 'RHR' and targetExtreme=='end': # if next gene starts before end of our gene and targeting 3',
         log = log + "Warning: Gene overlap on the 3' end detected, proceeding anyway." + "\n\n" # give a warning
         nxtGen = seqEnd # default to end of file
