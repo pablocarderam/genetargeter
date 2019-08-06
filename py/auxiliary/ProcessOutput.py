@@ -28,7 +28,7 @@ def createOutputSummaryTable(dirPath):
     for (dirpath, dirnames, filenames) in walk(dirPath):
         for f in filenames:
             if f.find("Message_File") > -1:
-                geneName = f[15:30];
+                geneName = f[13:f.find('_pSN')];
                 msg = "\n".join(loadSeqs(dirPath+f));
                 results = [""]*12;
                 if geneName in geneResults:

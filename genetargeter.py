@@ -65,7 +65,7 @@ def runGene(geneName, geneFileStr, params, outputDir):
     for gbName in geneGBs: # for every gb
         sigPep = chkSignalPeptide5Prime(gbName,signalPDB); # signalP info
         haTag = False; # don't use HA tags by default
-        if plasmidType == "pSN150" and ( haTagMsg == "Yes" or (haTagMsg == "Auto" and not sigPep) ): # if forcing HA tags or 5' end does not contain signal peptide and auto HA-tagging
+        if plasmidType == "pSN150" and ( haTag == True or (haTag == "Auto" and not sigPep) ): # if forcing HA tags or 5' end does not contain signal peptide and auto HA-tagging
             haTag = True; # use HA tags
 
         if filterCutSites == "Auto": # if filterCutSites is automatic

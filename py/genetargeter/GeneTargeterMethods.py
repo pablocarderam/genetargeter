@@ -147,8 +147,10 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
         gRNA = gRNA["out"]; # saves actual data
 
         if len(gRNA.label) > 0: # if gRNA found,
-            LHR = GenBankAnn(); # init LHR var
-            RHR = GenBankAnn(); # init RHR var
+            LHR = {}; # init LHR var
+            RHR = {}; # init RHR var
+            LHR["out"] = None
+            RHR["out"] = None
 
             # pick HRs first
             if target3Prime: # if going for 3' payload,
@@ -158,7 +160,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                 LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='start', lengthHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, filterCutSites=filterCutSites); # chooses LHR
                 if plasmidType == "pSN150-KO": # if knocking gene out,
                     RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an RHR at end of gene!
-                elif plasmidType == "pSN150-KO": # otherwise
+                elif plasmidType == "pSN150": # otherwise if KD construct
                     RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='start', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an RHR at beginning
 
             if LHR["out"] is None or RHR["out"] is None and not HRannotated: # if searches fail and HR's not provided,
@@ -229,13 +231,13 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                     if not useFileStrs: # if saving to files,
                         output(outputDicHA["oligoFileStr"], path + "/" + "Oligos_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.csv",wipe=True); # saves oligos to file
                         output(outputDicHA["logFileStr"], path + "/" + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.txt",wipe=True); # saves message log to file
-                        output(outputDicHA["gRNATable"], path + "/" + "sgRNA_Table_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.txt",wipe=True); # saves message log to file
+                        output(outputDicHA["gRNATable"], path + "/" + "sgRNA_Table_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.csv",wipe=True); # saves message log to file
                         output(outputDicHA["gBlockFileStr"], path + "/" + "gBlocks_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.fasta",wipe=True); # saves message log to file
 
                 if not useFileStrs: # if saving to files,
                     output(outputDic["oligoFileStr"], path + "/" + "Oligos_" + geneName +"_"+ plasmidType + "_" + enzyme + ".csv",wipe=True); # saves oligos to file
                     output(outputDic["logFileStr"], path + "/" + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
-                    output(outputDic["gRNATable"], path + "/" + "sgRNA_Table_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
+                    output(outputDic["gRNATable"], path + "/" + "sgRNA_Table_" + geneName +"_"+ plasmidType + "_" + enzyme + ".csv",wipe=True); # saves message log to file
                     output(outputDic["gBlockFileStr"], path + "/" + "gBlocks_" + geneName +"_"+ plasmidType + "_" + enzyme + ".fasta",wipe=True); # saves message log to file
 
 

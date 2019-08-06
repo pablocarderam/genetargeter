@@ -23,7 +23,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
     if closestGene < 0: # if closestGene parameter is default,
         closestGene = len(geneGB.origin); # set to total length of gene as default
 
-    log = "Choosing gRNA with PAM sequence " + PAM + " for use with enzyme " + enzyme; # init log
+    log = "Choosing gRNA with PAM sequence " + PAM + " for use with enzyme " + enzyme + '\n\n'; # init log
     if not codingGene and searchRange[0] < 0: # if gene is non protein-coding and part of the search region is inside the gene,
         log += "Since this looks like a non protein-coding gene, the gRNA search range will be shifted to be entirely outside of the end of the gene.\n\n"; # Notate change in search range
         searchRange = [0,searchRangeNonCoding]; # move search range outside gene
