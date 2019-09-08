@@ -92,7 +92,7 @@ def gene_message(message):
         if haTag and plasmidType == "pSN150": # if using HA tags and pSN150,
             outputHA = output["outputHA"]; # save HA outputs
             outMsgHA = outMsgHA + sep + outputHA["geneName"] + sep + outputHA["geneFileStr"] + sep + outputHA["plasmidFileStr"] + sep + outputHA["editedLocusFileStr"] + sep + outputHA["oligoFileStr"] + sep + outputHA["gRNATable"] + sep + outputHA["gBlockFileStr"] + sep + outputHA["logFileStr"];
-            sendMsg(outMsgHA, "geneOutput");
+            sendMsg(outMsgHA, "geneOutput",channel_id);
 
     sendMsg('Process complete',"misc",channel_id);
     sendMsg(outMsg, "geneOutput",channel_id);
