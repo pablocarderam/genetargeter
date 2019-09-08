@@ -29,8 +29,8 @@ codonSampling         : False           # Codon optimization algorithm used to s
 
 ### Homologous region design ###
 HRannotated           : False           # Uses gRNA, LHR, and/or RHR already annotated on plasmid rather than software selected (True, False)
-lengthLHR             : [450,500,750]   # Length in bp of Left Homologous Region (LHR) [minimum, preferred, maximum]
-lengthRHR             : [450,500,750]   # Length in bp of Right Homologous Region (LHR) [minimum, preferred, maximum]
+lengthLHR             : [400,500,750]   # Length in bp of Left Homologous Region (LHR) [minimum, preferred, maximum]
+lengthRHR             : [400,500,750]   # Length in bp of Right Homologous Region (LHR) [minimum, preferred, maximum]
 optimRangeLHR         : [-20,20]        # Range in bp over which a higher melting temperature will be searched for selected LHR starts and ends [upstream, downstream]
 optimRangeRHR         : [-20,20]        # Range in bp over which a higher melting temperature will be searched for selected RHR starts and ends [upstream, downstream]
 endSizeLHR            : 40              # Length in bp of region at start and end of LHR to be taken into account when evaluating optimal starts and ends

@@ -1,4 +1,5 @@
 
+import copy; # Import object copying methods for deep copies
 
 from py.utils.BioUtils import *; # Imports utils
 from py.utils.GenBankToolbox import *; # Imports utils
@@ -17,7 +18,15 @@ distance in bp between end of LHR and start of gRNA.
 LHR: Left Homologous Region used for chromosomal integration by homologous
 recombination during repair.
 """
-def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
+def chooseHRWrapper(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
+    hr,log = chooseHR(geneGB, gene, doingHR=doingHR, targetExtreme=targetExtreme, lengthHR=lengthHR, minTmEnds=minTmEnds, endsLength=endsLength, codingGene=codingGene, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, optimizeRange=optimizeRange, exploreRHRUpstreamOfStop=0, filterCutSites=filterCutSites)
+    if warning and codingGene and doingHR == "RHR" and targetExtreme == "end" and exploreRHRUpstreamOfStop > 0: # (if allowing RHRs to start upstream of stop codon, go into the gene)
+        hr,log = chooseHR(geneGB, gene, doingHR=doingHR, targetExtreme=targetExtreme, lengthHR=lengthHR, minTmEnds=minTmEnds, endsLength=endsLength, codingGene=codingGene, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, optimizeRange=optimizeRange, exploreRHRUpstreamOfStop=exploreRHRUpstreamOfStop, filterCutSites=filterCutSites)
+
+    return hr,log
+
+
+def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
     log = "" # init log
     gRNAs = [] # List of all gRNAs
     gRNAExt = GenBankAnn() # init var to hold gRNA
@@ -30,9 +39,13 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
 
 
-    otherGenes = geneGB.findAnnsType("gene") # list of all other genes, used to verify HR doesn't start inside any genes (truncating them)
-    if gene in otherGenes: # if this gene found in list
-        otherGenes.remove(gene) # remove
+    genes = geneGB.findAnnsType("gene") # list of all genes
+    otherGenes = [] # will list all other genes, used to verify HR doesn't start inside any genes (truncating them)
+
+    for g in otherGenes:
+        if not gene.label in g.label: # if this gene not found in list
+            otherGenes.append(g) # add
+
 
     # Declare variables and check assertions
     seqBeg = 0
@@ -42,8 +55,8 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
     genBeg = gene.index[0]
     genEnd = gene.index[1]
     gRNAEx = gRNAExt.index[doingHR == 'RHR'] # position of most extreme gRNA to be avoided (takes start or end as relevant for each HR)
-    nxtGen = min( [ seqEnd ] + [ (genEnd>g.index[1]) * (genBeg>g.index[0]) * seqEnd + g.index[0] for g in otherGenes ] ) # start of next gene downstream (or end of file, exclude gene that comprehends target (alternative splicing))
-    prvGen = max( [ seqBeg ] + [ (genBeg>g.index[0]) * (genEnd>g.index[1]) * g.index[1] for g in otherGenes ] ) # end of previous gene upstream (or start of file, exclude gene that comprehends target (alternative splicing))
+    nxtGen = min( [ seqEnd ] + [ (genEnd>g.index[1]) * seqEnd + g.index[0] for g in otherGenes ] ) # start of next gene downstream (or end of file, exclude gene that comprehends target (alternative splicing))
+    prvGen = max( [ seqBeg ] + [ (genBeg>g.index[0]) * g.index[1] for g in otherGenes ] ) # end of previous gene upstream (or start of file, exclude gene that comprehends target (alternative splicing))
     parGen = None # parent gene to check alternative transcripts
     for g in otherGenes: # check every gene
         if genBeg>g.index[0] and genEnd<g.index[1]: # if one of the other genes comprehends this one
@@ -54,7 +67,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
         nxtGen = seqEnd # default to end of file
     if prvGen > genBeg and doingHR == 'LHR' and targetExtreme!='end': # if previous gene starts before end of our gene and targeting 5',
         log = log + "Warning: Gene overlap on the 5' end detected, proceeding anyway." + "\n\n" # give a warning
-        prvGen = 0 # default to start of file
+        prvGen = seqBeg # default to start of file
 
     if not ( (seqBeg<=lenMin) and (lenMin<=lenMax) and (lenMax<=genBeg) and (genBeg<=genEnd) and (genEnd<=seqEnd) and (seqEnd-genEnd>=lenMax) ) : # If assertions don't hold,
         log = log + "ERROR: Not enough space on either side of gene for maximum HR size, or you mixed up min and max HR lengths. Aborting." + "\n" # give a warning
@@ -62,7 +75,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
     # Initialize region
 
-    regBeg = max( (targetExtreme == 'end') * (genBeg-lenMax-1), prvGen ) if doingHR == 'LHR' else max( (targetExtreme == 'end') * genEnd, (targetExtreme != 'end') * genBeg, gRNAEx) # beginning of possible LHR or RHR region
+    regBeg = max( (targetExtreme == 'end') * (genBeg-lenMax-1), prvGen ) if doingHR == 'LHR' else max( (targetExtreme == 'end') * genEnd - exploreRHRUpstreamOfStop, (targetExtreme != 'end') * genBeg, gRNAEx) # beginning of possible LHR or RHR region
         # LHR:
         #   if 3' target, start at most downstream between max upstream position and end of previous gene.
         #   if 5' target, start at most downstream between start of file and end of previous gene.
@@ -98,7 +111,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
     if len(regIdxArr) < 1: # if no valid partitions,
         regIdxArr = [ [ regBeg, regEnd ] ] # default to region
-        log = log + "Warning: No "+doingHR+" without restriction enzyme cut sites inside it \nand without excluding a downstream gene found, check output manually!" + "\n" # give a warning
+        # log = log + "Warning: No "+doingHR+" search region without restriction enzyme cut sites inside it \nand without excluding a downstream gene found, check output manually!" + "\n" # give a warning
 
 
     # Find beginning and ending indeces
@@ -125,22 +138,22 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
     satisfiedHR = not ( ( bestHR[1][0] + bestHR[1][1] + ( bestHR[2][0] < minTmEnds ) + ( bestHR[2][1] < minTmEnds ) ) > 0 ) # keep track of whether or not adequate HR has been found
 
     while 0 <= p and p < len(regIdxArr) and not satisfiedHR: # while partitions not exhausted and no good HR found,
-        bestInPart = bestHR # will store best anchors in this partition
+        bestInPart = copy.deepcopy(bestHR) # will store best anchors in this partition
         ter = (step<0) # which terminus we're adjusting, 0 is beginning and 1 is ending, start with ending if LHR and beginning if RHR (will get switched at start of next loop)
         a = terIdxArr[ss+1][p][ss] # for LHR, start anchor terminal search as the last ending of the final partition; for RHR, start with the first beginning of the first partition
         b = terIdxArr[ss][p][ss] # for LHR, start oppos. terminal search as the last beginning of the final partition; for RHR, start with the first ending of the first partition
         i = [ min(a,b), max(a,b) ] # search each terminus start position in sequence terminus, start from end if doing LHR or from start if RHR, flipped for loop
 
-        bestInTer = [ i, [True,True], [0,0] ] # will keep track of last two terminus searches, initialize as default
-        while ( terIdxArr[0][p][0] <= i[0] and i[0] <= terIdxArr[0][p][1] ) and ( terIdxArr[1][p][0] <= i[1] and i[1] <= terIdxArr[1][p][1] ) and i[0] < nxtGen and not satisfiedHR: # while not having exhausted this terminus and not having found a good HR
+        bestInTer = [ copy.deepcopy(i), [True,True], [0,0] ] # will keep track of last two terminus searches, initialize as default
+        while ( terIdxArr[0][p][0] <= i[0] and i[0] <= terIdxArr[0][p][1] ) and ( terIdxArr[1][p][0] <= i[1] and i[1] <= terIdxArr[1][p][1] ) and i[0] < nxtGen and i[0] > prvGen and not satisfiedHR: # while not having exhausted this terminus and not having found a good HR])
             if lenMin > i[1]-i[0] or i[1]-i[0] > lenMax: # if size is wrong,
-                while ( lenMin > i[1]-i[0] or i[1]-i[0] > lenMax ) and ( terIdxArr[ter][p][0] <= i[ter] and i[ter] <= terIdxArr[ter][p][1] ) and i[0] < nxtGen: # while not within size bounds and still within search range,
+                while i[ter] > 0 and i[ter] < len(geneGB.origin) and ( lenMin > i[1]-i[0] or i[1]-i[0] > lenMax ) and ( terIdxArr[ter][p][0] <= i[ter] and i[ter] <= terIdxArr[ter][p][1] ) and i[0] < nxtGen and i[0] > prvGen: # while not within size bounds and still within search range,
                     i[ter] += step # move terminus until within size constraints
 
 
             bestInTer[0][ter], bestInTer[1][ter], bestInTer[2][ter] = i[ter], True, 0 # will store best in this terminus search, initialize as default
             satisfiedTer = not ( ( bestInTer[1][ter] + ( bestInTer[2][ter] < minTmEnds ) ) ) # keep track of whether or not adequate HR has been found
-            while ( terIdxArr[ter][p][0] <= i[ter] and i[ter] <= terIdxArr[ter][p][1] ) and i[0] < nxtGen and not satisfiedTer: # while within search range and no good terminus found,
+            while i[ter] > 0 and i[ter] < len(geneGB.origin) and ( terIdxArr[ter][p][0] <= i[ter] and i[ter] <= terIdxArr[ter][p][1] ) and i[0] < nxtGen and i[0] > prvGen and not satisfiedTer: # while within search range and no good terminus found,
                 extReg = geneGB.origin[ min(i[ter],i[ter]+(2*(not ter)-1)*endsLength):max(i[ter],i[ter]+(2*(not ter)-1)*endsLength) ] # extreme region to be analyzed
                 tricky = isTricky( extReg ) # true if this terminus contains homopolymers or AT repeats
                 tm = meltingTemp( extReg ) # Tm for this terminus
@@ -150,7 +163,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
                     # optimize ends
                     ti = i[ter] # test more indeces to optimize
                     bi = i[ter] # best i
-                    while ( max(terIdxArr[ter][p][0],i[ter]-optimizeRange) <= ti and ti <= min(terIdxArr[ter][p][1],nxtGen,i[ter]+optimizeRange) ) : # while we can still optimize within bounds,
+                    while ti > 0 and ti < len(geneGB.origin) and ( max(terIdxArr[ter][p][0],i[ter]-optimizeRange,prvGen) <= ti and ti <= min(terIdxArr[ter][p][1],nxtGen,i[ter]+optimizeRange) ) : # while we can still optimize within bounds,
                         ti += step # advance searcher
                         t_extReg = geneGB.origin[ min(ti,ti+(2*(not ter)-1)*endsLength):max(ti,ti+(2*(not ter)-1)*endsLength) ] # extreme region to be analyzed
                         t_tm = meltingTemp( t_extReg ) # Tm for this terminus
@@ -159,13 +172,17 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
                             tm = t_tm # record this tm as best
 
 
+                    i[ter] = bi # best i
                     bestInTer[0][ter], bestInTer[1][ter], bestInTer[2][ter] = bi, tricky, tm # save as best in this terminus search
+                    lenHR = bestInTer[0][1] - bestInTer[0][0] # length of HR as it stands
                     satisfiedTer = True # satisfied with this terminus
                     if ( lenMin <= lenHR and lenHR <= lenMax ):
                         bestInPart[0][ter], bestInPart[1][ter], bestInPart[2][ter] = i[ter], tricky, tm
-                        if ( ( bestInTer[1][0]+bestInTer[1][1] <= bestHR[1][0]+bestHR[1][1] ) and ( ( ( ( bestInTer[2][0]<minTmEnds ) + ( bestInTer[2][0]<minTmEnds ) < ( bestHR[2][0]<minTmEnds ) + ( bestHR[2][0]<minTmEnds ) ) or ( bestInTer[2][0]+bestInTer[2][1] >= bestHR[2][0]+bestHR[2][1] ) ) and ( bestInTer[1][0]+bestInTer[1][1] == bestHR[1][0]+bestHR[1][1] ) ) ) : # if size is right and right length and better than best overall
-                            bestHR = bestInPart # save as best overall
+                        if ( ( bestInPart[1][0]+bestInPart[1][1] <= bestHR[1][0]+bestHR[1][1] ) and ( ( ( ( bestInPart[2][0]<minTmEnds ) + ( bestInPart[2][1]<minTmEnds ) < ( bestHR[2][0]<minTmEnds ) + ( bestHR[2][1]<minTmEnds ) ) or ( bestInPart[2][0]+bestInPart[2][1] > bestHR[2][0]+bestHR[2][1] ) ) and ( bestInPart[1][0]+bestInPart[1][1] <= bestHR[1][0]+bestHR[1][1] ) ) ) : # if size is right and right length and better than best overall
+                            bestHR = copy.deepcopy(bestInPart) # save as best overall
                             satisfiedHR = not ( ( bestHR[1][0] + bestHR[1][1] + ( bestHR[2][0] < minTmEnds ) + ( bestHR[2][1] < minTmEnds ) ) ) # keep track of whether or not adequate HR has been found
+                        else:
+                            i[ter] += step # advance or decrease base index according to search direction
 
 
                 else: # if not sufficiently good
@@ -173,8 +190,8 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
                         bestInTer[0][ter], bestInTer[1][ter], bestInTer[2][ter] = i[ter], tricky, tm # save as best in this terminus search
                         if ( lenMin <= lenHR and lenHR <= lenMax ):
                             bestInPart[0][ter], bestInPart[1][ter], bestInPart[2][ter] = i[ter], tricky, tm
-                            if ( ( bestInTer[1][0]+bestInTer[1][1] <= bestHR[1][0]+bestHR[1][1] ) and ( ( ( ( bestInTer[2][0]<minTmEnds ) + ( bestInTer[2][0]<minTmEnds ) < ( bestHR[2][0]<minTmEnds ) + ( bestHR[2][0]<minTmEnds ) ) or ( bestInTer[2][0]+bestInTer[2][1] >= bestHR[2][0]+bestHR[2][1] ) ) and ( bestInTer[1][0]+bestInTer[1][1] == bestHR[1][0]+bestHR[1][1] ) ) ) : # if size is right and right length and better than best overall
-                                bestHR = bestInPart # save as best overall
+                            if ( ( bestInPart[1][0]+bestInPart[1][1] <= bestHR[1][0]+bestHR[1][1] ) and ( ( ( ( bestInPart[2][0]<minTmEnds ) + ( bestInPart[2][1]<minTmEnds ) < ( bestHR[2][0]<minTmEnds ) + ( bestHR[2][1]<minTmEnds ) ) or ( bestInPart[2][0]+bestInPart[2][1] > bestHR[2][0]+bestHR[2][1] ) ) and ( bestInPart[1][0]+bestInPart[1][1] <= bestHR[1][0]+bestHR[1][1] ) ) ) : # if size is right and right length and better than best overall
+                                bestHR = copy.deepcopy(bestInPart) # save as best overall
 
 
 
@@ -186,7 +203,14 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
         p += step # advance or decrease partition according to search direction
 
     if not satisfiedHR:
-        log = log + "Warning: No "+doingHR+" without restriction enzyme cut sites inside it, \nwithout excluding a downstream gene found, with adequate Tm at ends and \nwithout excessive homopolymers at ends found, check output manually!" + "\n" # give a warning
+        cutSitesRemaining = []
+        for site in filterCutSites: # check for cut sites
+            if len(findMotif( geneGB.origin[bestHR[0][0]:bestHR[0][1]], site )) > 0:
+                cutSitesRemaining.append(site) # list them
+
+
+        if len(cutSitesRemaining) > 0:
+            log = log + "Warning: "+doingHR+" has RE cut sequences: " + str(cutSitesRemaining) + ". Check output manually!" + "\n" # give a warning
 
     log = log + doingHR + " for gene " + gene.label + " selected.\n\n"; # logs this process finished
     HR = GenBankAnn( gene.label + " " + doingHR, "misc_feature", geneGB.origin[ bestHR[0][0]:bestHR[0][1] ], False, [ bestHR[0][0],bestHR[0][1] ], annColors[doingHR+'Color'] ) # creates GenBankAnn object to hold LHR

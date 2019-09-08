@@ -24,7 +24,7 @@ You can exit the virtual environment when you're done using GeneTargeter with
 deactivate
 ```
 
-To install GeneTargeter, make sure you are running Python 2.7 in your local environment. Then, clone the repo and run setup from within the main directory:
+To install GeneTargeter, make sure you are running Python 2.7 in your local virtual environment. Then, clone the repo and run setup from within the main directory:
 
 ```bash
 git clone git://github.com/pablocarderam/genetargeter.git

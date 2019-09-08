@@ -19,13 +19,13 @@ def searchDB(searchSeq,dbFilePath):
                 r[2] = float(r[2]); # CINDEL as float,
                 r[3] = float(r[3]); # Hsu_Normal as float,
                 r[4] = float(r[4]); # Hsu_Normal_Max as float,
-                r[5] = int(r[5]); # Hsu_Normal_NumHits as int,
+                r[5] = float(r[5]); # Hsu_Normal_NumHits as int,
                 r[6] = float(r[6]); # Hsu_Agnostic as float,
                 r[7] = float(r[7]); # Hsu_Agnostic_Max as float,
-                r[8] = int(r[8]); # Hsu_Agnostic_NumHits as int,
+                r[8] = float(r[8]); # Hsu_Agnostic_NumHits as int,
                 r[9] = float(r[9]); # CFD as float,
                 r[10] = float(r[10]); # CFD_Max as float,
-                r[11] = int(r[11]); # CFD_NumHits as float,
+                r[11] = float(r[11]); # CFD_NumHits as float,
                 returnInfo = r;
                 break;
 
@@ -36,7 +36,7 @@ def searchDB(searchSeq,dbFilePath):
 def getGRNAInfoFromDB(pExtSeq,enzyme):
     searchSeq = pExtSeq.upper(); # to uppercase
     returnInfo = [];
-    dbFilePaths = ['./gRNAScores/data/cas9Small.csv','./gRNAScores/data/cas12Small.csv']
+    dbFilePaths = ['./gRNAScores/data/gRNADB_cas9.csv','./gRNAScores/data/gRNADB_cas12.csv']
     fp='';
     if enzyme=='Cas9':
         fp='./gRNAScores/data/cas9Small.csv';

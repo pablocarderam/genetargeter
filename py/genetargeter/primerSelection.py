@@ -56,9 +56,9 @@ def createPrimers(plasmid, part, rangeSize=[18,22,50], rangeMeltTemp=[55,62,65],
             primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
             lastBase = len(primFwdSeq); # stores possible end points of fwd primer
             primFwdSeq = primFwdSeq.upper();
-            while meltingTemp(primFwdSeq[0:lastBase])-meltingTemp(primRevSeq) > maxTempDif and meltingTemp(primFwdSeq[0:lastBase]) > minMeltTemp and lastBase > rangeHom[0]*2: # while T diff is still out of bounds and still within bounds of Fwd primer,
+            while meltingTemp(primFwdSeq[0:lastBase])-meltingTemp(primRevSeq) > maxTempDif and meltingTemp(primFwdSeq[0:lastBase]) > rangeMeltTemp[0] and lastBase > rangeSize[0]*2: # while T diff is still out of bounds and still within bounds of Fwd primer,
                 lastBase -= 1;
-                while not primFwdSeq[lastBase-1].upper().replace("G","C") == "C" and lastBase > rangeHom[0]: # find next G or C upstream
+                while not primFwdSeq[lastBase-1].upper().replace("G","C") == "C" and lastBase > rangeSize[0]: # find next G or C upstream
                     lastBase -= 1;
 
 
@@ -67,6 +67,11 @@ def createPrimers(plasmid, part, rangeSize=[18,22,50], rangeMeltTemp=[55,62,65],
                 primFwdSeq = plasmid.origin[startPF:endPF];
             else: # if temp difference still exceeds specs
                 log = log + "Warning: Primers for sequence " + part.label + " under given constraints have a Tm difference of " + str(meltingTemp(primFwdSeq)-meltingTemp(primRevSeq)) + ", above the given threshold of " + str(maxTempDif)  + "\n\n"; # give warning
+
+    if isTricky( primFwdSeq ): # true if this terminus contains homopolymers or AT repeats:
+        log = log + "Warning: Forward primer for sequence " + part.label + " may be hard to synthesize.\n\n"; # give warning
+    if isTricky( primRevSeq ): # true if this terminus contains homopolymers or AT repeats:
+        log = log + "Warning: Reverse primer for sequence " + part.label + " may be hard to synthesize.\n\n"; # give warning
 
     annPrimFwd = GenBankAnn(part.label + " Primer (Fwd)", "misc_feature", primFwdSeq, False, [startPF,endPF], annColors['primerColor']); # creates GenBankAnn object to hold fwd primer
     annPrimRev = GenBankAnn(part.label + " Primer (Rev)", "misc_feature", primRevSeq, True, [startPR,endPR], annColors['primerColor']); # creates GenBankAnn object to hold rev primer
@@ -150,6 +155,11 @@ def createGibsonPrimers(plasmid, part, rangeHom=[30,40,50], minMeltTemp=68, maxT
             else: # if temp difference still exceeds specs
                 log = log + "Warning: Gibson primers for sequence " + part.label + " under given constraints have a Tm difference of " + str(meltingTemp(plasmid.origin[part.index[0]:endPF])-meltingTemp(plasmid.origin[startPR:part.index[1]])) + ", above the given threshold of " + str(maxTempDif) + "\n\n"; # give warning
 
+    if isTricky( primFwdSeq ): # true if this terminus contains homopolymers or AT repeats:
+        log = log + "Warning: Forward Gibson primer for sequence " + part.label + " may be hard to synthesize.\n\n"; # give warning
+    if isTricky( primRevSeq ): # true if this terminus contains homopolymers or AT repeats:
+        log = log + "Warning: Reverse Gibson primer for sequence " + part.label + " may be hard to synthesize.\n\n"; # give warning
+
     annPrimFwd = GenBankAnn(part.label + " Gibson Primer (Fwd)", "misc_feature", primFwdSeq, False, [startPF,endPF], annColors['primerColor']); # creates GenBankAnn object to hold fwd primer
     annPrimRev = GenBankAnn(part.label + " Gibson Primer (Rev)", "misc_feature", primRevSeq, True, [startPR,endPR], annColors['primerColor']); # creates GenBankAnn object to hold rev primer
 
@@ -172,6 +182,11 @@ def createKlenowOligos(plasmid, part, lengthHom=40): #TODO: debug.
     startPR = part.index[0]; # Rev primer start position
     endPR = part.index[1] + lengthHom; # Rev primer end position
     primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
+
+    if isTricky( primFwdSeq ): # true if this terminus contains homopolymers or AT repeats:
+        log = log + "Warning: Forward Klenow oligo for sequence " + part.label + " may be hard to synthesize.\n\n"; # give warning
+    if isTricky( primRevSeq ): # true if this terminus contains homopolymers or AT repeats:
+        log = log + "Warning: Reverse Klenow oligo for sequence " + part.label + " may be hard to synthesize.\n\n"; # give warning
 
     annPrimFwd = GenBankAnn(part.label + " Klenow oligo (Fwd)", "misc_feature", primFwdSeq, False, [startPF,endPF], annColors['primerColor']); # creates GenBankAnn object to hold fwd primer
     annPrimRev = GenBankAnn(part.label + " Klenow oligo (Rev)", "misc_feature", primRevSeq, True, [startPR,endPR], annColors['primerColor']); # creates GenBankAnn object to hold rev primer

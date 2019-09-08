@@ -42,6 +42,10 @@
           designed for knock-out or conditional knock-down in <a href="http://www.who.int/mediacentre/factsheets/fs094/en/" target="_blank"><i>Plasmodium falciparum</i></a>,
 					by delivering a 3' or 5' UTR post-transcriptional regulatory element payload to a specific given gene.
       </p>
+			<p>
+					Command line interface and code available through <a href="https://github.com/pablocarderam/GeneTargeter" target="_blank">
+						GitHub.</a>
+			</p>
 		</div>
 
 		<div id="App" class="app" onload="init()">
@@ -179,7 +183,7 @@
 							<div class="column-center">
 								<p class="head">Right chromosomal integration homologous region</p>
 								Size:<br>
-								&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="RHRMin" value="450"> bp <br>
+								&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="RHRMin" value="400"> bp <br>
 								&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="RHRPref" value="500"> bp <br>
 								&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="RHRMax" value="750"> bp <br>
 								<p id="maxDistRHRTxt">
@@ -204,7 +208,7 @@
 							<div class="column-left">
 								<p class="head">Left chromosomal integration homologous region</p>
 								Size:<br>
-								&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="LHRMin" value="450"> bp <br>
+								&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="LHRMin" value="400"> bp <br>
 								&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="LHRPref" value="500"> bp <br>
 								&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="LHRMax" value="750"> bp <br>
 								<p id="maxDistLHRTxt">
