@@ -15,7 +15,7 @@ restriction sites given as parameters. Checks that gRNA recoded sequence has a
 pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
-def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString=""):
+def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString=""):
     #TODO: debug #TODO: Recoded if upstream of stop codon add recode values to table
     gRNAs = geneGB.findAnnsLabel("gRNA", True); # List of all gRNAs
     gRNATable = gRNATableString.split('\n'); # split string into lines
@@ -238,7 +238,7 @@ restriction sites given as parameters. Checks that gRNA recoded sequence has a
 pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
-def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString="", haTag=True):
+def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString="", haTag=True):
     #TODO: debug #TODO: Recoded if upstream of stop codon add recode values to table
     gRNAs = geneGB.findAnnsLabel("gRNA", True); # List of all gRNAs
     gRNATable = gRNATableString.split('\n'); # split string into lines
@@ -471,7 +471,7 @@ pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
 #TODO: different cut sites for different plasmids
-def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString="", target3Prime=True, haTag=False):
+def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString="", target3Prime=True, haTag=False):
     out = {}; # will contain method output
     if target3Prime: # if targeting 3'
         out = chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod, pamType=pamType, orgCodonTable=orgCodonTable,codonSampling=codonSampling, gRNATableString=gRNATableString); # defines region to be recoded, returns recoded sequence

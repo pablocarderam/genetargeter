@@ -19,7 +19,7 @@ gRNA: guide RNA used by CRISPR enzyme.
 Note: argument searchRange is in format [inside_gene,outside_gene] whether
 targeting 3' or 5' end.
 """
-def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, PAM="NGG", minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", gBlockDefault=True, maxTier1GBlockSize=500, gBlockOverlapSize=40, codingGene=True, closestGene=-1, target3Prime=True, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
+def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, PAM="NGG", minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", gBlockDefault=True, maxTier1GBlockSize=500, gBlockOverlapSize=40, codingGene=True, closestGene=-1, target3Prime=True, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
     if closestGene < 0: # if closestGene parameter is default,
         closestGene = len(geneGB.origin); # set to total length of gene as default
 
@@ -326,7 +326,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
 Finds gRNA already annotated on gene. Filters for given restriction enzyme cut
 sites. If no gRNA found on gene, nothing will happen (logs this).
 """
-def findGRNA(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
+def findGRNA(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
     log = ""; # init log
     gRNAs = geneGB.findAnnsLabel("gRNA 1", True); # List of all gRNAs
     gRNAExtreme = GenBankAnn(); # init var to hold gRNA

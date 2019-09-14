@@ -18,7 +18,7 @@ distance in bp between end of LHR and start of gRNA.
 LHR: Left Homologous Region used for chromosomal integration by homologous
 recombination during repair.
 """
-def chooseHRWrapper(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
+def chooseHRWrapper(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
     hr,log = chooseHR(geneGB, gene, doingHR=doingHR, targetExtreme=targetExtreme, lengthHR=lengthHR, minTmEnds=minTmEnds, endsLength=endsLength, codingGene=codingGene, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, optimizeRange=optimizeRange, exploreRHRUpstreamOfStop=0, filterCutSites=filterCutSites)
     if warning and codingGene and doingHR == "RHR" and targetExtreme == "end" and exploreRHRUpstreamOfStop > 0: # (if allowing RHRs to start upstream of stop codon, go into the gene)
         hr,log = chooseHR(geneGB, gene, doingHR=doingHR, targetExtreme=targetExtreme, lengthHR=lengthHR, minTmEnds=minTmEnds, endsLength=endsLength, codingGene=codingGene, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, optimizeRange=optimizeRange, exploreRHRUpstreamOfStop=exploreRHRUpstreamOfStop, filterCutSites=filterCutSites)
@@ -26,7 +26,7 @@ def chooseHRWrapper(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[
     return hr,log
 
 
-def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI]):
+def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
     log = "" # init log
     gRNAs = [] # List of all gRNAs
     gRNAExt = GenBankAnn() # init var to hold gRNA
@@ -105,7 +105,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
     regIdxArr = [] # will store indexes of possible HR regions
     for i in range( len(regBegArr) ): # for every partition,
-        if abs( regBegArr[i]-regEndArr[i] ) >= lenMin and (doingHR == 'LHR')*genBeg <= regEndArr[i]: # if enough space for HR in partition and LHR end still within bounds,
+        if abs( regBegArr[i]-regEndArr[i] ) >= lenMin and (doingHR == 'LHR')*(targetExtreme == 'end')*genBeg <= regEndArr[i] and (doingHR == 'RHR')*(targetExtreme != 'end')*genBeg >= regBegArr[i]: # if enough space for HR in partition and LHR end still within bounds,
             regIdxArr.append( [ regBegArr[i],regEndArr[i] ] ) # add to valid partition index array
 
 
