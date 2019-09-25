@@ -49,3 +49,6 @@ minOnTargetScore      : 20              # Minimum on-target score for gRNAs (num
 offTargetMethod       : 'hsu'           # Algorithm used to score off-target gRNA activity ('cfd','hsu'); CFD scores are more accurate in Cas9-edited mammalian cells (Doench et al., 2016). Hsu et al. (2013) scores are used by crispr.mit.edu and Benchling, and are used as proxies for Cas12. Individual scores are aggregated as per crispr.mit.edu.
 minOffTargetScore     : 75              # Minimum off-target score for gRNAs (numeric, 0 to 100; 20 and 75 are useful cutoffs for cfd and hsu, respectively)
 maxOffTargetHitScore  : 5               # Maximum off-target score for gRNAs (numeric, 0 to 100; 50 and 5 are useful cutoffs for cfd and hsu, respectively)
+
+### Misc ###
+setCoding             : 'Auto'          # String defining whether a gene should be treated as 'Coding', 'Noncoding', or 'Auto' (called based on the presence of a stop codon or being notated as an RNA)

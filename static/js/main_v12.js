@@ -271,12 +271,13 @@ function run() {
                     var gBlockDefault = document.getElementById('gBlockDefault').checked;
                     var plasmidType = document.getElementById('plasmidType').value;
                     var haTag = document.getElementById('haTag').value;
+                    var setCoding = document.getElementById('setCoding').value;
 
                     msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
                       HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
                       endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
                       optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
-                      offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType, haTag]);
+                      offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType, haTag, setCoding]);
                     sendMessageToServer('Sending requests...', "misc");
                     sendMessageToServer(msg,'sendGeneFile');
                     queryNumber += 1;
