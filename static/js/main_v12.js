@@ -347,7 +347,7 @@ function downloadOutput() {
     var fileExt = [".gb",".gb",".gb",".csv",".fasta",".csv",".txt"];
     for (var j = 1; j < currentOutput.length; j++) {
         if (j%(fileTypes.length+1) > 0 && currentOutput[j].length > 1) {
-            var geneName = currentOutput[Math.floor(j/(fileTypes.length+1))*7] + nonCoding;
+            var geneName = currentOutput[Math.floor(j/(fileTypes.length+1))*(fileTypes.length+1)] + nonCoding;
             var file = currentOutput[j];
             var data = 'data:text/plain;charset=utf-8,' + encodeURIComponent(file);
             saveAs(data,fileTypes[j%(fileTypes.length+1)-1]+geneName+"_"+plasmid+"_"+enzyme+haTagged+fileExt[j%(fileTypes.length+1)-1]);
@@ -446,7 +446,7 @@ function changeEnzyme() {
 }
 
 function changeUTRTarget() {
-    if (document.getElementById('plasmidType').value === 'pSN054') {
+    if (document.getElementById('plasmidType').value === 'pSN054' || document.getElementById('plasmidType').value === 'pSN054_V5') {
         document.getElementById('maxDistLHRTxt').value = document.getElementById('maxDistLHRTxt').value.replace('gRNA','gene');
         document.getElementById('maxDistRHRTxt').value = document.getElementById('maxDistRHRTxt').value.replace('gene','gRNA');
         document.getElementById('maxDistRHR').value = 500;

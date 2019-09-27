@@ -158,7 +158,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
                 tricky = isTricky( extReg ) # true if this terminus contains homopolymers or AT repeats
                 tm = meltingTemp( extReg ) # Tm for this terminus
                 lenHR = i[1] - i[0] # length of HR as it stands
-                inIntronWhenNotSupposedTo = ((not geneGB.checkInExon(i[0]) and targetExtreme!='end' and doingHR=='RHR') or (not geneGB.checkInExon(i[1]) and targetExtreme=='end' and doingHR=='LHR')) # shouldn't be in intron if LHR, targeting 3', and end terminus or if RHR, targeting 5', and beginning terminus
+                inIntronWhenNotSupposedTo = ((not geneGB.checkInCDS(i[0],gene.label) and targetExtreme!='end' and doingHR=='RHR') or (not geneGB.checkInCDS(i[1],gene.label) and targetExtreme=='end' and doingHR=='LHR')) # shouldn't be in intron if LHR, targeting 3', and end terminus or if RHR, targeting 5', and beginning terminus
                 if (not tricky) and tm >= minTmEnds and not inIntronWhenNotSupposedTo: # if sufficiently good and not in intron when not supposed to,
                     # optimize ends
                     ti = i[ter] # test more indeces to optimize

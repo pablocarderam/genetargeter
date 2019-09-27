@@ -43,6 +43,18 @@ genetargeter PATH/TO/FILE.gb ParameterFile.txt PATH/TO/OUTPUTFOLDER NAME_OF_GENE
 The last parameter is optional; if empty, the name will be taken from the name of the file. Additionally, instead of the name of a single file, a directory may be listed. In this case, all files in the folder will be processed and each gene's name
 will be taken from the name of its file.
 
+## Output
+For every possible mRNA transcript within the gene uploaded, GeneTargeter outputs:
+
+- a **GenBank file** containing the given gene annotated with the chosen left and right homologous regions, before chromosomal editing.
+- a **GenBank file** containing the fully annotated plasmid vector designed to target the given gene.
+- a **GenBank file** containing the edited chromosomal locus targeted by the construct.
+- a **CSV file** containing primers and oligos designed to assemble the new plasmid using Gibson Assembly. This file can be imported into Benchling. Abbreviates primer names to fit on commercial tube labels with the format:
+```Seven Digit Gene Identifier_Oligo type_Orientation```
+- a **FASTA file** containing gene fragments with overlaps designed to assemble the new plasmid using Gibson Assembly.
+- a **CSV file** comparing different possible sgRNAs evaluated by GeneTargeter before making a choice according to a variety of scoring metrics, as well as the corresponding recoded sgRNA for each in the final design.
+- a **text file** containing a message log and warnings issued during the _in silico_ design process, along with plasmid assembly instructions.
+
 ## Contributing
 Pull requests are welcome, but we'd really appreciate your feedback about it! Please contact [pablocarderam at gmail dot com](pablocarderam@gmail.com) and open an issue first to discuss what you would like to change.
 

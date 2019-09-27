@@ -35,18 +35,29 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
         intronStartIndices = []; # stores start indexes of introns starting after recode sequence start
         intronEndIndices = []; # stores end indexes of introns starting after recode sequence start
-        for ann in geneGB.findAnnsLabel(gene.label): # loop through annotations associated with gene
-            if ann.type == "exon": # if annotation is exon
+        for ann in geneGB.findAnnsLabel(gene.label): # loop through annotations associated with transcript
+            if ann.type == "CDS": # if annotation is cds
                 if gene.index[1] > ann.index[1] > startRecode: # if annotation is an exon ending before gene end and after recode start,
                     intronStartIndices.append(ann.index[1]); # add this intron start index
                 if gene.index[1] > ann.index[0] > startRecode: # if annotation is an exon starting after recode start,
                     intronEndIndices.append(ann.index[0]); # add this intron end index
 
 
-            elif ann.type == "intron": # if annotation is intron,
-                if ann.index[0] > startRecode: # if annotation is an intron starting after recode start,
-                    intronStartIndices.append(ann.index[0]); # add this intron start index
-                    intronEndIndices.append(ann.index[1]); # add this intron start index
+
+
+        # if len(intronStartIndices) == 0: # if no CDS exons found in this way,
+        #     for ann in geneGB.findAnnsLabel(gene.label.split('.')[0]): # loop through annotations associated with gene
+        #         if ann.type == "exon": # if annotation is exon
+        #             if gene.index[1] > ann.index[1] > startRecode: # if annotation is an exon ending before gene end and after recode start,
+        #                 intronStartIndices.append(ann.index[1]); # add this intron start index
+        #             if gene.index[1] > ann.index[0] > startRecode: # if annotation is an exon starting after recode start,
+        #                 intronEndIndices.append(ann.index[0]); # add this intron end index
+        #
+        #
+        #         elif ann.type == "intron": # if annotation is intron,
+        #             if ann.index[0] > startRecode: # if annotation is an intron starting after recode start,
+        #                 intronStartIndices.append(ann.index[0]); # add this intron start index
+        #                 intronEndIndices.append(ann.index[1]); # add this intron start index
 
 
 
@@ -258,18 +269,29 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
         intronStartIndices = []; # stores start indexes of introns starting after recode sequence start
         intronEndIndices = []; # stores end indexes of introns starting after recode sequence start
-        for ann in geneGB.findAnnsLabel(gene.label): # loop through annotations associated with gene
-            if ann.type == "exon": # if annotation is exon
+        for ann in geneGB.findAnnsLabel(gene.label): # loop through annotations associated with transcript
+            if ann.type == "CDS": # if annotation is cds
                 if gene.index[0] < ann.index[1] < endRecode: # if annotation is an exon ending after gene start and before recode end,
                     intronStartIndices.append(ann.index[1]); # add this intron start index
                 if gene.index[0] < ann.index[0] < endRecode: # if annotation is an exon starting before recode end,
                     intronEndIndices.append(ann.index[0]); # add this intron end index
 
 
-            elif ann.type == "intron": # if annotation is intron,
-                if ann.index[1] < endRecode: # if annotation is an intron ending before recode end,
-                    intronStartIndices.append(ann.index[0]); # add this intron start index
-                    intronEndIndices.append(ann.index[1]); # add this intron start index
+
+
+        # if len(intronStartIndices) == 0: # if no CDS exons found in this way,
+        #     for ann in geneGB.findAnnsLabel(gene.label.split('.')[0]): # loop through annotations associated with gene
+        #         if ann.type == "exon": # if annotation is exon
+        #             if gene.index[0] < ann.index[1] < endRecode: # if annotation is an exon ending after gene start and before recode end,
+        #                 intronStartIndices.append(ann.index[1]); # add this intron start index
+        #             if gene.index[0] < ann.index[0] < endRecode: # if annotation is an exon starting before recode end,
+        #                 intronEndIndices.append(ann.index[0]); # add this intron end index
+        #
+        #
+        #         elif ann.type == "intron": # if annotation is intron,
+        #             if ann.index[1] < endRecode: # if annotation is an intron ending before recode end,
+        #                 intronStartIndices.append(ann.index[0]); # add this intron start index
+        #                 intronEndIndices.append(ann.index[1]); # add this intron start index
 
 
 

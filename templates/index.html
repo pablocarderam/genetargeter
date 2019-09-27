@@ -126,7 +126,8 @@
 						</li>
 						<li>
 							<b>a text file</b> containing a message log and warnings
-							issued during the <i>in silico</i> design process.
+							issued during the <i>in silico</i> design process, along with 
+							plasmid assembly instructions.
 						</li>
 					</ul>
 				</p>
@@ -138,8 +139,11 @@
 				<p>
 					Targeting system: &nbsp<select id="plasmidType" onchange="changeUTRTarget()">
 						<option value="pSN054" selected="selected">pSN054 (3' payload)</option>
+						<option value="pSN054_V5" selected="selected">pSN054_V5 (3' payload)</option>
 						<option value="pSN150">pSN150 (5' payload)</option>
 						<option value="pSN150-KO">pSN150 (KO construct)</option>
+						<option value="pSN150-Ter">pSN150 with Nhe1-free T7 terminator (5' payload)</option>
+						<option value="pSN150-KO-Ter">pSN150 with Nhe1-free T7 terminator (KO construct)</option>
 					</select>
 				</p>
 				<p>
@@ -181,9 +185,9 @@
 
 						<p>
 							Treat as coding/noncoding: &nbsp<select id="setCoding">
-								<option value="Coding" selected="selected">Coding</option>
+								<option value="Coding">Coding</option>
 								<option value="Noncoding">Noncoding</option>
-								<option value="Auto">Auto</option>
+								<option value="Auto" selected="selected">Auto</option>
 							</select>
 						</p><br>
 

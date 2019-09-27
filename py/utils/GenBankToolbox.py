@@ -391,6 +391,29 @@ class GenBank(object):
 
         return insideExon; # return Boolean
 
+    """
+    Returns true if given index is inside a CDS with a given label (assuming
+    CDS are annotated)
+    """
+    def checkInCDS(self,pIndex,label): # checks if pIndex is inside an exon in gene
+        insideGene = False; # Boolean stores whether pIndex is inside a gene
+        insideExon = False; # Boolean stores whether pIndex is inside an exon
+        exonsAnnotated = False; # stores whether introns are annotated in this GB file
+        for ann in self.features: # loop through all annotations
+            if  ann.type == "gene" and ann.index[0] <= pIndex <= ann.index[1]: # if this annotation is a gene and pIndex is inside this gene,
+                insideGene = True; # set inside this gene
+            elif ann.type == "CDS": # if this annotation is a CDS,
+                exonsAnnotated = True; # exons are annotated
+                if ann.index[0] <= pIndex <= ann.index[1] and ann.label.find(label)>-1: # if pIndex is inside this CDS and CDS contains right label,
+                    insideExon = True; # sets insideExon
+
+
+
+        if insideGene and not exonsAnnotated: # if inside gene with no exons annotated,
+            insideExon = True; # Assume inside exon
+
+        return insideExon; # return Boolean
+
 
     """
     Loops over all annotations changing the color to the one passed as an

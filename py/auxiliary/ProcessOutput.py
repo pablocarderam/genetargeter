@@ -164,7 +164,7 @@ def createOutputSummaryTableNonProtein(dirPath):
                         if l.find("Warning") > -1:
                             if l.find("LHR") > -1:
                                 results[enzymeMod+1] = "Warning";
-                            elif l.find("gBlock") > -1 or l.find("Recoded") > -1:
+                            elif l.find("gBlock") > -1 or l.find("Recoded") > -1 or l.find("gene fragment") > -1:
                                 results[enzymeMod+2] = "Warning";
                             elif l.find("RHR") > -1:
                                 results[enzymeMod+3] = "Warning";
@@ -175,7 +175,7 @@ def createOutputSummaryTableNonProtein(dirPath):
                         if l.find("ERROR") > -1:
                             if l.find("LHR") > -1:
                                 results[enzymeMod+1] = "Error";
-                            elif l.find("gBlock") > -1 or l.find("Recoded") > -1:
+                            elif l.find("gBlock") > -1 or l.find("Recoded") > -1 or l.find("gene fragment") > -1:
                                 results[enzymeMod+2] = "Error";
                             elif l.find("RHR") > -1:
                                 results[enzymeMod+3] = "Error";

@@ -98,11 +98,19 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
         closestGene = 0; # initialize variable storing index inside closest relevant gene (depends on targeting position)
         target3Prime = True; # initialize position being targeted, default 3' end of gene
         plasmid = GenBank(); # stores plasmid map variable
-        if plasmidType == "pSN054": # if using 3' plasmid
-            if enzyme == "Cas9": # if Cas9,
-                plasmid = pSN054_V5_Cas9; # set plasmid
-            elif enzyme == "Cas12": # if Cas12,
-                plasmid = pSN054_V5_Cas12; # set plasmid
+        if plasmidType == "pSN054" or plasmidType == "pSN054_V5": # if using 3' plasmid
+            if plasmidType == "pSN054": # if using old version
+                if enzyme == "Cas9": # if Cas9,
+                    plasmid = pSN054_Cas9; # set plasmid
+                elif enzyme == "Cas12": # if Cas12,
+                    plasmid = pSN054_Cas12; # set plasmid
+
+            elif plasmidType == "pSN054_V5": # if using old version
+                plasmidType = plasmidType[0:-3] # get rid of "-Ter" notice for downstream processing
+                if enzyme == "Cas9": # if Cas9,
+                    plasmid = pSN054_V5_Cas9; # set plasmid
+                elif enzyme == "Cas12": # if Cas12,
+                    plasmid = pSN054_V5_Cas12; # set plasmid
 
             closestGene = len(geneGB.origin); # by default, assume next gene downstream is after end of file
             target3Prime = True; # this plasmid targets 3' end
@@ -112,11 +120,20 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
 
 
-        elif plasmidType == "pSN150" or plasmidType == "pSN150-KO": # if using 5' plasmid
-            if enzyme == "Cas9": # if Cas9,
-                plasmid = pSN150_Cas9; # set plasmid
-            elif enzyme == "Cas12": # if Cas12,
-                plasmid = pSN150_Cas12; # set plasmid
+        elif plasmidType == "pSN150" or plasmidType == "pSN150-KO" or plasmidType == "pSN150-Ter" or plasmidType == "pSN150-KO-Ter": # if using 5' plasmid
+            if plasmidType == "pSN150" or plasmidType == "pSN150-KO": # if using the normal ones,
+                if enzyme == "Cas9": # if Cas9,
+                    plasmid = pSN150_Cas9; # set plasmid
+                elif enzyme == "Cas12": # if Cas12,
+                    plasmid = pSN150_Cas12; # set plasmid
+
+            elif plasmidType == "pSN150-Ter" or plasmidType == "pSN150-KO-Ter": # if using T7 ter modified versions
+                plasmidType = plasmidType[0:-4] # get rid of "-Ter" notice for downstream processing
+                if enzyme == "Cas9": # if Cas9,
+                    plasmid = pSN150_Cas9_Ter; # set plasmid
+                elif enzyme == "Cas12": # if Cas12,
+                    plasmid = pSN150_Cas12_Ter; # set plasmid
+
 
             closestGene = 0; # by default, assume next gene downstream is before start of file
             target3Prime = False; # this plasmid targets 3' end
@@ -344,7 +361,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     outputDic["logFileStr"] += editedLocus["log"]; # add logs
     editedLocus = editedLocus["out"]; # saves actual data
 
-    outputDic["logFileStr"] = outputDic["logFileStr"] + "\nVector constructed and written to file. End of process.\n"; # saves message log to file
+    outputDic["logFileStr"] = outputDic["logFileStr"] + "\nVector constructed and written to file. End of process.\n" + instructions[plasmidType] + '\n'; # saves message log to file with assembly instructions
     plasmidArmed.definition = (plasmidArmed.definition + "  " + outputDic["logFileStr"]).replace("\n","   "); # save logs to file definition to be viewed in benchling
     editedLocus.definition = (editedLocus.definition + "  " + outputDic["logFileStr"]).replace("\n","   "); # save logs to file definition to be viewed in benchling
     geneGB.definition = (geneGB.definition + "  " + outputDic["logFileStr"]).replace("\n","   "); # save logs to file definition to be viewed in benchling
