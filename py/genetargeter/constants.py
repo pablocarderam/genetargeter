@@ -43,7 +43,7 @@ pSN054_Cas9 = GenBank();
 pSN054_Cas9.load("input/plasmids/psn054_cas9.gb",loadFromFile=True); # load Cas9 plasmid sequence from GenBank format
 pSN054_Cas9.setAllColors(annColors['otherAnnColor'])
 pSN054_V5_Cas12 = GenBank();
-pSN054_V5_Cas12.load("input/plasmids/pSN054_cas12.gb",loadFromFile=True); # load Cas12 plasmid sequence from GenBank format
+pSN054_V5_Cas12.load("input/plasmids/psn054_cas12.gb",loadFromFile=True); # load Cas12 plasmid sequence from GenBank format
 pSN054_V5_Cas12.setAllColors(annColors['otherAnnColor'])
 pSN054_V5_Cas9 = GenBank();
 pSN054_V5_Cas9.load("input/plasmids/psn054-updated_v5-tagged-jn_final.gb",loadFromFile=True); # load Cas9 plasmid sequence from GenBank format

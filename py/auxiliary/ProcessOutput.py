@@ -35,9 +35,9 @@ def createOutputSummaryTable(dirPath):
                     results = geneResults[geneName];
 
                 enzymeMod = -1;
-                if msg.find("Cas9") > -1:
+                if f.find("Cas9") > -1:
                     enzymeMod = 0;
-                elif msg.find("Cas12") > -1:
+                elif f.find("Cas12") > -1:
                     enzymeMod = 6;
 
 
@@ -142,9 +142,9 @@ def createOutputSummaryTableNonProtein(dirPath):
                         results = geneResults[geneName];
 
                     enzymeMod = -1;
-                    if msg.find("Cas9") > -1:
+                    if f.find("Cas9") > -1:
                         enzymeMod = 0;
-                    elif msg.find("Cas12") > -1:
+                    elif f.find("Cas12") > -1:
                         enzymeMod = 6;
 
 
