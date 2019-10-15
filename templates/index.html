@@ -46,9 +46,6 @@
 					Command line interface and code available through <a href="https://github.com/pablocarderam/GeneTargeter" target="_blank">
 						GitHub.</a>
 			</p>
-			<p>
-					<img src="static/assets/instructions.png" width="100%">
-			</p>
 		</div>
 
 		<div id="App" class="app" onload="init()">
@@ -56,6 +53,7 @@
 			<!--FALLBACK SOCKET.IO LOCAL <script type="text/javascript" src="static/js/socket.io.min.js"></script> -->
 			<script src="static/js/socketHandler_v4.js"></script>
 			<!--script src="static/js/app.js"></script-->
+			<img src="static/assets/instructions.png" width="50%">
 			<p>
 				Upload a
 				<a href="https://benchling.com" class="tooltip" target="_blank"
@@ -73,67 +71,7 @@
 					-> Reverse Complement -> paste in new file.">
 					in 5'->3' sense.</a>
 				</p>
-
-				<p>
-					For every possible mRNA transcript within the gene uploaded, GeneTargeter outputs:
-					<ul>
-						<li>
-							<b>a GenBank file</b> containing the given gene annotated with
-							the chosen left and right homologous regions, before chromosomal
-							editing.
-						</li>
-						<li>
-							<b>a GenBank file</b> containing the fully annotated plasmid
-							vector designed to target the given gene.
-						</li>
-						<li>
-							<b>a GenBank file</b> containing the edited chromosomal locus
-							targeted by the construct.
-						</li>
-						<li><b>a CSV file</b> containing primers and oligos designed to
-							assemble the new plasmid using
-							<a href="https://dx.doi.org/10.1038/nmeth.1318" target="_blank">
-								Gibson Assembly</a>.
-							This file can be
-							<a href="https://benchling.com" class="tooltip" target="_blank"
-								tipTxt="Open the '+' drop-down menu in the top-right corner of
-								Benchling's interface, select 'More', and select 'Import oligos'.
-								Copy and paste the CSV file contents onto Benchling's field.">
-								imported into Benchling</a>. Abbreviates primer names to fit on
-								commercial tube labels with the <a href="" class="tooltip" tipTxt="The seven digit gene identifier
-								code follows 'PF3D7_'.
-								Oligo types include:
-								LHR (Gibson overhang PCR primers)
-								RHR (Gibson overhang PCR primers)
-								gRNA (Klenow oligos for gRNA sequence)
-								gBlock (gBlock sequencing primer)
-								RecKlen (Klenow oligos for recoded region, if the region is small
-								enough)
-								Orientation refers to forward (F) and reverse (R) primers.">format:</a><br>
-
-								Seven Digit Gene Identifier_Oligo type_Orientation
-						</li>
-						<li><b>a FASTA file</b> containing gene fragments with overlaps
-							designed to assemble the new plasmid using
-							<a href="https://dx.doi.org/10.1038/nmeth.1318" target="_blank">
-								Gibson Assembly</a>.
-						</li>
-						<li>
-							<b>a CSV file</b> comparing different possible sgRNAs evaluated
-							by GeneTargeter before making a choice according to a variety of
-							scoring metrics, as well as the corresponding
-							<a class="tooltip"
-							tipTxt="sgRNAs are either excluded or recoded through codon
-							switching in the final design to avoid CRISPR enzyme recutting.">
-							recoded sgRNA</a> for each in the final design.
-						</li>
-						<li>
-							<b>a text file</b> containing a message log and warnings
-							issued during the <i>in silico</i> design process, along with
-							plasmid assembly instructions.
-						</li>
-					</ul>
-				</p>
+				<br>
 			<div class="small" id="controls">
 				<p>
 					Use homology regions and/or guide RNAs already annotated on files (if any):
@@ -354,6 +292,7 @@
 					</div>
 				</div>
 			</div>
+
 			<p>
 				<label class="btn" ><input type="file" id="geneFileForm" accept=".gb" multiple size="50" onchange="uploadFile()">
 					<span> Upload .gb files </span></label>
@@ -368,6 +307,67 @@
 
 			<p>
 				<div class="fileList" id="outputLog"></div>
+			</p>
+
+			<p>
+				For every possible mRNA transcript within the gene uploaded, GeneTargeter outputs:
+				<ul>
+					<li>
+						<b>a GenBank file</b> containing the given gene annotated with
+						the chosen left and right homologous regions, before chromosomal
+						editing.
+					</li>
+					<li>
+						<b>a GenBank file</b> containing the fully annotated plasmid
+						vector designed to target the given gene.
+					</li>
+					<li>
+						<b>a GenBank file</b> containing the edited chromosomal locus
+						targeted by the construct.
+					</li>
+					<li><b>a CSV file</b> containing primers and oligos designed to
+						assemble the new plasmid using
+						<a href="https://dx.doi.org/10.1038/nmeth.1318" target="_blank">
+							Gibson Assembly</a>.
+						This file can be
+						<a href="https://benchling.com" class="tooltip" target="_blank"
+							tipTxt="Open the '+' drop-down menu in the top-right corner of
+							Benchling's interface, select 'More', and select 'Import oligos'.
+							Copy and paste the CSV file contents onto Benchling's field.">
+							imported into Benchling</a>. Abbreviates primer names to fit on
+							commercial tube labels with the <a href="" class="tooltip" tipTxt="The seven digit gene identifier
+							code follows 'PF3D7_'.
+							Oligo types include:
+							LHR (Gibson overhang PCR primers)
+							RHR (Gibson overhang PCR primers)
+							gRNA (Klenow oligos for gRNA sequence)
+							gBlock (gBlock sequencing primer)
+							RecKlen (Klenow oligos for recoded region, if the region is small
+							enough)
+							Orientation refers to forward (F) and reverse (R) primers.">format:</a><br>
+
+							Seven Digit Gene Identifier_Oligo type_Orientation
+					</li>
+					<li><b>a FASTA file</b> containing gene fragments with overlaps
+						designed to assemble the new plasmid using
+						<a href="https://dx.doi.org/10.1038/nmeth.1318" target="_blank">
+							Gibson Assembly</a>.
+					</li>
+					<li>
+						<b>a CSV file</b> comparing different possible sgRNAs evaluated
+						by GeneTargeter before making a choice according to a variety of
+						scoring metrics, as well as the corresponding
+						<a class="tooltip"
+						tipTxt="sgRNAs are either excluded or recoded through codon
+						switching in the final design to avoid CRISPR enzyme recutting.">
+						recoded sgRNA</a> for each in the final design.
+					</li>
+					<li>
+						<b>a text file</b> containing a message log and warnings
+						issued during the <i>in silico</i> design process, along with
+						plasmid assembly instructions.
+					</li>
+				</ul>
 			</p>
 
 			<div id="myModal" class="modal">
