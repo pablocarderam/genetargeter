@@ -61,6 +61,11 @@ socket.on('invalidCred',function() {
   console.log('Credentials not valid');
   invalidCred();
 });
+// Add a validated listener
+socket.on('runError',function(data) {
+  console.log('Server error occurred.');
+  runError(decodeFileMsg(data));
+});
 
 // Sends a message to the server via sockets
 function sendMessageToServer(message,type) {

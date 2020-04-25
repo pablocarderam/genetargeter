@@ -54,6 +54,21 @@ function invalidCred() {
     document.getElementById("modFooter").innerHTML = "Invalid passcode.";
 }
 
+function runError(msg) {
+    // document.alert('Server error occurred: \n\n'+msg+'\n\nCheck your input files and parameters.')
+
+    document.getElementById('errorWindow').style.display = "block";
+    document.getElementById("errorContent").innerHTML = msg;
+    var formatMsg = String(msg).replace(/"/g,"'").replace(/\n/g,"%0D%0A");
+    document.getElementById("modFooterError").innerHTML = '<h3><a href="mailto:pablocarderam@gmail.com?subject=GeneTargeter Error Report&body=Hola Pablo! \nI was trying to run GeneTargeter but ran into this error: %0D%0A%0D%0A'+formatMsg+'%0D%0A%0D%0AThanks!">Click to send error report to pablocarderam@gmail.com</a>.</h3>';
+    if (document.getElementById("errorWindowContent").classList.contains("modal-out")) {
+        document.getElementById("errorWindowContent").classList.remove("modal-out");
+    }
+    if (!document.getElementById("errorWindowContent").classList.contains("modal-in")) {
+        document.getElementById("errorWindowContent").classList.add("modal-in");
+    }
+}
+
 function validCred() {
     var x = document.getElementById("geneFileForm");
     validCredentials = true;

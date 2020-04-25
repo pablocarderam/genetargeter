@@ -78,9 +78,7 @@ Niles Lab logo made by Alejandra Falla.
 
 ## Authors
 
-I'm Pablo Cárdenas, a member of the [Niles Lab](http://web.mit.edu/nileslab/) at [MIT Biological Engineering](be.mit.edu). Follow my science antics at [@pcr_guy on Twitter!](https://twitter.com/pcr_guy)
-
-Cheers and thanks for using!
+I'm Pablo Cárdenas, a member of the [Niles Lab](http://web.mit.edu/nileslab/) at [MIT Biological Engineering](be.mit.edu). Follow my science antics at [@pcr_guy on Twitter](https://twitter.com/pcr_guy).
 
 ## License
 Well [MIT](https://choosealicense.com/licenses/mit/), of course!
