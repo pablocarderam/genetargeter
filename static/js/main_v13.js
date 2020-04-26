@@ -11,11 +11,83 @@ var disconnected = false; // true when connection is lost in middle of operation
 var validCredentials = false;
 var numBkgrs = 15;
 
+var geneServerFiles = [];
+var geneServerNames = [];
+
 function init() {
     document.getElementById("backToTopBtn").style.opacity = 0;
     EPPZScrollTo.scrollVerticalToElementById('Title', 0); // scroll to start at init
     document.body.style.background = "linear-gradient(rgba(150, 200, 50, 0.4),rgba(76, 0, 0, 0.45)), url('../static/assets/bkgr/bkgr_" + Math.ceil(Math.random()*numBkgrs).toString() + ".jpg') no-repeat center center fixed";
     document.body.style.backgroundSize = "cover";
+    document.getElementById('geneIDSubmissionTxt').value = 'PF3D7_0905100\nPF3D7_1357000\nPF3D7_1221000';
+}
+
+function geneIDSubmissionInterface() {
+    document.getElementById('geneIDSubmission').style.display = "block";
+    if (document.getElementById("geneIDSubmissionContent").classList.contains("modal-out")) {
+        document.getElementById("geneIDSubmissionContent").classList.remove("modal-out");
+    }
+    if (!document.getElementById("geneIDSubmissionContent").classList.contains("modal-in")) {
+        document.getElementById("geneIDSubmissionContent").classList.add("modal-in");
+    }
+}
+
+function submitGeneIDs() {
+    var geneIDs = document.getElementById('geneIDSubmissionTxt').value.trim();
+    sendMessageToServer(geneIDs,"geneNames");
+}
+
+function genesFound(geneFileStr) {
+    geneServerFiles = geneFileStr;
+
+    var geneIDs = document.getElementById('geneIDSubmissionTxt').value.trim().split('\n');
+    geneServerNames = [];
+    for (var i = 0; i < geneIDs.length; i++) {
+        if (geneIDs[i].trim().length > 0) {
+            geneServerNames.push(geneIDs[i].trim())
+        }
+    }
+
+    if (geneServerNames.length == 1) {
+      document.getElementById("run").innerHTML = "Target Gene!";
+    }
+    else {
+      document.getElementById("run").innerHTML = "Target Genes!";
+    }
+
+    var parent = document.getElementById("selectedFiles");
+    parent.innerHTML = "";
+    var txt = "";
+    fileCounter = 0;
+
+    for (var i = 0; i < geneServerNames.length; i++) {
+        var geneName = geneServerNames[i];
+        if (geneName.length > 0) {
+            txt = "";
+            txt += (i+1) + ".";
+            var p = document.createElement("span");
+            txt += "  " + geneIDs[i] + '.gb | Gene name: ';
+            var nameField = document.createElement("input");
+            nameField.setAttribute("type","text");
+            nameField.setAttribute("value",geneIDs[i]);
+            p.innerHTML = txt;
+            p.appendChild(nameField);
+            p.innerHTML += "<span></span> <br>";
+            parent.appendChild(p);
+        }
+    }
+
+    closeModal('geneIDSubmissionContent','geneIDSubmission');
+}
+
+function genesNotFound(geneIDsStr) {
+    var geneIDs = geneIDsStr;
+    var txt = 'ERROR: Make sure these are <i>P. falciparum</i> 3D7 PlasmoDB gene IDs, or use the file upload feature on the main page to submit your own gene files. <br>Gene IDs not found:';
+    for (var i = 0; i < geneIDs.length; i++) {
+        txt += '<br>'+geneIDs[i];
+    }
+
+    document.getElementById('geneIDSubmissionError').innerHTML = txt
 }
 
 function askCredentials() {
@@ -31,7 +103,7 @@ function askCredentials() {
         }
     }
     else if (document.getElementById("run").innerHTML === "Select one or more GenBank gene files.") {
-        document.getElementById('geneFileForm').click();
+        // document.getElementById('geneFileForm').click();
     }
     else if (document.getElementById("run").innerHTML === "Completed!") {
         if (numFilesUploaded > 1) {
@@ -55,8 +127,6 @@ function invalidCred() {
 }
 
 function runError(msg) {
-    // document.alert('Server error occurred: \n\n'+msg+'\n\nCheck your input files and parameters.')
-
     document.getElementById('errorWindow').style.display = "block";
     document.getElementById("errorContent").innerHTML = msg;
     var formatMsg = String(msg).replace(/"/g,"'").replace(/\n/g,"%0D%0A");
@@ -79,7 +149,7 @@ function validCred() {
         }
         else {
             document.getElementById("modFooter").innerHTML = "Valid passcode!";
-            closeModal();
+            closeModal('modContent','myModal');
             run();
         }
     }
@@ -95,24 +165,27 @@ function checkKey() {
 }
 
 // When the user clicks on <span> (x), close the modal
-function closeModal() {
-    if (document.getElementById("modContent").classList.contains("modal-in")) {
-        document.getElementById("modContent").classList.remove("modal-in");
+function closeModal(id,modal_id) {
+    if (document.getElementById(id).classList.contains("modal-in")) {
+        document.getElementById(id).classList.remove("modal-in");
     }
-    if (!document.getElementById("modContent").classList.contains("modal-out")) {
-        document.getElementById("modContent").classList.add("modal-out");
+    if (!document.getElementById(id).classList.contains("modal-out")) {
+        document.getElementById(id).classList.add("modal-out");
     }
-    setTimeout(displayNone, 250);
+    setTimeout(function() {displayNone(modal_id);}, 250);
 }
 
-function displayNone() {
-    document.getElementById('myModal').style.display = "none";
+function displayNone(id) {
+    document.getElementById(id).style.display = "none";
 }
 
 // When the user clicks anywhere outside of the modal, close it
 window.onclick = function(event) {
     if (event.target == document.getElementById('myModal')) {
-        closeModal();
+        closeModal('modContent','myModal');
+    }
+    else if (event.target == document.getElementById('geneIDSubmission')) {
+        closeModal('geneIDSubmissionContent','geneIDSubmission');
     }
 }
 
@@ -240,82 +313,133 @@ function fadeIn(el, display){
 
 // the full monty
 function run() {
-    document.getElementById("run").innerHTML = "Processing files...";
-    var x = document.getElementById("geneFileForm");
-    var txt = "";
-    if ('files' in x) {
-        if (x.files.length == 0) {
-            txt = "Select one or more GenBank gene files.";
-        }
-        else {
-            numFilesUploaded = x.files.length;
-            document.getElementById("run").innerHTML = "Processing files...";
-            var i = fileCounter;
-            var file = x.files[i];
-            if (file.name.substr(file.name.length-3,file.name.length) === ".gb") {
-                var fR = new FileReader();
-                fR.fileName = document.getElementById('selectedFiles').children[i].children[0].value;
-                var queryNumber = fileCounter;
-                fR.readAsText(file, "UTF-8");
-                fR.onload = function (evt) {
-                    var HRann = document.getElementById("HRannChkBox").checked;
-                    var lengthLHR = [document.getElementById("LHRMin").value, document.getElementById("LHRPref").value, document.getElementById("LHRMax").value];
-                    var lengthRHR = [document.getElementById("RHRMin").value, document.getElementById("RHRPref").value, document.getElementById("RHRMax").value];
-                    var lengthGib = [document.getElementById("gibMin").value, document.getElementById("gibPref").value, document.getElementById("gibMax").value];
-                    var optimLHR = [-1*document.getElementById("optLowLHR").value, document.getElementById("optHighLHR").value];
-                    var optimRHR = [-1*document.getElementById("optLowRHR").value, document.getElementById("optHighRHR").value];
-                    var endsLHR = document.getElementById("endsLHR").value;
-                    var endsRHR = document.getElementById("endsRHR").value;
-                    var endsTempLHR = document.getElementById("endsTempLHR").value;
-                    var endsTempRHR = document.getElementById("endsTempRHR").value;
-                    var gibTemp = document.getElementById("gibTemp").value;
-                    var gibTDif = document.getElementById("gibTDif").value;
-                    var maxDistLHR = document.getElementById("maxDistLHR").value;
-                    var maxDistRHR = document.getElementById("maxDistRHR").value;
-                    var minFragSize = document.getElementById('minFragSize').value;
-                    var optimOrg = document.getElementById('codonOptimizeOrg').value;
-                    var codonSampling = document.getElementById('codonOptimStrat').value;
-                    var minGCContent = document.getElementById('gRNAGCContent').value;
-                    var onTargetMethod = document.getElementById('gRNAOnTargetMethod').value;
-                    var onTargetScore = document.getElementById('gRNAOnTargetCutoff').value;
-                    var offTargetMethod = document.getElementById('gRNAOffTargetMethod').value;
-                    var offTargetScore = document.getElementById('minOffTargetScore').value;
-                    var offTargetHitScore = document.getElementById('maxOffTargetHitScore').value;
-                    var enzyme = document.getElementById('enzymeType').value;
-                    var pam = document.getElementById('PAMSequence').value;
-                    var gBlockDefault = document.getElementById('gBlockDefault').checked;
-                    var plasmidType = document.getElementById('plasmidType').value;
-                    var haTag = document.getElementById('haTag').value;
-                    var setCoding = document.getElementById('setCoding').value;
+    if (geneServerFiles.length > 0) {
+        runGeneServerFiles();
+    }
+    else {
+        document.getElementById("run").innerHTML = "Processing files...";
+        var x = document.getElementById("geneFileForm");
+        var txt = "";
+        if ('files' in x) {
+            if (x.files.length == 0) {
+                txt = "Select one or more GenBank gene files.";
+            }
+            else {
+                numFilesUploaded = x.files.length;
+                var i = fileCounter;
+                var file = x.files[i];
+                if (file.name.substr(file.name.length-3,file.name.length) === ".gb") {
+                    var fR = new FileReader();
+                    fR.fileName = document.getElementById('selectedFiles').children[i].children[0].value;
+                    var queryNumber = fileCounter;
+                    fR.readAsText(file, "UTF-8");
+                    fR.onload = function (evt) {
+                        var HRann = document.getElementById("HRannChkBox").checked;
+                        var lengthLHR = [document.getElementById("LHRMin").value, document.getElementById("LHRPref").value, document.getElementById("LHRMax").value];
+                        var lengthRHR = [document.getElementById("RHRMin").value, document.getElementById("RHRPref").value, document.getElementById("RHRMax").value];
+                        var lengthGib = [document.getElementById("gibMin").value, document.getElementById("gibPref").value, document.getElementById("gibMax").value];
+                        var optimLHR = [-1*document.getElementById("optLowLHR").value, document.getElementById("optHighLHR").value];
+                        var optimRHR = [-1*document.getElementById("optLowRHR").value, document.getElementById("optHighRHR").value];
+                        var endsLHR = document.getElementById("endsLHR").value;
+                        var endsRHR = document.getElementById("endsRHR").value;
+                        var endsTempLHR = document.getElementById("endsTempLHR").value;
+                        var endsTempRHR = document.getElementById("endsTempRHR").value;
+                        var gibTemp = document.getElementById("gibTemp").value;
+                        var gibTDif = document.getElementById("gibTDif").value;
+                        var maxDistLHR = document.getElementById("maxDistLHR").value;
+                        var maxDistRHR = document.getElementById("maxDistRHR").value;
+                        var minFragSize = document.getElementById('minFragSize').value;
+                        var optimOrg = document.getElementById('codonOptimizeOrg').value;
+                        var codonSampling = document.getElementById('codonOptimStrat').value;
+                        var minGCContent = document.getElementById('gRNAGCContent').value;
+                        var onTargetMethod = document.getElementById('gRNAOnTargetMethod').value;
+                        var onTargetScore = document.getElementById('gRNAOnTargetCutoff').value;
+                        var offTargetMethod = document.getElementById('gRNAOffTargetMethod').value;
+                        var offTargetScore = document.getElementById('minOffTargetScore').value;
+                        var offTargetHitScore = document.getElementById('maxOffTargetHitScore').value;
+                        var enzyme = document.getElementById('enzymeType').value;
+                        var pam = document.getElementById('PAMSequence').value;
+                        var gBlockDefault = document.getElementById('gBlockDefault').checked;
+                        var plasmidType = document.getElementById('plasmidType').value;
+                        var haTag = document.getElementById('haTag').value;
+                        var setCoding = document.getElementById('setCoding').value;
 
-                    msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
-                      HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
-                      endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
-                      optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
-                      offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType, haTag, setCoding]);
-                    sendMessageToServer('Sending requests...', "misc");
-                    sendMessageToServer(msg,'sendGeneFile');
-                    queryNumber += 1;
-                }
-                fR.onerror = function (evt) {
-                    var errMsg = "Error reading file ";
-                    if ('name' in file) {
-                        errMsg += file.name;
+                        msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
+                          HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
+                          endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
+                          optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
+                          offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType, haTag, setCoding]);
+                        sendMessageToServer('Sending requests...', "misc");
+                        sendMessageToServer(msg,'sendGeneFile');
+                        queryNumber += 1;
                     }
-                    document.getElementById("outputLog").innerHTML = errMsg;
+                    fR.onerror = function (evt) {
+                        var errMsg = "Error reading file ";
+                        if ('name' in file) {
+                            errMsg += file.name;
+                        }
+                        document.getElementById("outputLog").innerHTML = errMsg;
+                    }
+                }
+                else if ('name' in file) {
+                    txt += "File " + file.name + " not a GenBank format file (.gb)";
                 }
             }
-            else if ('name' in file) {
-                txt += "File " + file.name + " not a GenBank format file (.gb)";
+        }
+        else {
+            if (x.value === "") {
+                txt += "Select one or more files.";
+            } else {
+                txt += "Sorry, the files property is not supported by your browser.";
             }
         }
     }
-    else {
-        if (x.value === "") {
-            txt += "Select one or more files.";
-        } else {
-            txt += "Sorry, the files property is not supported by your browser.";
-        }
+}
+
+function runGeneServerFiles() {
+    document.getElementById("run").innerHTML = "Processing files...";
+    var txt = "";
+    numFilesUploaded = geneServerFiles.length;
+    var fileName = geneServerNames[fileCounter].trim()
+
+    if (fileName.length > 0) {
+        var HRann = document.getElementById("HRannChkBox").checked;
+        var lengthLHR = [document.getElementById("LHRMin").value, document.getElementById("LHRPref").value, document.getElementById("LHRMax").value];
+        var lengthRHR = [document.getElementById("RHRMin").value, document.getElementById("RHRPref").value, document.getElementById("RHRMax").value];
+        var lengthGib = [document.getElementById("gibMin").value, document.getElementById("gibPref").value, document.getElementById("gibMax").value];
+        var optimLHR = [-1*document.getElementById("optLowLHR").value, document.getElementById("optHighLHR").value];
+        var optimRHR = [-1*document.getElementById("optLowRHR").value, document.getElementById("optHighRHR").value];
+        var endsLHR = document.getElementById("endsLHR").value;
+        var endsRHR = document.getElementById("endsRHR").value;
+        var endsTempLHR = document.getElementById("endsTempLHR").value;
+        var endsTempRHR = document.getElementById("endsTempRHR").value;
+        var gibTemp = document.getElementById("gibTemp").value;
+        var gibTDif = document.getElementById("gibTDif").value;
+        var maxDistLHR = document.getElementById("maxDistLHR").value;
+        var maxDistRHR = document.getElementById("maxDistRHR").value;
+        var minFragSize = document.getElementById('minFragSize').value;
+        var optimOrg = document.getElementById('codonOptimizeOrg').value;
+        var codonSampling = document.getElementById('codonOptimStrat').value;
+        var minGCContent = document.getElementById('gRNAGCContent').value;
+        var onTargetMethod = document.getElementById('gRNAOnTargetMethod').value;
+        var onTargetScore = document.getElementById('gRNAOnTargetCutoff').value;
+        var offTargetMethod = document.getElementById('gRNAOffTargetMethod').value;
+        var offTargetScore = document.getElementById('minOffTargetScore').value;
+        var offTargetHitScore = document.getElementById('maxOffTargetHitScore').value;
+        var enzyme = document.getElementById('enzymeType').value;
+        var pam = document.getElementById('PAMSequence').value;
+        var gBlockDefault = document.getElementById('gBlockDefault').checked;
+        var plasmidType = document.getElementById('plasmidType').value;
+        var haTag = document.getElementById('haTag').value;
+        var setCoding = document.getElementById('setCoding').value;
+
+        msg = createFileMsg([fileCounter, geneServerFiles[fileCounter], fileName,
+          HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
+          endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
+          optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
+          offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType, haTag, setCoding]);
+        sendMessageToServer('Sending requests...', "misc");
+        sendMessageToServer(msg,'sendGeneFile');
     }
 }
 
@@ -383,7 +507,7 @@ function createFileMsg(info) {
 
 
 function decodeFileMsg(content) {
-    // var sep = ":::";
+    var sep = ":::";
     // var fileSep = "|:||||:|";
 
     // files = content.data.split(fileSep);

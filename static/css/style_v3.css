@@ -90,6 +90,17 @@ label.btn input[type="file"] { /* this hides the original upload button. */
     top: -1000px;
 }
 
+textarea {
+	background:none;
+	border-style:solid;
+	border-color:#C3D8C1;
+	border-radius:4px;
+	color: inherit;
+	font-family: inherit;
+	text-align: left;
+	font-size: 12px
+}
+
 /* styles buttons */
 .btn {
 		border: 4px solid #C3D8C1;

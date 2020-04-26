@@ -141,6 +141,29 @@ def validate_credentials(message):
         emit('invalidCred',{'data':"You either have it or you don't"});
 
 
+@socketio.on('geneNames', namespace='/link')
+def check_gene_files(message):
+    print('Received request for genes');
+    geneIDs = message["data"].split('\n')
+    genesNotFound = ''
+    geneFileStr = ''
+    for geneID in geneIDs:
+        geneID = geneID.strip()
+        if len(geneID) > 0:
+            if os.path.isfile("input/genomes/geneFiles/"+geneID+".gb"):
+                file = open("input/genomes/geneFiles/"+geneID+".gb", "r")
+                geneFileStr = geneFileStr + file.read() + sep
+                file.close()
+            else:
+                genesNotFound = genesNotFound + geneID + sep
+
+
+    if len(genesNotFound) > 0:
+        emit('genesFilesNotFound',{'data':genesNotFound[0:-len(sep)]})
+    elif len(geneFileStr) > 0:
+        emit('genesFilesFound',{'data':geneFileStr[0:-len(sep)]})
+
+
 if __name__ == "__main__":
     # Fetch the environment variable (so it works on Heroku):
     socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))

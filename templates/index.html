@@ -22,8 +22,8 @@
 		<meta name="theme-color" content="#ffffff"-->
 		<link rel="shortcut icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
 
-		<link rel="stylesheet" href="static/css/style_v2.css">
-		<script src="static/js/main_v12.js"></script>
+		<link rel="stylesheet" href="static/css/style_v3.css">
+		<script src="static/js/main_v13.js"></script>
 		<script src="static/js/EPPZScroll.js"></script>
 	</head>
 
@@ -70,6 +70,7 @@
 					can select the whole sequence -> right click -> Copy Special
 					-> Reverse Complement -> paste in new file.">
 					in 5'->3' sense.</a>
+					Make sure the target gene name in the text box matches the gene's annotation on the plasmid.
 				</p>
 				<br>
 			<div class="small" id="controls">
@@ -294,7 +295,10 @@
 			</div>
 
 			<p>
-				<label class="btn" ><input type="file" id="geneFileForm" accept=".gb" multiple size="50" onchange="uploadFile()">
+				<label class="btn" onclick="geneIDSubmissionInterface()">
+					<span> Select genes </span></label>
+					or
+					<label class="btn" ><input type="file" id="geneFileForm" accept=".gb" multiple size="50" onchange="uploadFile()">
 					<span> Upload .gb files </span></label>
 			</p>
 
@@ -375,7 +379,7 @@
 			  <!-- Modal content -->
 			  <div class="modal-content" id="modContent">
 			    <div class="modal-header">
-			      <span class="close" onclick="closeModal()">×</span>
+			      <span class="close" onclick="closeModal('modContent','myModal')">×</span>
 			      <h2>Hold up though...</h2>
 			    </div>
 			    <div class="modal-body">
@@ -420,6 +424,31 @@
 							Reload the page to submit a query again.
 						</p>
 						<div class="modal-footer" id="modFooterError"></div>
+					</div>
+				</div>
+			</div>
+
+			<div id="geneIDSubmission" class="modal">
+				<div class="modal-content" id="geneIDSubmissionContent">
+					<div class="modal-header">
+						<span class="close" onclick="closeModal('geneIDSubmissionContent','geneIDSubmission')">×</span>
+						<h2>Submit gene IDs</h2>
+					</div>
+					<div class="modal-body">
+						<p>
+							List the gene IDs you want to target below (one ID per line):
+						</p>
+							<textarea id="geneIDSubmissionTxt" rows="10" cols="30" wrap="soft"></textarea>
+							<br>
+							<p id="geneIDSubmissionError"></p>
+							<br>
+						<div class="modal-footer" id="modFooterSelect">
+							<label class="btn" onclick="submitGeneIDs()">
+								<span> Select genes </span></label>
+							<!-- If you want to submit a modified gene file or if your gene isn't pre-loaded here,
+							<label class="btn" ><input type="file" accept=".gb" multiple size="50" onchange="uploadFile()">
+							<span> upload your own .gb files</span></label>. -->
+						</div>
 					</div>
 				</div>
 			</div>

@@ -66,6 +66,16 @@ socket.on('runError',function(data) {
   console.log('Server error occurred.');
   runError(decodeFileMsg(data));
 });
+// Add a validated listener
+socket.on('genesFilesNotFound',function(data) {
+  console.log('Genes not found.');
+  genesNotFound(decodeFileMsg(data));
+});
+// Add a validated listener
+socket.on('genesFilesFound',function(data) {
+  console.log('Genes found.');
+  genesFound(decodeFileMsg(data));
+});
 
 // Sends a message to the server via sockets
 function sendMessageToServer(message,type) {
