@@ -248,17 +248,17 @@ RecAE (Anneal-extension oligos for recoded region, if the region is small enough
 
 Orientation refers to forward (F) and reverse (R) primers.
 """
-def shortenOligoNames(primerString):
+def shortenOligoNames(primerString,prefix):
     mat = primerString.split("\n"); # split string into lines
     mat = [l.split(",") for l in mat]; # split lines into cells. mat is now 2D array
 
     for primer in mat: # iterates across all primers (rows in array)
-        name = primer[0]; # gets primer name
+        name = primer[0][len(prefix):]; # gets primer name
         if name[0:6] == "PF3D7_": # if primer format start is correct
             newName = name[6:13] + "_"; # Adds numerical identifier to new name
             # Add oligo type to new name:
-            if name.find("gBlock") > -1:
-                newName = newName + "gBlock" + "_";
+            if name.find("Recoded region") > -1:
+                newName = newName + "RecR" + "_";
             elif name.find("LHR") > -1:
                 newName = newName + "LHR" + "_";
             elif name.find("RHR") > -1:
@@ -274,7 +274,7 @@ def shortenOligoNames(primerString):
             elif name.find("rev") > -1:
                 newName = newName + "R";
 
-            primer[0] = newName; # replace name
+            primer[0] = prefix + newName; # replace name
 
 
     mat = [",".join(l) for l in mat]; # join cells into lines

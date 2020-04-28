@@ -55,6 +55,9 @@ For every possible mRNA transcript within the gene uploaded, GeneTargeter output
 - a **CSV file** comparing different possible sgRNAs evaluated by GeneTargeter before making a choice according to a variety of scoring metrics, as well as the corresponding recoded sgRNA for each in the final design.
 - a **text file** containing a message log and warnings issued during the _in silico_ design process, along with plasmid assembly instructions.
 
+Alternatively, you may choose to consolidate the files of all transcripts being processed into a single file for each type, using the bulk file option.
+You may also add an (optionally numbered) prefix to all file, Genbank, oligo, and gene fragment names, to use in your own records.
+
 ## Contributing
 Pull requests are welcome, but we'd really appreciate your feedback about it! Please contact [pablocarderam at gmail dot com](pablocarderam@gmail.com) and open an issue first to discuss what you would like to change.
 
@@ -73,7 +76,7 @@ Off-target gRNA database built from the _P. falciparum_ genome first published b
 
 Codon frequency tables obtained from the [High-performance Integrated Virtual Environment-Codon Usage Tables (HIVE-CUT) database](https://hive.biochemistry.gwu.edu/cuts/about) [(Athey et al., 2017)](https://dx.doi.org/10.1186/s12859-017-1793-7).
 
-Niles Lab logo made by Alejandra Falla.
+Niles Lab logo made by Gaël Chambonnier.
 
 
 ## Authors

@@ -303,15 +303,17 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
                 gRNATableNew.append(g); # add to new list
 
 
+        gRNATableNew = [ [gene.label] + g for g in gRNATableNew ] # loop over final list adding gene to all gRNAs
+
         refCodon = "upstream of stop"; # string used in sgRNA table depending on end being targeted
         if not target3Prime: # if going for 5' end,
             refCodon = "downstream of start"; # string used in sgRNA table depending on end being targeted
 
         gRNATableString = "\n".join([",".join(g) for g in gRNATableNew]); # join array into csv string
-        gRNATableString = "Values for rejected gRNAs, Rejected, "+enzyme+", "+str(searchStart)+" to "+str(searchEnd)+", +/-, <" + str(minGCContent) + ", <"+str(minOnTargetScore)+", "+onTargetMethod+", Not evaluated, Not evaluated, -, True, Not evaluated, Not evaluated, -, Not recoded, -\n" + gRNATableString; # Add rejected threshold
-        gRNATableString = "Values for backup gRNAs, Backup, "+enzyme+", "+str(searchStart)+" to "+str(searchEnd)+", +/-, >=" + str(minGCContent*0.8) + ", >="+str(minOnTargetScore)+", "+onTargetMethod+", <"+str(minOffTargetScore)+", <"+str(maxOffTargetHitScore)+", "+offTargetMethod+", False, True, True, -, Recoded if " + refCodon + " codon, >=threshold\n" + gRNATableString; # Add backup threshold
-        gRNATableString = "Values for valid gRNAs, Valid, "+enzyme+", "+str(searchStart)+" to "+str(searchEnd)+", +/-, >=" + str(minGCContent) + ", >="+str(minOnTargetScore)+", "+onTargetMethod+", >="+str(minOffTargetScore)+", >="+str(maxOffTargetHitScore)+", "+offTargetMethod+", False, False, False, -, Recoded if " + refCodon + " codon, >=threshold\n" + gRNATableString; # Add valid threshold
-        gRNATableString = "Label, Status, Enzyme, Position, Strand, GC_content, On-target_score, On-target_method, Aggregated_off-target_score, Max_pairwise_off-target_score, Off-target_method, >9_consecutive_A/T, 4-Homopolymer, Triple_T, Sequence, Recoded_sequence, Recoded_sequence_pairwise_off-target_score\n" + gRNATableString; # Add column heads
+        gRNATableString = "-,Values for rejected gRNAs, Rejected, "+enzyme+", "+str(searchStart)+" to "+str(searchEnd)+", +/-, <" + str(minGCContent) + ", <"+str(minOnTargetScore)+", "+onTargetMethod+", Not evaluated, Not evaluated, -, True, Not evaluated, Not evaluated, -, Not recoded, -\n" + gRNATableString; # Add rejected threshold
+        gRNATableString = "-,Values for backup gRNAs, Backup, "+enzyme+", "+str(searchStart)+" to "+str(searchEnd)+", +/-, >=" + str(minGCContent*0.8) + ", >="+str(minOnTargetScore)+", "+onTargetMethod+", <"+str(minOffTargetScore)+", <"+str(maxOffTargetHitScore)+", "+offTargetMethod+", False, True, True, -, Recoded if " + refCodon + " codon, >=threshold\n" + gRNATableString; # Add backup threshold
+        gRNATableString = "-,Values for valid gRNAs, Valid, "+enzyme+", "+str(searchStart)+" to "+str(searchEnd)+", +/-, >=" + str(minGCContent) + ", >="+str(minOnTargetScore)+", "+onTargetMethod+", >="+str(minOffTargetScore)+", >="+str(maxOffTargetHitScore)+", "+offTargetMethod+", False, False, False, -, Recoded if " + refCodon + " codon, >=threshold\n" + gRNATableString; # Add valid threshold
+        gRNATableString = "Gene, Label, Status, Enzyme, Position, Strand, GC_content, On-target_score, On-target_method, Aggregated_off-target_score, Max_pairwise_off-target_score, Off-target_method, >9_consecutive_A/T, 4-Homopolymer, Triple_T, Sequence, Recoded_sequence, Recoded_sequence_pairwise_off-target_score\n" + gRNATableString; # Add column heads
 
         log = log + str(countBackups) + " backup gRNAs with possible off-target effects annotated.\n\n"
         if len(backupGRNAs) + len(gRNAs) == 0: # If there were absolutely no gRNAs under these settings,

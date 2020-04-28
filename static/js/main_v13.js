@@ -14,6 +14,9 @@ var numBkgrs = 15;
 var geneServerFiles = [];
 var geneServerNames = [];
 
+var bulkFile = false;
+var bulkFileArray = ["","","","","","",""];
+
 function init() {
     document.getElementById("backToTopBtn").style.opacity = 0;
     EPPZScrollTo.scrollVerticalToElementById('Title', 0); // scroll to start at init
@@ -144,12 +147,13 @@ function validCred() {
     validCredentials = true;
     fileCounter = 0;
     if ('files' in x) {
-        if (x.files.length == 0) {
+        if (x.files.length == 0 && geneServerFiles.length == 0) {
             document.getElementById("modFooter").innerHTML = "Valid passcode! Select some gene files though.";
         }
         else {
             document.getElementById("modFooter").innerHTML = "Valid passcode!";
             closeModal('modContent','myModal');
+            bulkFile = document.getElementById("bulkFileChkBox").checked;
             run();
         }
     }
@@ -363,12 +367,16 @@ function run() {
                         var plasmidType = document.getElementById('plasmidType').value;
                         var haTag = document.getElementById('haTag').value;
                         var setCoding = document.getElementById('setCoding').value;
+                        bulkFile = document.getElementById("bulkFileChkBox").checked;
+                        var prefix = document.getElementById("prefix").value;
+                        var prefixNum = document.getElementById("prefixNum").value;
 
                         msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
                           HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
                           endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
                           optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
-                          offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType, haTag, setCoding]);
+                          offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault,
+                          plasmidType, haTag, setCoding, bulkFile, prefix, prefixNum]);
                         sendMessageToServer('Sending requests...', "misc");
                         sendMessageToServer(msg,'sendGeneFile');
                         queryNumber += 1;
@@ -432,12 +440,16 @@ function runGeneServerFiles() {
         var plasmidType = document.getElementById('plasmidType').value;
         var haTag = document.getElementById('haTag').value;
         var setCoding = document.getElementById('setCoding').value;
+        bulkFile = document.getElementById("bulkFileChkBox").checked;
+        var prefix = document.getElementById("prefix").value;
+        var prefixNum = document.getElementById("prefixNum").value;
 
         msg = createFileMsg([fileCounter, geneServerFiles[fileCounter], fileName,
           HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
           endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
           optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
-          offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType, haTag, setCoding]);
+          offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType,
+          haTag, setCoding, bulkFile, prefix, prefixNum]);
         sendMessageToServer('Sending requests...', "misc");
         sendMessageToServer(msg,'sendGeneFile');
     }
@@ -484,12 +496,92 @@ function downloadOutput() {
     var enzyme = document.getElementById('enzymeType').value;
     var plasmid = document.getElementById('plasmidType').value;
     var fileExt = [".gb",".gb",".gb",".csv",".fasta",".csv",".txt"];
-    for (var j = 1; j < currentOutput.length; j++) {
-        if (j%(fileTypes.length+1) > 0 && currentOutput[j].length > 1) {
-            var geneName = currentOutput[Math.floor(j/(fileTypes.length+1))*(fileTypes.length+1)] + nonCoding;
-            var file = currentOutput[j];
-            var data = 'data:text/plain;charset=utf-8,' + encodeURIComponent(file);
-            saveAs(data,fileTypes[j%(fileTypes.length+1)-1]+geneName+"_"+plasmid+"_"+enzyme+haTagged+fileExt[j%(fileTypes.length+1)-1]);
+
+    if (!bulkFile) {
+        for (var j = 0; j < currentOutput.length; j++) {
+            if (j%(fileTypes.length+1) > 0 && currentOutput[j].length > 1) {
+                var geneName = currentOutput[Math.floor(j/(fileTypes.length+1))*(fileTypes.length+1)] + nonCoding;
+                var file = currentOutput[j];
+                var data = 'data:text/plain;charset=utf-8,' + encodeURIComponent(file);
+                saveAs(data,fileTypes[j%(fileTypes.length+1)-1]+geneName+"_"+plasmid+"_"+enzyme+haTagged+fileExt[j%(fileTypes.length+1)-1]);
+            }
+        }
+    }
+    else {
+        for (var j = 0; j < currentOutput.length; j++) {
+            if (j%(fileTypes.length+1) > 0 && currentOutput[j].length > 1) {
+                if (fileExt[j%(fileTypes.length+1)-1] === ".csv" && bulkFileArray[j%(fileTypes.length+1)-1].length > 0) {
+                    currentOutput[j] = currentOutput[j].substring(currentOutput[j].indexOf('\n'),currentOutput[j].length);
+                }
+                bulkFileArray[j%(fileTypes.length+1)-1] += currentOutput[j]+'\n\n';
+            }
+        }
+        if (fileCounter == numFilesUploaded) {
+            for (var j = 0; j < bulkFileArray.length; j++) {
+                if (fileTypes[j] === "Oligos_") {
+                    var lines = bulkFileArray[j].split('\n');
+                    var lhrF = [];
+                    var lhrR = [];
+                    var rhrF = [];
+                    var rhrR = [];
+                    var grnaF = [];
+                    var grnaR = [];
+                    var gblkF = [];
+                    var gblkR = [];
+                    var otherF = [];
+                    var otherR = [];
+                    for (var k = 1; k < lines.length; k++) {
+                        lines[k] = lines[k].trim()
+                        if (lines[k].length > 0) {
+                            var oligoTypePortion = lines[k].substring(lines[k].indexOf(',')-10,lines[k].indexOf(','));
+                            switch (oligoTypePortion.substring(oligoTypePortion.indexOf('_')+1)) {
+                                case "LHR_F":
+                                    lhrF.push(lines[k]);
+                                    break;
+                                case "LHR_R":
+                                    lhrR.push(lines[k]);
+                                    break;
+                                case "RHR_F":
+                                    rhrF.push(lines[k]);
+                                    break;
+                                case "RHR_R":
+                                    rhrR.push(lines[k]);
+                                    break;
+                                case "gRNA_F":
+                                    grnaF.push(lines[k]);
+                                    break;
+                                case "gRNA_R":
+                                    grnaR.push(lines[k]);
+                                    break;
+                                case "gBlock_F":
+                                    gblkF.push(lines[k]);
+                                    break;
+                                case "gBlock_R":
+                                    gblkR.push(lines[k]);
+                                    break;
+                                default:
+                                    if (lines[k].includes('_F')) {
+                                        otherF.push(lines[k]);
+                                    }
+                                    else {
+                                        otherR.push(lines[k]);
+                                    }
+                            }
+                        }
+                    }
+                    bulkFileArray[j] = lines[0] + '\n' + rhrF.join('\n') + '\n' + rhrR.join('\n') + '\n' + lhrF.join('\n') + '\n' + lhrR.join('\n') + '\n' + grnaF.join('\n') + '\n' + grnaR.join('\n') + '\n' + gblkF.join('\n') + '\n' + gblkR.join('\n');
+                    if (otherF.length > 0) {
+                        bulkFileArray[j] += otherF.join('\n') + '\n' + otherR.join('\n');
+                    }
+                }
+
+                var prefix = document.getElementById("prefix").value;
+                var file = bulkFileArray[j];
+                var data = 'data:text/plain;charset=utf-8,' + encodeURIComponent(file);
+                saveAs(data,prefix+"_"+fileTypes[j]+plasmid+"_"+enzyme+haTagged+fileExt[j]);
+            }
+
+            bulkFileArray = ["","","","","","",""];
         }
     }
 }

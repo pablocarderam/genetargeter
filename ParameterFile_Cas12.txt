@@ -23,7 +23,7 @@ gibsonHomRange        : [20,30,40]      # Length in bp of homology on each side 
 gibTemp               : 50              # Minimum Gibson primer melting temperature in ºC
 gibTDif               : 5               # Maximum melting temperature difference between Gibson primers in ºC
 gBlockDefault         : True            # Defaults to always using gene fragment synthesis for recoded regions, if any (instead of Klenow oligos for smaller regions) (True, False)
-minGBlockSize         : 125             # Minimum gene fragment size in bp (extends fragment if under minimum size if gBlockDefault is True, otherwise uses Klenow oligos)
+minGBlockSize         : 250             # Minimum gene fragment size in bp (extends fragment if under minimum size if gBlockDefault is True, otherwise uses Klenow oligos)
 codonOptimize         : 'T. gondii'     # Codon usage table used for recodonization when recoding gene fragment region, if any ('P. falciparum 3D7', 'P. vivax', 'T. gondii', 'E. coli K12', 'S. cerevisiae', 'H. sapiens', 'R. norvegicus', 'scramble') QUOTES ("" or '') NEEDED
 codonSampling         : False           # Codon optimization algorithm used to select codons when recodonizing recoded region, if any (True, False for Codon Sampling and CAI maximization, respectively) (http://omicsomics.blogspot.com/2009/04/is-codon-optimization-bunk.html)
 
@@ -52,3 +52,8 @@ maxOffTargetHitScore  : 5               # Maximum off-target score for gRNAs (nu
 
 ### Misc ###
 setCoding             : 'Auto'          # String defining whether a gene should be treated as 'Coding', 'Noncoding', or 'Auto' (called based on the presence of a stop codon or being notated as an RNA)
+
+### Bulk file handling ###
+bulkFile              : True            # Aggregates all gene outputs into a single file for each output type, containing all gene outputs of that given file type; oligos are sorted by purpose and orientation before gene (True, False)
+prefix                : '*None*'        # If not *None*, adds this prefix to all file, oligo, DNA fragment, and GenBank names (String)
+prefixNum             : -1              # If prefix is not *None* and a number > -1 is given here, numbers each gene processed consecutively starting at the given value; adds number to prefix on all file, oligo, DNA fragment, and GenBank names (int)

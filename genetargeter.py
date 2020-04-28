@@ -52,9 +52,16 @@ def getGeneFileStr(pFile):
     else:
         print 'ERROR in '+pFile+' : only GenBank files processed.'
 
-def runGene(geneName, geneFileStr, params, outputDir):
+def runGene(geneName, geneFileStr, params, outputDir, geneNum=0):
     for l in params: # for every line in parameter file,
         exec(l) # execute its content
+
+    if prefix == "*None*":
+        prefix = "";
+    elif prefixNum != "" and prefixNum > -1:
+        prefix += str(prefixNum+geneNum).zfill(3)+'_';
+    else:
+        prefix += '_';
 
     minGRNAGCContent=minGRNAGCContent/100.0 # convert to decimal
     outMsg = ""; # will store output message
@@ -71,14 +78,14 @@ def runGene(geneName, geneFileStr, params, outputDir):
         if filterCutSites == "Auto": # if filterCutSites is automatic
             filterCutSites = cut_sites[plasmidType] # set to its plasmid
 
-        output = targetGene(gbName, geneGBs[gbName], codonOptimize=codonOptimize, useFileStrs=False, outputDir=outputDir, HRannotated=HRannotated,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=gibsonHomRange, optimRangeLHR=optimRangeLHR, optimRangeRHR=optimRangeRHR, endSizeLHR=endSizeLHR, endSizeRHR=endSizeRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minGBlockSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, onTargetMethod=onTargetMethod, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, minOffTargetScore=minOffTargetScore, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme, PAM=PAM, gBlockDefault=gBlockDefault, plasmidType=plasmidType, haTag=haTag, sigPep=sigPep, setCoding=setCoding, filterCutSites=filterCutSites); # call result
+        output = targetGene(gbName, geneGBs[gbName], codonOptimize=codonOptimize, useFileStrs=False, outputDir=outputDir, HRannotated=HRannotated,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=gibsonHomRange, optimRangeLHR=optimRangeLHR, optimRangeRHR=optimRangeRHR, endSizeLHR=endSizeLHR, endSizeRHR=endSizeRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minGBlockSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, onTargetMethod=onTargetMethod, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, minOffTargetScore=minOffTargetScore, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme, PAM=PAM, gBlockDefault=gBlockDefault, plasmidType=plasmidType, haTag=haTag, sigPep=sigPep, setCoding=setCoding, bulkFile=bulkFile, prefix=prefix, filterCutSites=filterCutSites); # call result
 
 
 def parallelRun(file,params,outputDir):
     if file[-3:] == '.gb':
         geneFileStr = getGeneFileStr(file);
         geneName = file[file.rfind('/')+1:file.find('.')] # get gene name from file
-        runGene(geneName, geneFileStr, params, outputDir); # call result
+        runGene(geneName, geneFileStr, params, outputDir, file.geneNum); # call result
 
 
 def runAll(args=None):
@@ -99,6 +106,12 @@ def runAll(args=None):
 
     if os.path.isdir(geneFile): # if path given is a directory,
         files = os.listdir(geneFile) # get full list
+        c = 0; # counts files to process
+        for file in files: # add file number to each file
+            if file[-3:] == '.gb':
+                file.geneNum = c;
+
+
         n_jobs = min(len(files),multiprocessing.cpu_count()) # jobs is min of num cores and files
         jl.Parallel(n_jobs=n_jobs,verbose=10) (jl.delayed(parallelRun)(os.path.join(geneFile,f),params,outputDir) for f in files)
 

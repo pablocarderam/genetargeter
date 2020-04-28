@@ -59,11 +59,11 @@ HRannotated is true if the GenBank file given as input includes manual LHR and
 filterCutSites is a list of strings containing cut sequences to be filtered if
     user provides LHR and RHR.
 """
-def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,750], lengthRHR=[450,500,750], gibsonHomRange=[20,30,40], optimRangeLHR=[-20,20], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="azimuth", minOnTargetScore=30, offTargetMethod="cfd", minOffTargetScore=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG", gBlockDefault=True, plasmidType="pSN054", haTag=True, sigPep=False, setCoding="Auto", outputDir=''): # cfd, 0.5, 35; hsu, 75, 5
+def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, lengthLHR=[450,500,750], lengthRHR=[450,500,750], gibsonHomRange=[20,30,40], optimRangeLHR=[-20,20], optimRangeRHR=[-20,20], endSizeLHR=40, endSizeRHR=40, endTempLHR=55, endTempRHR=59, gibTemp=65, gibTDif=5, maxDistLHR=500, maxDistRHR=500, minGBlockSize=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], useFileStrs=False, codonSampling=False, minGRNAGCContent=0.3, onTargetMethod="azimuth", minOnTargetScore=30, offTargetMethod="cfd", minOffTargetScore=0.5, maxOffTargetHitScore=35, enzyme="Cas9", PAM="NGG", gBlockDefault=True, plasmidType="pSN054", haTag=True, sigPep=False, setCoding="Auto", bulkFile=False, prefix="", outputDir=''): # cfd, 0.5, 35; hsu, 75, 5
 
     outputDicHA = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":"", "gRNATable":"", "gBlockFileStr":""}; # dictionary containing keys to all values being returned for HA-containing design
     outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":"", "gRNATable":"", "outputHA":outputDicHA, "gBlockFileStr":""}; # dictionary containing keys to all values being returned
-    outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + geneName + "-targeting construct based on plasmid " + plasmidType + "_" + enzyme + " **** \n\n"; # starts message log to file
+    outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + prefix + geneName + "-targeting construct based on plasmid " + plasmidType + "_" + enzyme + " **** \n\n"; # starts message log to file
 
     if sigPep: # if gene in signal peptide list,
         outputDic["logFileStr"] = outputDic["logFileStr"] + "Gene contains putative signal peptide according to SignalP information downloaded from PlasmoDB.\n\n"; # say so in output log
@@ -182,7 +182,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
             if LHR["out"] is None or RHR["out"] is None and not HRannotated: # if searches fail and HR's not provided,
                 outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"] + RHR["log"]; # add logs
-                output(outputDic["logFileStr"], path + "/" + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
+                output(outputDic["logFileStr"], path + "/" + prefix + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
             else: # if successful,
                 if HRannotated: # if LHR and RHR are already annotated,
                     LHRlist = geneGB.findAnnsLabel("LHR"); # overwrite LHR annotations
@@ -240,35 +240,35 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                 plasmidArmedHA = ""; # will contain plasmid with HA tags
                 outputDicHA = copy.deepcopy(outputDic); # will store outputs
                 outputDicHA["logFileStr"] = outputDicHA["logFileStr"].replace(" **** \n\n", "_HA_Tag **** \n\n")
-                outputDic = postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=False, gBlockDefault=gBlockDefault); # generate and annotate assembly info
+                outputDic = postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=False, gBlockDefault=gBlockDefault, prefix=prefix); # generate and annotate assembly info
                 if haTag: # if using HA tags,
                     plasmidArmedHA = insertTargetingElements(plasmid, gene.label, bestGRNA.seq, LHR.seq, recodedHA.seq, RHR.seq, plasmidType=plasmidType, haTag=True); # inserts targeting elements
-                    outputDicHA = postProcessPlasmid(geneName, geneGB, gene, plasmidArmedHA, recodedHA, outputDicHA, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=True, gBlockDefault=gBlockDefault); # generate and annotate assembly info
+                    outputDicHA = postProcessPlasmid(geneName, geneGB, gene, plasmidArmedHA, recodedHA, outputDicHA, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=True, gBlockDefault=gBlockDefault, prefix=prefix); # generate and annotate assembly info
                     outputDic["outputHA"] = outputDicHA; # if using HA tags, save design inside output dictionary
                     if not useFileStrs: # if saving to files,
-                        output(outputDicHA["oligoFileStr"], path + "/" + "Oligos_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.csv",wipe=True); # saves oligos to file
-                        output(outputDicHA["logFileStr"], path + "/" + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.txt",wipe=True); # saves message log to file
-                        output(outputDicHA["gRNATable"], path + "/" + "sgRNA_Table_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.csv",wipe=True); # saves message log to file
-                        output(outputDicHA["gBlockFileStr"], path + "/" + "gBlocks_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.fasta",wipe=True); # saves message log to file
+                        output(outputDicHA["oligoFileStr"], path + "/" + prefix + "Oligos_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.csv",wipe=True); # saves oligos to file
+                        output(outputDicHA["logFileStr"], path + "/" + prefix + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.txt",wipe=True); # saves message log to file
+                        output(outputDicHA["gRNATable"], path + "/" + prefix + "sgRNA_Table_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.csv",wipe=True); # saves message log to file
+                        output(outputDicHA["gBlockFileStr"], path + "/" + prefix + "gBlocks_" + geneName +"_"+ plasmidType + "_" + enzyme + "_HA_Tags.fasta",wipe=True); # saves message log to file
 
                 if not useFileStrs: # if saving to files,
-                    output(outputDic["oligoFileStr"], path + "/" + "Oligos_" + geneName +"_"+ plasmidType + "_" + enzyme + ".csv",wipe=True); # saves oligos to file
-                    output(outputDic["logFileStr"], path + "/" + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
-                    output(outputDic["gRNATable"], path + "/" + "sgRNA_Table_" + geneName +"_"+ plasmidType + "_" + enzyme + ".csv",wipe=True); # saves message log to file
-                    output(outputDic["gBlockFileStr"], path + "/" + "gBlocks_" + geneName +"_"+ plasmidType + "_" + enzyme + ".fasta",wipe=True); # saves message log to file
+                    output(outputDic["oligoFileStr"], path + "/" + prefix + "Oligos_" + geneName +"_"+ plasmidType + "_" + enzyme + ".csv",wipe=True); # saves oligos to file
+                    output(outputDic["logFileStr"], path + "/" + prefix + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
+                    output(outputDic["gRNATable"], path + "/" + prefix + "sgRNA_Table_" + geneName +"_"+ plasmidType + "_" + enzyme + ".csv",wipe=True); # saves message log to file
+                    output(outputDic["gBlockFileStr"], path + "/" + prefix + "gBlocks_" + geneName +"_"+ plasmidType + "_" + enzyme + ".fasta",wipe=True); # saves message log to file
 
 
         else: # if no gRNAs found,
-            output(outputDic["logFileStr"], path + "/" + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
+            output(outputDic["logFileStr"], path + "/" + prefix + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
 
     else: # if no gene found,
         outputDic["logFileStr"] = outputDic["logFileStr"] + "ERROR: No gene annotations found in this file with name " + geneName + "\nProcess terminated.\n";
         if not useFileStrs: # if saving to files,
-            output(outputDic["logFileStr"], path + "/" + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
+            output(outputDic["logFileStr"], path + "/" + prefix + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
 
     return outputDic; # returns output dictionary
 
-def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic, path, useFileStrs, geneOrientationNegative, plasmidType="pSN054", enzyme="Cas9", gibsonHomRange=[30,40,50], gibTemp=65, gibTDif=5, minGBlockSize=270, haTag=False, gBlockDefault=True):
+def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic, path, useFileStrs, geneOrientationNegative, plasmidType="pSN054", enzyme="Cas9", gibsonHomRange=[30,40,50], gibTemp=65, gibTDif=5, minGBlockSize=270, haTag=False, gBlockDefault=True, prefix=""):
     gRNAOnPlasmid = plasmidArmed.findAnnsLabel(gene.label + " gRNA")[0]; # saves gRNA annotation actually on plasmid
     if len(recoded.seq) > 0: # if there actually is a recoded region,
         recodedOnPlasmid = plasmidArmed.findAnnsLabel(gene.label + " Recoded")[0]; # saves recoded annotation actually on plasmid
@@ -291,7 +291,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
         outputDic["logFileStr"] = outputDic["logFileStr"] + gBlock["log"]; # add logs
         gBlock = gBlock["out"]; # saves actual data
         plasmidArmed.features.append(gBlock); # add to plasmid annotations
-        gBlockString = gBlockString + ">" + geneName + "_" + plasmidType + "_" + enzyme + "_" + "_Recoded_Region_gBlock\n" + gBlock.seq + "\n\n" # save to filestring
+        gBlockString = gBlockString + ">" + prefix + geneName + "_" + plasmidType + "_" + enzyme + "_" + "_Recoded_Region_gBlock\n" + gBlock.seq + "\n\n" # save to filestring
 
         primGBlock = createPrimers(plasmidArmed, gBlock); # creates gBlock primers
         outputDic["logFileStr"] = outputDic["logFileStr"] + primGBlock["log"]; # add logs
@@ -299,7 +299,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
         plasmidArmed.features.append(primGBlock[0]); # add fwd primer to plasmid annotations
         plasmidArmed.features.append(primGBlock[1]); # add rev primer to plasmid annotations
 
-        primerString = primerString + "\n" + geneName + " gBlock primer (fwd)," + primGBlock[0].seq + "\n" + geneName + " gBlock primer (rev)," + primGBlock[1].seq; # write primers to output string
+        primerString = primerString + "\n" + prefix + geneName + "Recoded region gBlock primer (fwd)," + primGBlock[0].seq + "\n" + prefix + geneName + "Recoded region gBlock primer (rev)," + primGBlock[1].seq; # write primers to output string
     elif len(recoded.seq) >= gibsonHomRange[0]/2: # if length of recoded region greater or equal to half of minimum size of homology region,
         outputDic["logFileStr"] = outputDic["logFileStr"] + "gBlock deemed not feasible for recoded region of construct targeting gene " + geneName + ", used Klenow instead.\n\n"; # say so
         klenowRecoded = createKlenowOligos(plasmidArmed, recodedOnPlasmid, gibsonHomRange[1]); # creates Klenow oligos
@@ -307,7 +307,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
         klenowRecoded = klenowRecoded["out"]; # saves actual data
         plasmidArmed.features.append(klenowRecoded[0]); # add fwd primer to plasmid annotations
         plasmidArmed.features.append(klenowRecoded[1]); # add rev primer to plasmid annotations
-        primerString = primerString + "\n" + geneName + " Recoded region Klenow oligo (fwd)," + klenowRecoded[0].seq + "\n" + geneName + " Recoded region Klenow oligo (rev)," + klenowRecoded[1].seq; # write oligos to output string
+        primerString = primerString + "\n" + prefix + geneName + " Recoded region Klenow oligo (fwd)," + klenowRecoded[0].seq + "\n" + prefix + geneName + " Recoded region Klenow oligo (rev)," + klenowRecoded[1].seq; # write oligos to output string
     else: # if Klenow unnecesary too,
         outputDic["logFileStr"] = outputDic["logFileStr"] + "gBlock and Klenow for recoded region deemed unnecesary for construct targeting gene " + geneName +".\n\n"; # say so
 
@@ -316,21 +316,21 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     primLHR = primLHR["out"]; # saves actual data
     plasmidArmed.features.append(primLHR[0]); # add fwd primer to plasmid annotations
     plasmidArmed.features.append(primLHR[1]); # add rev primer to plasmid annotations
-    primerString = primerString + "\n" + geneName + " LHR primer (fwd)," + primLHR[0].seq + "\n" + geneName + " LHR primer (rev)," + primLHR[1].seq; # write primers to output string
+    primerString = primerString + "\n" + prefix + geneName + " LHR primer (fwd)," + primLHR[0].seq + "\n" + prefix + geneName + " LHR primer (rev)," + primLHR[1].seq; # write primers to output string
 
     primRHR = createGibsonPrimers(plasmidArmed, RHROnPlasmid, rangeHom=gibsonHomRange, minMeltTemp=gibTemp, maxTempDif=gibTDif); # creates RHR Gibson primers
     outputDic["logFileStr"] = outputDic["logFileStr"] + primRHR["log"]; # add logs
     primRHR = primRHR["out"]; # saves actual data
     plasmidArmed.features.append(primRHR[0]); # add fwd primer to plasmid annotations
     plasmidArmed.features.append(primRHR[1]); # add rev primer to plasmid annotations
-    primerString = primerString  + "\n" + geneName + " RHR primer (fwd)," + primRHR[0].seq + "\n" + geneName + " RHR primers (rev)," + primRHR[1].seq; # write primers to output string
+    primerString = primerString + "\n" + prefix + geneName + " RHR primer (fwd)," + primRHR[0].seq + "\n" + prefix + geneName + " RHR primers (rev)," + primRHR[1].seq; # write primers to output string
 
     klenow = createKlenowOligos(plasmidArmed, gRNAOnPlasmid, gibsonHomRange[1]); # creates Klenow oligos
     outputDic["logFileStr"] = outputDic["logFileStr"] + klenow["log"]; # add logs
     klenow = klenow["out"]; # saves actual data
     plasmidArmed.features.append(klenow[0]); # add fwd primer to plasmid annotations
     plasmidArmed.features.append(klenow[1]); # add rev primer to plasmid annotations
-    primerString = primerString + "\n" + geneName + " gRNA Klenow oligo (fwd)," + klenow[0].seq + "\n" + geneName + " gRNA Klenow oligo (rev)," + klenow[1].seq; # write oligos to output string
+    primerString = primerString + "\n" + prefix + geneName + " gRNA Klenow oligo (fwd)," + klenow[0].seq + "\n" + prefix + geneName + " gRNA Klenow oligo (rev)," + klenow[1].seq; # write oligos to output string
 
     gRNACassetteStart = -1 # will be filled in below
     gRNACassetteEnd = -1
@@ -347,7 +347,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     outputDic["logFileStr"] = outputDic["logFileStr"] + gRNAGBlock["log"]; # add logs
     gRNAGBlock = gRNAGBlock["out"]; # saves actual data
     plasmidArmed.features.append(gRNAGBlock); # add to plasmid annotations
-    gBlockString = gBlockString + ">" + geneName + "_" + plasmidType + "_" + enzyme + "_sgRNA_Cassette_gBlock\n" + gRNAGBlock.seq + "\n\n" # save to filestring
+    gBlockString = gBlockString + ">" + prefix + geneName + "_" + plasmidType + "_" + enzyme + "_sgRNA_Cassette_gBlock\n" + gRNAGBlock.seq + "\n\n" # save to filestring
 
     primGRNAGBlock = createPrimers(plasmidArmed, gRNAGBlock); # creates gBlock primers
     outputDic["logFileStr"] = outputDic["logFileStr"] + primGRNAGBlock["log"]; # add logs
@@ -355,9 +355,9 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     plasmidArmed.features.append(primGRNAGBlock[0]); # add fwd primer to plasmid annotations
     plasmidArmed.features.append(primGRNAGBlock[1]); # add rev primer to plasmid annotations
 
-    primerString = primerString + "\n" + geneName + "sgRNA cassette gBlock primer (fwd)," + primGRNAGBlock[0].seq + "\n" + geneName + "sgRNA cassette gBlock primer (rev)," + primGRNAGBlock[1].seq; # write primers to output string
+    primerString = primerString + "\n" + prefix + geneName + "sgRNA cassette gBlock primer (fwd)," + primGRNAGBlock[0].seq + "\n" + prefix + geneName + "sgRNA cassette gBlock primer (rev)," + primGRNAGBlock[1].seq; # write primers to output string
 
-    primerString = shortenOligoNames(primerString) + "\n"; # abbreviates primer names to fit on commercial tube labels
+    primerString = shortenOligoNames(primerString, prefix) + "\n"; # abbreviates primer names to fit on commercial tube labels
 
     editedLocus = editLocus(geneName, geneGB, plasmidArmed); # inserts construct into genomic context
     outputDic["logFileStr"] += editedLocus["log"]; # add logs
@@ -377,13 +377,13 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     if haTag: # if using HA tags,
         haName = "_HA_tags"; # include in name
 
-    geneGB.name = "Locus_Pre-editing_" + geneName + "_" + plasmidType + "_" + enzyme + haName; # save file type in genbank locus
-    plasmidArmed.name = "Plasmid_" + geneName + "_" + plasmidType + "_" + enzyme + haName; # save file type in genbank locus
-    editedLocus.name = "Locus_Post-editing_" + geneName + "_" + plasmidType + "_" + enzyme + haName; # save file type in genbank locus
+    geneGB.name = prefix + "Locus_Pre-editing_" + geneName + "_" + plasmidType + "_" + enzyme + haName; # save file type in genbank locus
+    plasmidArmed.name = prefix + "Plasmid_" + geneName + "_" + plasmidType + "_" + enzyme + haName; # save file type in genbank locus
+    editedLocus.name = prefix + "Locus_Post-editing_" + geneName + "_" + plasmidType + "_" + enzyme + haName; # save file type in genbank locus
 
-    outputDic["geneFileStr"] = geneGB.save(path + "/" + "Locus_Pre-editing_" + geneName + "_" + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves annotated gene
-    outputDic["plasmidFileStr"] = plasmidArmed.save(path + "/" + "Plasmid_" + geneName + "_" + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves plasmid
-    outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + "Locus_Post-editing_" + geneName + "_" + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves edited locus
+    outputDic["geneFileStr"] = geneGB.save(path + "/" + prefix + "Locus_Pre-editing_" + geneName + "_" + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves annotated gene
+    outputDic["plasmidFileStr"] = plasmidArmed.save(path + "/" + prefix + "Plasmid_" + geneName + "_" + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves plasmid
+    outputDic["editedLocusFileStr"] = editedLocus.save(path + "/" + prefix + "Locus_Post-editing_" + geneName + "_" + plasmidType + "_" + enzyme + haName, saveToFile=(not useFileStrs)); # saves edited locus
     outputDic["oligoFileStr"] = primerString; # saves primers to file
     outputDic["gBlockFileStr"] = gBlockString; # saves gBlocks to file
     outputDic["newPlasmid"] = plasmidArmed; # saves new plasmid to output dictionary
