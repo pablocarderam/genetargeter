@@ -54,28 +54,10 @@
 			<script src="static/js/socketHandler_v5.js"></script>
 			<!--script src="static/js/app.js"></script-->
 			<img src="static/assets/instructions.png" width="50%">
-			<p>
-				Upload a
-				<a href="https://benchling.com" class="tooltip" target="_blank"
-					tipTxt="A GenBank file (.gb) can
-					be downloaded from Benchling clicking on the Information
-					icon on the righthand tool menu and scrolling to the
-					'Download' section.">
-					GenBank file</a>
-				annotated with the gene's sequence
-				<a href="https://benchling.com" class="tooltip" target="_blank"
-					tipTxt="Benchling displays 5'->3'
-					annotations from left to right on the top strand. If your
-					gene appears from right to left on the bottom strand, you
-					can select the whole sequence -> right click -> Copy Special
-					-> Reverse Complement -> paste in new file.">
-					in 5'->3' sense.</a>
-					Make sure the target gene name in the text box matches the gene's annotation on the plasmid.
-				</p>
 				<br>
 			<div class="small" id="controls">
 				<p>
-					Use homology regions and/or guide RNAs already annotated on files (if any):
+					Use user-annotated homology regions and/or guide RNAs (if any):
 					<input class="chkBox" type="checkbox" unchecked id="HRannChkBox">
 				</p>
 				<p>
@@ -133,7 +115,9 @@
 								2, etc.'" class="tooltip">
 								a number</a>
 							indicating their order of preference. You may also annotate
-							hand-picked left and right homologous regions on your file, if
+							hand-picked left and right homologous regions on your file
+							(annotated with the words "LHR" and "RHR" in the label,
+							respectively), if
 							you do not want GeneTargeter to choose them automatically for you.
 						</p><br>
 
@@ -307,6 +291,25 @@
 			</div>
 
 			<p>
+				If not selecting gene IDs, upload a
+				<a href="https://benchling.com" class="tooltip" target="_blank"
+					tipTxt="A GenBank file (.gb) can
+					be downloaded from Benchling clicking on the Information
+					icon on the righthand tool menu and scrolling to the
+					'Download' section.">
+					GenBank file</a>
+				annotated with the gene's sequence
+				<a href="https://benchling.com" class="tooltip" target="_blank"
+					tipTxt="Benchling displays 5'->3'
+					annotations from left to right on the top strand. If your
+					gene appears from right to left on the bottom strand, you
+					can select the whole sequence -> right click -> Copy Special
+					-> Reverse Complement -> paste in new file.">
+					in 5'->3' sense.</a>
+					Make sure the target gene name in the text box matches the gene's annotation on the plasmid.
+				</p>
+
+			<p>
 				<label class="btn" onclick="geneIDSubmissionInterface()">
 					<span> Select genes </span></label>
 					or
@@ -326,7 +329,7 @@
 			</p>
 
 			<p>
-				For every possible mRNA transcript within the gene uploaded, GeneTargeter outputs:
+				GeneTargeter outputs seven kinds of files:
 				<ul>
 					<li>
 						<b>a GenBank file</b> containing the given gene annotated with
@@ -384,6 +387,9 @@
 						plasmid assembly instructions.
 					</li>
 				</ul>
+				If the "consolidate files" option is not selected, one file of each type
+				will be created for every possible mRNA transcript within each target
+				gene.
 			</p>
 
 			<div id="myModal" class="modal">

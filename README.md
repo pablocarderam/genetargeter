@@ -1,4 +1,4 @@
-# GeneTargeter <img align="right" src="static/assets/roundLogoNilesLab.png" width="400px" title="Niles Lab Logo">
+# GeneTargeter <img align="right" src="static/assets/Logo_NilesLab_GC.png" width="400px" title="Niles Lab Logo">
 
 GeneTargeter creates custom gene-editing constructs developed by the [Niles Lab at MIT](http://web.mit.edu/nileslab/), designed for knock-out or conditional knock-down in [_Plasmodium falciparum_](http://www.who.int/mediacentre/factsheets/fs094/en/),  by delivering a 3' or 5' UTR post-transcriptional regulatory element payload to a specific given gene ([Ganesan et al., 2016](https://dx.doi.org/10.1038%2Fncomms10727)).
 
@@ -56,7 +56,7 @@ For every possible mRNA transcript within the gene uploaded, GeneTargeter output
 - a **text file** containing a message log and warnings issued during the _in silico_ design process, along with plasmid assembly instructions.
 
 Alternatively, you may choose to consolidate the files of all transcripts being processed into a single file for each type, using the bulk file option.
-You may also add an (optionally numbered) prefix to all file, Genbank, oligo, and gene fragment names, to use in your own records.
+You may also add an (optionally numbered) prefix to all file, GenBank, oligo, and gene fragment names, to use in your own records.
 
 ## Contributing
 Pull requests are welcome, but we'd really appreciate your feedback about it! Please contact [pablocarderam at gmail dot com](pablocarderam@gmail.com) and open an issue first to discuss what you would like to change.
