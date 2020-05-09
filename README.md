@@ -40,8 +40,13 @@ To run GeneTargeter as a command line application, use the following command:
 genetargeter PATH/TO/FILE.gb ParameterFile.txt PATH/TO/OUTPUTFOLDER NAME_OF_GENE
 ```
 
-The last parameter is optional; if empty, the name will be taken from the name of the file. Additionally, instead of the name of a single file, a directory may be listed. In this case, all files in the folder will be processed and each gene's name
-will be taken from the name of its file.
+The last parameter is optional; if empty, the name will be taken from the name of the file. Additionally, instead of the name of a single file, a directory may be listed. In this case, all files in the folder will be processed and each gene's name will be taken from the name of its file. The command would look as follows:
+
+```bash
+genetargeter PATH/TO/INPUT_FOLDER ParameterFile.txt PATH/TO/OUTPUT_FOLDER
+```
+
+Parameters may be specified within ParameterFile.txt--see the examples provided in the code.
 
 ## Output
 For every possible mRNA transcript within the gene uploaded, GeneTargeter outputs:

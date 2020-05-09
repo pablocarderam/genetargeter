@@ -81,11 +81,11 @@ def runGene(geneName, geneFileStr, params, outputDir, geneNum=0):
         output = targetGene(gbName, geneGBs[gbName], codonOptimize=codonOptimize, useFileStrs=False, outputDir=outputDir, HRannotated=HRannotated,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=gibsonHomRange, optimRangeLHR=optimRangeLHR, optimRangeRHR=optimRangeRHR, endSizeLHR=endSizeLHR, endSizeRHR=endSizeRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minGBlockSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, onTargetMethod=onTargetMethod, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, minOffTargetScore=minOffTargetScore, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme, PAM=PAM, gBlockDefault=gBlockDefault, plasmidType=plasmidType, haTag=haTag, sigPep=sigPep, setCoding=setCoding, bulkFile=bulkFile, prefix=prefix, filterCutSites=filterCutSites); # call result
 
 
-def parallelRun(file,params,outputDir):
+def parallelRun(file,params,outputDir,geneNum):
     if file[-3:] == '.gb':
         geneFileStr = getGeneFileStr(file);
         geneName = file[file.rfind('/')+1:file.find('.')] # get gene name from file
-        runGene(geneName, geneFileStr, params, outputDir, file.geneNum); # call result
+        runGene(geneName, geneFileStr, params, outputDir, geneNum); # call result
 
 
 def runAll(args=None):
@@ -107,13 +107,16 @@ def runAll(args=None):
     if os.path.isdir(geneFile): # if path given is a directory,
         files = os.listdir(geneFile) # get full list
         c = 0; # counts files to process
+        geneNums = [] # will contain indexes
+        geneFiles = [] # will contain files
         for file in files: # add file number to each file
-            if file[-3:] == '.gb':
-                file.geneNum = c;
+            if file[-3:] == '.gb': # if a genbank file,
+                geneNums.append(c); # add to number list
+                geneFiles.append(file); # add to file list
 
 
         n_jobs = min(len(files),multiprocessing.cpu_count()) # jobs is min of num cores and files
-        jl.Parallel(n_jobs=n_jobs,verbose=10) (jl.delayed(parallelRun)(os.path.join(geneFile,f),params,outputDir) for f in files)
+        jl.Parallel(n_jobs=n_jobs,verbose=10) (jl.delayed(parallelRun)(os.path.join(geneFile,geneFiles[i]),params,outputDir,geneNums[i]) for i in range(len(geneNums)))
 
     else:
         geneFileStr = getGeneFileStr(geneFile);
