@@ -5,6 +5,8 @@ Handles connection with client, calls main method to build targeted vector with
 arguments from the client. Websockets implementation from
 https://github.com/BruceEckel/hello-flask-websockets
 """
+
+print('START!')
 from __future__ import print_function
 
 from builtins import str
@@ -34,9 +36,11 @@ pk = open("pk"); # Access given file
 passcode = pk.read().split(sep)[1]; # passcode
 pk.close();
 
+print('READY!')
+
 @app.route('/')
 def index():
-    print('RUNNING')
+    print('Sending index')
     return render_template("index.html");
 
 
@@ -179,4 +183,5 @@ def check_gene_files(message):
 
 if __name__ == "__main__":
     # Fetch the environment variable (so it works on Heroku):
+    print('INIT!')
     socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
