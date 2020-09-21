@@ -1,0 +1,142 @@
+LOCUS       PF3D7_0514000 3849 bp DNA UNK     26-SEP-2019
+DEFINITION  Pf3D7_05_v3 | organism=Plasmodium_falciparum_3D7 |            version=2015-06-18 | length=1343557 | SO=chromosomeACCESSION   Pf3D7_05_v3VERSION     Pf3D7_05_v3KEYWORDS    .
+FEATURES             Location/Qualifiers
+     gene            1..757
+                     /label="PF3D7_0513900"
+                     /ApEinfo_revcolor=#d40c3a
+                     /ApEinfo_fwdcolor=#d40c3a
+     mRNA            1..757
+                     /label="PF3D7_0513900.1"
+                     /ApEinfo_revcolor=#ee64ad
+                     /ApEinfo_fwdcolor=#ee64ad
+     exon            1..434
+                     /label="exon_PF3D7_0513900-E1"
+                     /ApEinfo_revcolor=#1997bb
+                     /ApEinfo_fwdcolor=#1997bb
+     exon            614..757
+                     /label="exon_PF3D7_0513900-E2"
+                     /ApEinfo_revcolor=#61445f
+                     /ApEinfo_fwdcolor=#61445f
+     CDS             1..434
+                     /label="PF3D7_0513900.1-p1-CDS1"
+                     /ApEinfo_revcolor=#736e91
+                     /ApEinfo_fwdcolor=#736e91
+     CDS             614..757
+                     /label="PF3D7_0513900.1-p1-CDS2"
+                     /ApEinfo_revcolor=#08f669
+                     /ApEinfo_fwdcolor=#08f669
+     gene            complement(1001..2849)
+                     /label="PF3D7_0514000"
+                     /ApEinfo_revcolor=#e19963
+                     /ApEinfo_fwdcolor=#e19963
+     mRNA            complement(1001..2849)
+                     /label="PF3D7_0514000.1"
+                     /ApEinfo_revcolor=#57db4a
+                     /ApEinfo_fwdcolor=#57db4a
+     exon            complement(1001..1071)
+                     /label="exon_PF3D7_0514000-E5"
+                     /ApEinfo_revcolor=#56ddb9
+                     /ApEinfo_fwdcolor=#56ddb9
+     exon            complement(1267..2230)
+                     /label="exon_PF3D7_0514000-E4"
+                     /ApEinfo_revcolor=#0b3c45
+                     /ApEinfo_fwdcolor=#0b3c45
+     exon            complement(2376..2487)
+                     /label="exon_PF3D7_0514000-E3"
+                     /ApEinfo_revcolor=#69bfcd
+                     /ApEinfo_fwdcolor=#69bfcd
+     exon            complement(2588..2665)
+                     /label="exon_PF3D7_0514000-E2"
+                     /ApEinfo_revcolor=#3db597
+                     /ApEinfo_fwdcolor=#3db597
+     exon            complement(2812..2849)
+                     /label="exon_PF3D7_0514000-E1"
+                     /ApEinfo_revcolor=#4a72f9
+                     /ApEinfo_fwdcolor=#4a72f9
+     CDS             complement(1001..1071)
+                     /label="PF3D7_0514000.1-p1-CDS5"
+                     /ApEinfo_revcolor=#58ce20
+                     /ApEinfo_fwdcolor=#58ce20
+     CDS             complement(1267..2230)
+                     /label="PF3D7_0514000.1-p1-CDS4"
+                     /ApEinfo_revcolor=#74567c
+                     /ApEinfo_fwdcolor=#74567c
+     CDS             complement(2376..2487)
+                     /label="PF3D7_0514000.1-p1-CDS3"
+                     /ApEinfo_revcolor=#6158f6
+                     /ApEinfo_fwdcolor=#6158f6
+     CDS             complement(2588..2665)
+                     /label="PF3D7_0514000.1-p1-CDS2"
+                     /ApEinfo_revcolor=#3846f3
+                     /ApEinfo_fwdcolor=#3846f3
+     CDS             complement(2812..2849)
+                     /label="PF3D7_0514000.1-p1-CDS1"
+                     /ApEinfo_revcolor=#a378eb
+                     /ApEinfo_fwdcolor=#a378eb
+ORIGIN
+        1 gtacattaag ttataaaaaa agaaaagaaa agttattttt atataaatat atatctccat 
+       61 ttatggattt aggaaagcgc ttttattcat cattaacatt aatgtatgaa ccgaaattat 
+      121 atcacctgtc catatttcta acaactttat gggcatataa aaatatcaaa tgtataaata 
+      181 aattgttaat tcataaatat aatgatatac attatcaaat tacaagacca gattctttaa 
+      241 atggtcgacg aaaggcattc agaatgttag cacttggtgg ttcaataatc ccatgcttct 
+      301 ttattgctct ttttatttac gatatgaaga aagaacaacc aaattatata ttagtgaata 
+      361 ggtcagacat tccatccgag aatcgtacta atcatataat tccttataca ttaaagagaa 
+      421 atatatctca taaggtaaga atcatacaat atattgagac aataaaaata gttccttatg 
+      481 aaaaaatata tatatatata tacatataca tatgtatgta tgtatgtatg tatgtatgta 
+      541 tgtatgtatg tatttttatt atattatatt atattatttt tttttttttt tcccaaactc 
+      601 caccctattt cagatattac tattaaagga aaaaattctc ttttttgcaa aagatttagc 
+      661 tgaaaataat aattttaaaa cgttatcgag ggaataccgt aaaaatatga ataaacgatt 
+      721 atataaacat tatattaaaa agggagatat taattaaaaa atatgctaca ttatatgtac 
+      781 acacatatac atatatatat atatatatat atatattaca tttatattta tatttttttt 
+      841 ttttttttgt aaaatttttt aattaattcg aaatatatac atatatatat atatatatat 
+      901 atattacatt tatatatata tatatatata tttttttttt ttatgtgata tcttttatta 
+      961 tacaaattaa tatttctata gtttgctttt aaatattaaa ttaaacattt gatttcgtct 
+     1021 taatatgttt tgccattttt tttaaatgtt ctgttccaga caaataggct cctatgaaag 
+     1081 gaaaaaataa aatatatata tatatatata tatatatata tatatatgta tgtatttttt 
+     1141 tttttttttt tttttttttt tttttttttt ttttgttata gctagttttt ctgatttgtt 
+     1201 caggttattt ttataaatat ttaatttttt tttttttttc tttttctttt ttatgatgtg 
+     1261 ctctacctaa gtgtgaatga aaattgtagg gatccagatt acgtattttt tccccatttc 
+     1321 tatatataca atcaaaatct ccaattctat caatttgtgg gatgtcgtac ttttcaatat 
+     1381 ttatgagagt catcaattca tccaacaaat taaacttcag agtataatcg tctttcgtat 
+     1441 ttgaagaaaa ggaaggagat gaattgactt caattaacca tggttttaaa ttattatcaa 
+     1501 taaggatatc aaatccatat aattcgaaac aatgtttatc attaattata attttatgaa 
+     1561 cagctagaaa agattgaata atacattctt ctatattttt aattaatatg gtaatatttt 
+     1621 catatccata acgactaatc atatataaaa acaattctcg aacaaaccat ttccctccta 
+     1681 ctgtatcatc ataaccttct gcattttttt gtatggatac attggttaaa tgcatagtaa 
+     1741 catcattcat attagttttt tcatttttaa aatatgtatg agaaaatctg gcaaagccac 
+     1801 ttctatatat atatatagtt aaagggtaat aagataatat taagacgtat aatcttatat 
+     1861 cgaatttctt cccacctatt aataaagggt tggatatata ttcttgaact atatattgtt 
+     1921 caggtttttc cttttcttta tctttatcat cattaatttt atttttattc tgataactat 
+     1981 tccagtcttt tatttgggaa attttatcaa ataaaaatat tcctttccct tgagactttc 
+     2041 caataggttt cattatccat atgcgattac tttttttttt atattcttct gaaaatattt 
+     2101 tatattctaa gggtaaaaca aatgtcatag gagtaatatc taaatttctt atatcatctt 
+     2161 cgttttttgt cttttcatat tgttttttca atctctttat attcttggcc agtaggtctt 
+     2221 tacgagttaa ctaaaacatt gtgtgcacat atgtaaatgt ctacaatatg tatatattgt 
+     2281 tatttatata attgtatagt aattttatta aaaaggaaat atatacataa ataaaaatat 
+     2341 atatatatat atatatatat atatatatat cttacttcgt aataatttct atagtgatta 
+     2401 acatattgat cacttttaaa acatatagta tcataaactt catttatcca atccttttca 
+     2461 gaccaacata aattccagtc cgtttcactt caaatatgta tatatatata tatatatatt 
+     2521 atatatattt aaatatatat tttaaatata catatatata tatatatata tatttttttt 
+     2581 tttttactga tttgtcaact cccattttct atgcaaaaat aagtcaaaaa ttgtattacg 
+     2641 aaaatcagtt ctaaatttta caaccctatt gaaaaaaaaa aaaaaaaaaa aaaaaaaatt 
+     2701 tcaagttata atgtaataac atataatata tttaacatag aagtatatga aatatacaca 
+     2761 tggtaaatat tttataacta tatttttatt atggaacaaa acaaaaaata cttgtttgaa 
+     2821 ggaaacaact ctctaaaata tatagacatg ctttcttatc atgtatttaa gtttaaagtt 
+     2881 atgacacaac aaataataat aggaaaaaaa aaaaaaaaaa aaaatgaata cacaaaaaat 
+     2941 taacatttaa tgaatatcaa ttcattctta aaataaaatg tacgaaaaaa aaaaaaaaaa 
+     3001 aaaaaaaaaa aaaaaaaatt taaatgtcac atttaataaa ttaattaata tacaattata 
+     3061 ataaaaaaaa aatatatata tataaaataa ttatgtttat gataaatgaa aatatttaca 
+     3121 catgaaattg ttatatatat atatatatat atattttttt tttttttcta catgaacgta 
+     3181 aaaataacaa aaaataaggt ataagtacac attatataaa aatatataca tatatatata 
+     3241 tatatatatt tatatattat aattatattt ttgtgagcgc aaatatttat agagaatata 
+     3301 aaaaaaaaaa aaaaaaaaaa agacattcaa aaaattaaaa atttttcttt tttgaatata 
+     3361 ttttttttta tatatttttt tttatatatt ttttttttta tatatttttt ttttttttta 
+     3421 tatattcatt tcattaataa acctcgaaac agtatttttt tcagaattat tattttgaat 
+     3481 ggaacataat aaatatagta aaaatttggc tctagtaatt cccacataaa aaattttcct 
+     3541 ttcttcaata atatcttgtt tactatcaac agcttgtgga atttctcctt ctgttacatt 
+     3601 tataataaaa acaactttcc attctaatcc ttttgcttta tgtatagttg ttaaggtcac 
+     3661 tttttctact agcatctttt catgtacatt atttttaaaa tcattaagaa aacaaaataa 
+     3721 acaatctaaa catgactgtt gtaataaatt tggtttataa tcagttgtca tttctaagaa 
+     3781 tataaaaata ttttgtattt cattatattt taaatcttta tctcctatat taaataataa 
+     3841 ttctagatc
+//
