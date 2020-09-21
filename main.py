@@ -36,6 +36,7 @@ pk.close();
 
 @app.route('/')
 def index():
+    print('RUNNING')
     return render_template("index.html");
 
 
@@ -178,5 +179,4 @@ def check_gene_files(message):
 
 if __name__ == "__main__":
     # Fetch the environment variable (so it works on Heroku):
-    print('RUNNING')
     socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
