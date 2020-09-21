@@ -15,7 +15,7 @@ from py.genetargeter.inputProcessing import *; # input handling
 # Imports from Websockets tutorial:
 import os
 import eventlet
-# eventlet.monkey_patch()
+eventlet.monkey_patch()
 
 import time
 from flask import Flask, render_template, session, request
@@ -24,7 +24,7 @@ from flask_socketio import SocketIO, emit, disconnect, join_room
 import traceback # error handling
 
 app = Flask(__name__)
-app.debug = False #True # change in dev/prod
+app.debug = True # change in dev/prod
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app)
 
@@ -178,4 +178,5 @@ def check_gene_files(message):
 
 if __name__ == "__main__":
     # Fetch the environment variable (so it works on Heroku):
+    print('RUNNING')
     socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
