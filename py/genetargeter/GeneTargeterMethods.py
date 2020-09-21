@@ -9,6 +9,7 @@ targeting) developed by the Niles Lab at MIT tagged designed to deliver the
 regulatory element 3' UTR payload to a specific gene, given as a parameter.
 @author: Pablo the awesome molecular jedi
 """
+from __future__ import division
 
 #### Libraries ####
 import os; # needed for file handling
@@ -300,7 +301,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
         plasmidArmed.features.append(primGBlock[1]); # add rev primer to plasmid annotations
 
         primerString = primerString + "\n" + prefix + geneName + "Recoded region gBlock primer (fwd)," + primGBlock[0].seq + "\n" + prefix + geneName + "Recoded region gBlock primer (rev)," + primGBlock[1].seq; # write primers to output string
-    elif len(recoded.seq) >= gibsonHomRange[0]/2: # if length of recoded region greater or equal to half of minimum size of homology region,
+    elif len(recoded.seq) >= old_div(gibsonHomRange[0],2): # if length of recoded region greater or equal to half of minimum size of homology region,
         outputDic["logFileStr"] = outputDic["logFileStr"] + "gBlock deemed not feasible for recoded region of construct targeting gene " + geneName + ", used Klenow instead.\n\n"; # say so
         klenowRecoded = createKlenowOligos(plasmidArmed, recodedOnPlasmid, gibsonHomRange[1]); # creates Klenow oligos
         outputDic["logFileStr"] = outputDic["logFileStr"] + klenowRecoded["log"]; # add logs

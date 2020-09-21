@@ -6,7 +6,11 @@ et al. (2016) algorithms. Off-scoring function dependent on C++ binary
 executable and text file with off-target gRNA database.
 @author: Pablo CR
 """
+from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import range
 import subprocess;
 import sys;
 import math;
@@ -18,13 +22,13 @@ from gRNAScores.CFD_Scoring.cfd_score_calculator import *; # Import Doench et al
 import gRNAScores.azimuth.model_comparison as azimuth; # Import Doench et al. (2016) new on-target scoring module
 
 # Get models used by old Rule Set 2 scores
-model_file_1 = './gRNAScores/Rule_Set_2_scoring_v1/saved_models/V3_model_nopos.pickle'
-model_file_2 = './gRNAScores/Rule_Set_2_scoring_v1/saved_models/V3_model_full.pickle'
-with open(model_file_1, 'rb') as f:
-    model1= pickle.load(f)
-
-with open(model_file_2, 'rb') as f:
-    model2= pickle.load(f)
+# model_file_1 = 'model1.pkl'#'./gRNAScores/Rule_Set_2_scoring_v1/saved_models/V3_model_nopos.pickle'
+# model_file_2 = 'model1.pkl'#'./gRNAScores/Rule_Set_2_scoring_v1/saved_models/V3_model_full.pickle'
+# with open(model_file_1, 'rb') as f:
+#     model1= pickle.load(f)
+#
+# with open(model_file_2, 'rb') as f:
+#     model2= pickle.load(f, encoding='latin1')
 
 # Get models used by CFD scores
 mm_scores,pam_scores = get_mm_pam_scores_remote();
@@ -79,7 +83,7 @@ def offTargetScore(gRNA, method, enzyme, pamSeq, pamType, maxNumMisMatches=4, gL
     popen = subprocess.Popen(args, stdout=subprocess.PIPE); # passes command to console
     popen.wait(); # waits?
     output = popen.stdout.read(); # get console output
-    scores = [float(x) for x in output.replace('\n','').split(',')]; # parse outputs as floats
+    scores = [float(x) for x in output.decode("utf-8").replace('\n','').split(',')]; # parse outputs as floats
     scores[2] = int(scores[2]); # parse third output as integer
     scores[3] = scores[3] == 1; # and fourth as Boolean
     return scores;
@@ -106,7 +110,7 @@ adapted from and accesses the authors' original code.
 def onTargetScoreRS2(pSeq,aa_cut=-1,per_peptide=-1):
     seq = pSeq.upper()
     if len(seq)!=30:
-        print "Please enter a 30mer sequence."
+        print("Please enter a 30mer sequence.")
 
     if (aa_cut == -1) or (per_peptide == -1):
         model = model1
@@ -117,7 +121,7 @@ def onTargetScoreRS2(pSeq,aa_cut=-1,per_peptide=-1):
         score = RS2.predict(seq, aa_cut, per_peptide, model=model)*100 # Normalized to 0-100 scale
         return score
     else:
-        print >> sys.stderr, 'Calculates on-target scores for sgRNAs with NGG PAM only.'
+        print('Calculates on-target scores for sgRNAs with NGG PAM only.', file=sys.stderr)
 
 '''
 Receives on-target gRNA string (4-mer prefix, 20-mer gRNA, 3-mer PAM, 3-mer
@@ -129,18 +133,18 @@ code and accesses the Azimuth source provided by MicrosoftResearch on GitHub.
 def onTargetScoreAzimuth(pSeq,aa_cut=-1,per_peptide=-1):
     seq = pSeq.upper();
     if len(seq)!=30:
-        print "Please enter a 30mer sequence."
+        print("Please enter a 30mer sequence.")
 
-    if (aa_cut == -1) or (per_peptide == -1):
-        model = model1
-    else:
-        model = model2
+    # if (aa_cut == -1) or (per_peptide == -1):
+    #     model = model1
+    # else:
+    #     model = model2
 
     if seq[25:27] == 'GG':
         score = azimuth.predict( np.array([pSeq]),np.array([aa_cut]),np.array([per_peptide]) )[0] * 100 # Normalized to 0-100 scale
         return score
     else:
-        print >> sys.stderr, 'Calculates on-target scores for sgRNAs with NGG PAM only.'
+        print('Calculates on-target scores for sgRNAs with NGG PAM only.', file=sys.stderr)
 
 
 '''
@@ -153,7 +157,7 @@ def onTargetScoreCINDEL(pSeq):
     seq = pSeq.upper();
     linearProduct = 0; # score will be linear combination of coefficients vector and features
     if len(seq)!=27: # if not right size,
-        print "Please enter a 27mer sequence." # say so
+        print("Please enter a 27mer sequence.") # say so
     else: # if right size,
         for feature in cindelCoefficients: # for every feature coefficient in dictionary
             if feature[len(feature)-1].isdigit(): # if last character in feature is a digit
@@ -182,7 +186,7 @@ def onTargetScoreCINDEL(pSeq):
 
 
 
-    score = math.exp(linearProduct)/(1.0+math.exp(linearProduct)) * 100; # calculate probability according to logistic regression model. Returned as percent, not decimal.
+    score = old_div(math.exp(linearProduct),(1.0+math.exp(linearProduct))) * 100; # calculate probability according to logistic regression model. Returned as percent, not decimal.
     return score;
 
 '''
@@ -241,7 +245,7 @@ def pairScoreHsu(gOn,gOff,pamSeq,pamType):
 
     if numMM > 1: # if there are multiple mismatches,
         d = sumD/float(numMM-1); # calculate mean pairwise distance based on sum and number of distances
-        modifier *= 1.0/((19.0-d)/19 * 4 + 1) * 1.0/(numMM**2); # modify modifier according to Zhang lab algorithm (http://crispr.mit.edu/about)
+        modifier *= 1.0/(old_div((19.0-d),19) * 4 + 1) * 1.0/(numMM**2); # modify modifier according to Zhang lab algorithm (http://crispr.mit.edu/about)
 
     score *= modifier * 100; # calculate final hit score, set scale to 0-100
 

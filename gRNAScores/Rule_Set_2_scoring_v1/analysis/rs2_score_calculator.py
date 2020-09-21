@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import absolute_import
 #Calculates the Rule set 2 score for the given 30-mer
 #Input: 1. 30mer sgRNA+context sequence, NNNN[sgRNA sequence]NGGNNN
 #       2. Amino acid cut position, for full model prediction only
@@ -7,7 +9,7 @@
 import pandas as pd
 import csv, argparse, sys
 import pickle
-import model_comparison as model_comparison
+from . import model_comparison as model_comparison
 import os
 
 def get_parser():
@@ -29,7 +31,7 @@ if __name__ == '__main__':
     args = get_parser().parse_args()
     seq = args.seq.upper()
     if len(seq)!=30:
-        print "Please enter a 30mer sequence."
+        print("Please enter a 30mer sequence.")
         sys.exit(1)
     aa_cut = args.aa_cut
     per_peptide = args.per_peptide
@@ -46,6 +48,6 @@ if __name__ == '__main__':
         raise Exception("could not find model stored to file %s" % model_file)
     if seq[25:27] == 'GG':
         score = model_comparison.predict(seq, aa_cut, per_peptide, model=model)
-        print 'Rule set 2 score: %.4f'% (score)
+        print('Rule set 2 score: %.4f'% (score))
     else:
-        print >> sys.stderr, 'Calculates on-target scores for sgRNAs with NGG PAM only.'
+        print('Calculates on-target scores for sgRNAs with NGG PAM only.', file=sys.stderr)

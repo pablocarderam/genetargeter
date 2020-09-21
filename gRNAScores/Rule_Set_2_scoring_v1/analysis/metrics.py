@@ -10,6 +10,9 @@ http://www.stanford.edu/class/cs276/handouts/EvaluationNew-handout-6-per.pdf
 http://hal.archives-ouvertes.fr/docs/00/72/67/60/PDF/07-busa-fekete.pdf
 Learning to Rank for Information Retrieval (Tie-Yan Liu)
 """
+from __future__ import print_function
+from __future__ import division
+from builtins import range
 import numpy as np
 import scipy as sp
 import scipy.stats
@@ -189,9 +192,9 @@ def dcg_at_k(r, k, method=0):
     r = np.asfarray(r)[:k]
     if r.size:
         if method == 0:
-            return r[0] + np.sum(r[1:] / np.log2(np.arange(2, r.size + 1)))
+            return r[0] + np.sum(old_div(r[1:], np.log2(np.arange(2, r.size + 1))))
         elif method == 1:
-            return np.sum(r / np.log2(np.arange(2, r.size + 2)))
+            return np.sum(old_div(r, np.log2(np.arange(2, r.size + 2))))
         else:
             raise ValueError('method must be 0 or 1.')
     return 0.
@@ -231,7 +234,7 @@ def ndcg_at_k(r, k, method=0):
     dcg_max = dcg_at_k(sorted(r, reverse=True), k, method)
     if not dcg_max:
         return 0.
-    return dcg_at_k(r, k, method) / dcg_max
+    return old_div(dcg_at_k(r, k, method), dcg_max)
 
 ## ------------------------------------------------------------------------------------
 ## custom stuff from us to avoid problem with ties
@@ -256,7 +259,7 @@ def ndcg_at_k_ties(labels, predictions, k, method=0):
     dcg_max = dcg_at_k(sorted(labels, reverse=True), k, method)
     # NOTE: I have checked that dcg_at_k_ties and dcg_at_k match when there are no ties, or ties in the labels
 
-    ndcg = dcg / dcg_max
+    ndcg = old_div(dcg, dcg_max)
 
     if not dcg_max:
         return 0.
@@ -309,7 +312,7 @@ def dcg_at_k_ties(labels, predictions, k, method=0):
             if ii < k: cum_tied_disc += discount_factors[ii]
             ii += 1
         #if len(np.unique(predictions))==1:  import ipdb; ipdb.set_trace()
-        avg_gain = cum_tied_gain/num_ties
+        avg_gain = old_div(cum_tied_gain,num_ties)
         dcg += avg_gain*cum_tied_disc
         assert not np.isnan(dcg), "found nan dcg"
     assert not np.isnan(dcg), "found nan dcg"
@@ -334,13 +337,13 @@ def dcg_alt(relevances, rank=20):
     if n_relevances == 0:
         return 0.
     discounts = np.log2(np.arange(n_relevances) + 2)
-    return np.sum(relevances / discounts)
+    return np.sum(old_div(relevances, discounts))
 
 def ndcg_alt(relevances, rank=20):
     best_dcg = dcg_alt(sorted(relevances, reverse=True), rank)
     if best_dcg == 0:
         return 0.
-    return dcg_alt(relevances, rank) / best_dcg
+    return old_div(dcg_alt(relevances, rank), best_dcg)
 
 if __name__ == "__main__":
     # # e.g. where all predictions are the same
@@ -368,9 +371,9 @@ if __name__ == "__main__":
     pred1 = np.array([3, 4, 2, 1, 0, 0, 0])
     pred2 = np.array([2, 1, 3, 4, 5, 6, 7])
 
-    print ndcg_alt(truth[np.argsort(pred2)[::-1]], 5)
-    print ndcg_at_k(truth[np.argsort(pred2)[::-1]], 5, method=1)
-    print ndcg_at_k(truth[np.argsort(pred2)[::-1]], 5, method=0)
+    print(ndcg_alt(truth[np.argsort(pred2)[::-1]], 5))
+    print(ndcg_at_k(truth[np.argsort(pred2)[::-1]], 5, method=1))
+    print(ndcg_at_k(truth[np.argsort(pred2)[::-1]], 5, method=0))
 
-    print ndcg_at_k_ties(truth, pred2, 5, method=1)
-    print ndcg_at_k_ties(truth, pred2, 5, method=0)
+    print(ndcg_at_k_ties(truth, pred2, 5, method=1))
+    print(ndcg_at_k_ties(truth, pred2, 5, method=0))

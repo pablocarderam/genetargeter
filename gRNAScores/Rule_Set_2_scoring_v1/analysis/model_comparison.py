@@ -1,15 +1,17 @@
-import predict as pd
+from __future__ import print_function
+from __future__ import absolute_import
+from . import predict as pd
 import copy
 import os
 import numpy as np
-import util as util
+from . import util as util
 import shutil
 import pickle
 #import pylab as plt
 import pandas
-import local_multiprocessing
-import load_data
-import features.featurization as feat
+from . import local_multiprocessing
+from . import load_data
+from .features import featurization as feat
 
 def check_feature_set_dims(feature_sets):
     F2 = None
@@ -255,7 +257,7 @@ def run_models(models, orders, GP_likelihoods=['gaussian', 'warped'], WD_kernel_
                          "logregL1": "logregL1", "sgrna_from_doench":"sgrna_from_doench"}
 
     if not CV:
-        print "Received option CV=False, so I'm training using all of the data"
+        print("Received option CV=False, so I'm training using all of the data")
         assert len(learn_options_set.keys()) == 1, "when CV is False, only 1 set of learn options is allowed"
         assert len(models) == 1, "when CV is False, only 1 model is allowed"
 
@@ -267,7 +269,7 @@ def run_models(models, orders, GP_likelihoods=['gaussian', 'warped'], WD_kernel_
             # models requiring explicit featurization
             if model in feat_models_short.keys():
                 for order in orders:
-                    print "running %s, order %d for %s" % (model, order, learn_options_str)
+                    print("running %s, order %d for %s" % (model, order, learn_options_str))
                     Y, feature_sets, target_genes, learn_options, num_proc = setup(test=test, order=order, learn_options=partial_learn_opt) # TODO precompute features for all orders, as this is repated for each model
 
                     if model == 'L1':
@@ -300,7 +302,7 @@ def run_models(models, orders, GP_likelihoods=['gaussian', 'warped'], WD_kernel_
                     all_learn_options[model_string] = learn_options_model
             # if the model doesn't require explicit featurization
             else:
-                print "running %s for %s" % (model, learn_options_str)
+                print("running %s for %s" % (model, learn_options_str))
                 Y, feature_sets, target_genes, learn_options, num_proc = setup(test=test, order=1, learn_options=partial_learn_opt)
                 if model == 'mean':
                     learn_options_model = mean_setup(copy.deepcopy(learn_options))
@@ -340,12 +342,12 @@ def runner(models, learn_options, GP_likelihoods=None, orders=None, WD_kernel_de
         dname = os.path.dirname(abspath) + "/../" + "results"
         if not os.path.exists(dname):
             os.makedirs(dname)
-            print "Created directory: %s" % str(dname)
+            print("Created directory: %s" % str(dname))
         if exp_name is None:
             exp_name = results.keys()[0]
         myfile = dname+'/'+ exp_name + '.pickle'
         with open(myfile, 'wb') as f:
-            print "writing results to %s" % myfile
+            print("writing results to %s" % myfile)
             pickle.dump((results, all_learn_options), f, -1)
 
         return results, all_learn_options, all_metrics, gene_names
@@ -470,7 +472,7 @@ def write_results(predictions, file_to_predict):
     data = pandas.read_csv(file_to_predict)
     data['predictions'] = predictions
     data.to_csv(newfile)
-    print "wrote results to %s" % newfile
+    print("wrote results to %s" % newfile)
     return data, newfile
 
 if __name__ == '__main__':
@@ -526,7 +528,7 @@ if __name__ == '__main__':
              #thiskey = 'V1_num_remove_train_%d' % num_remove
             thiskey = 'try_models'
             learn_options_set = {thiskey: learn_options_2}
-            print "working on %s" % thiskey
+            print("working on %s" % thiskey)
              #learn_options_set = {'drug_gene': learn_options, 'drug': learn_options_2}
 
              #results, all_learn_options = run_models(['linreg', 'L1', 'L2'], orders=[1], test=True, target_name='score')

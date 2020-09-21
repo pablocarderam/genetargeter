@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import division
 import numpy as np
 import sklearn
 from sklearn.linear_model import ARDRegression, LinearRegression
@@ -16,7 +18,7 @@ def spearmanr_nonan(x,y):
     r, p = st.spearmanr(x, y)
     if np.isnan(p):
         if len(np.unique(x))==1 or len(np.unique(y))==1:
-            print "WARNING: spearmanr is nan due to unique values, setting to 0"
+            print("WARNING: spearmanr is nan due to unique values, setting to 0")
             p = 0.0
             r = 0.0
         else:
@@ -95,13 +97,13 @@ def logreg_on_fold(feature_sets, train, test, y, y_all, X, dim, dimsum, learn_op
 
     best_alpha = learn_options["alpha"][max_score_ind[0]]
 
-    print "\t\tbest alpha is %f from range=%s" % (best_alpha, learn_options["alpha"][[0, -1]])
+    print("\t\tbest alpha is %f from range=%s" % (best_alpha, learn_options["alpha"][[0, -1]]))
     max_perf = np.nanmax(performance)
 
     if max_perf < 0.0:
         raise Exception("performance is negative")
 
-    print "\t\tbest performance is %f" % np.nanmax(performance)
+    print("\t\tbest performance is %f" % np.nanmax(performance))
 
     clf = sklearn.linear_model.LogisticRegression(penalty=learn_options['penalty'],
                                                   dual=False, fit_intercept=True, class_weight='auto',
@@ -185,15 +187,15 @@ def linreg_on_fold(feature_sets, train, test, y, y_all, X, dim, dimsum, learn_op
 
     best_alpha, best_l1r = learn_options["alpha"][max_score_ind[0]], l1_ratio[max_score_ind[1]]
 
-    print "\t\tbest alpha is %f from range=%s" % (best_alpha, learn_options["alpha"][[0, -1]])
+    print("\t\tbest alpha is %f from range=%s" % (best_alpha, learn_options["alpha"][[0, -1]]))
     if learn_options['penalty'] == "EN":
-        print "\t\tbest l1_ratio is %f from range=%s" % (best_l1r, l1_ratio[[0, -1]])
+        print("\t\tbest l1_ratio is %f from range=%s" % (best_l1r, l1_ratio[[0, -1]]))
     max_perf = np.nanmax(performance)
 
     if max_perf < 0.0:
         raise Exception("performance is negative")
 
-    print "\t\tbest performance is %f" % max_perf
+    print("\t\tbest performance is %f" % max_perf)
 
     clf = train_linreg_model(best_alpha, l1r, learn_options, train, X, y, y_all)
     if learn_options["feature_select"]:
@@ -232,7 +234,7 @@ def get_weights(learn_options, fold, y, y_all):
         # DCG: r[0] + np.sum(r[1:] / np.log2(np.arange(2, r.size + 1)))
         N = len(fold)
         r = np.ones(N)
-        discount = np.concatenate((np.array([r[0]]), r[1:] / np.log2(np.arange(2, r.size + 1))))[::1]
+        discount = np.concatenate((np.array([r[0]]), old_div(r[1:], np.log2(np.arange(2, r.size + 1)))))[::1]
         ind = np.argsort(y[fold], axis=0).flatten()
         weights = np.ones(len(ind))
         weights[ind] = discount

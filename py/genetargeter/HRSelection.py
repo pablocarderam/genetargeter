@@ -1,4 +1,6 @@
 
+from builtins import str
+from builtins import range
 import copy; # Import object copying methods for deep copies
 
 from py.utils.BioUtils import *; # Imports utils
@@ -186,7 +188,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
 
                 else: # if not sufficiently good
-                    if (tricky < bestInTer[1] or ( tricky == bestInTer[1] and tm > bestInTer[2] )) and not inIntronWhenNotSupposedTo: # if at least better than best of this terminus and not in exon when not supposed to be,
+                    if (tricky < bestInTer[1][ter] or ( tricky == bestInTer[1][ter] and tm > bestInTer[2][ter] )) and not inIntronWhenNotSupposedTo: # if at least better than best of this terminus and not in exon when not supposed to be,
                         bestInTer[0][ter], bestInTer[1][ter], bestInTer[2][ter] = i[ter], tricky, tm # save as best in this terminus search
                         if ( lenMin <= lenHR and lenHR <= lenMax ):
                             bestInPart[0][ter], bestInPart[1][ter], bestInPart[2][ter] = i[ter], tricky, tm

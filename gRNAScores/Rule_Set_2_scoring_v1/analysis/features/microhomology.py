@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import division
 #Supplementary Figure 3  |  Source code for assigning a score to a hypothetical deletion 
 #pattern associated with microhomology 
 # ------------------------------------------
@@ -6,6 +8,9 @@
 # also see their web server version: http://www.rgenome.net/mich-calculator/ where they say:
 # Insert one or more query sequences (A, G, T, C only) flanking the same length at a cleavage site (100bp or less, 60~80bp recommended).
 
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from math import exp       
 from re import findall 
  
@@ -62,12 +67,12 @@ def compute_score(seq, tmpfile1="1.before removing duplication.txt", tmpfile2="2
                            
                     if n == 0: 
                             if (length % 3)==0: 
-                                    length_factor = round(1/exp((length)/(length_weight)),3) 
+                                    length_factor = round(old_div(1,exp(old_div((length),(length_weight)))),3) 
                                     num_GC=len(findall('G',scrap))+len(findall('C',scrap)) 
                                     score_3=100*length_factor*((len(scrap)-num_GC)+(num_GC*2)) 
                                      
                             elif (length % 3)!=0: 
-                                    length_factor = round(1/exp((length)/(length_weight)),3) 
+                                    length_factor = round(old_div(1,exp(old_div((length),(length_weight)))),3) 
                                     num_GC=len(findall('G',scrap))+len(findall('C',scrap)) 
                                     score_not_3=100*length_factor*((len(scrap)-num_GC)+(num_GC*2)) 
      
@@ -76,10 +81,10 @@ def compute_score(seq, tmpfile1="1.before removing duplication.txt", tmpfile2="2
                     sum_score_not_3+=score_not_3 
      
             mh_score = sum_score_3+sum_score_not_3
-            oof_score = (sum_score_not_3)*100/(sum_score_3+sum_score_not_3)
+            oof_score = old_div((sum_score_not_3)*100,(sum_score_3+sum_score_not_3))
             if verbose:
-                print 'Microhomology score = ' + str(mh_score) 
-                print 'Out-of-frame score = ' + str(oof_score) 
+                print('Microhomology score = ' + str(mh_score)) 
+                print('Out-of-frame score = ' + str(oof_score)) 
     f1.close() 
     f2.close()
     return mh_score, oof_score
@@ -99,4 +104,4 @@ if __name__ == '__main__':
     #Out-of-frame score = 50.7473889639
     #GGAGGAAGGGCCTGAGTCCGAGCAGAAGAAGAAGGGCTCCCATCACATCAACCGGTGGCG    
     
-    print seq  
+    print(seq)  

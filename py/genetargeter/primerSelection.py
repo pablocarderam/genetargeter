@@ -1,4 +1,5 @@
 
+from builtins import str
 from py.utils.BioUtils import *; # Imports utils
 from py.utils.GenBankToolbox import *; # Imports utils
 from py.genetargeter.constants import *; # Imports constants

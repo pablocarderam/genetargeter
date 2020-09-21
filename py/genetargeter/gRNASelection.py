@@ -1,4 +1,5 @@
 
+from builtins import str
 import operator; # Needed for sorting
 import copy; # Import object copying methods for deep copies
 

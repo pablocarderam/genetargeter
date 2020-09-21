@@ -1,3 +1,8 @@
+from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
+from past.utils import old_div
 from py.utils.BioUtils import *;
 from py.utils.GenBankToolbox import *;
 from os import walk;
@@ -20,7 +25,7 @@ def processOutput(dirPath='output/'):
     o=createOutputSummaryTableNonProtein(dirPath);
     #gbs=generateConcatGenBanks(dirPath);
     #createOutputDirStructure(dirPath);
-    print 'Done postprocessing'
+    print('Done postprocessing')
 
 
 def createOutputSummaryTable(dirPath):
@@ -272,7 +277,7 @@ def generateConcatGenBanks(fileDir,gbToGenerate="ALL"):
     if not os.path.exists(fileDir+"/gb_concats/"):
         os.makedirs(fileDir+"/gb_concats/");
 
-    chromosomes = range(1,15)+["MIT","API"];
+    chromosomes = list(range(1,15))+["MIT","API"];
     for chromosome in chromosomes:
         if not os.path.exists(fileDir+"/gb_concats/"+"Chromosome_"+str(chromosome)):
             os.makedirs(fileDir+"/gb_concats/"+"Chromosome_"+str(chromosome));
@@ -285,7 +290,7 @@ def generateConcatGenBanks(fileDir,gbToGenerate="ALL"):
     sep = "N"*lenSep;
 
     for (dirpath, dirnames, filenames) in walk(fileDir):
-        pctSize = len(filenames)/100;
+        pctSize = old_div(len(filenames),100);
         fileCt = 0;
         pct = 0;
 
@@ -319,17 +324,17 @@ def generateConcatGenBanks(fileDir,gbToGenerate="ALL"):
             if fileCt > pctSize:
                 pct += 1;
                 fileCt = 0;
-                print str(pct) + '%';
+                print(str(pct) + '%');
 
         for chromosome in chromosomes:
-            for concat in genome[chromosome].keys():
+            for concat in list(genome[chromosome].keys()):
                 if len(genome[chromosome][concat].origin) > 0:
                     genome[chromosome][concat].removeSeq([0,lenSep]);
-                    print "Removed initial separator";
+                    print("Removed initial separator");
                     fName = "Chromosome_"+str(chromosome)+'_'+concat;
                     genome[chromosome][concat].name = fName;
                     genome[chromosome][concat].save(fileDir+"/gb_concats/Chromosome_"+str(chromosome)+"/"+fName+".gb",saveToFile=True);
-                    print "Saved " + fName;
+                    print("Saved " + fName);
 
         return gbs;
 

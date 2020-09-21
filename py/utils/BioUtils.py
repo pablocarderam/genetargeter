@@ -7,7 +7,8 @@ Methods useful in bioinformatic algorithms
 
 # Libraries
 from __future__ import division; # Needed in order to avoid weird rounding practices in Python 2
-from itertools import izip; # Needed to create dictionaries from lists more efficiently than zip
+from builtins import str
+from builtins import range
 from math import *; # Used for logarithms
 import random; # Needed to generate random color codes
 import datetime; # Needed to access dates
@@ -35,7 +36,7 @@ def loadFastas(pFile):
     d[:] = [i[1].split("\n") for i in d]; # Split each sequence into its lines. Keeps only sequences. D is now a list of lists (sequences) containing strings (lines of sequence).
     d[:] = ["".join(i) for i in d]; # Join each sequence into one string (per sequence).
 
-    seqDic = dict(izip(strNames, d)); # Creates dictionary with seq names as keys and seq strings as values.
+    seqDic = dict(zip(strNames, d)); # Creates dictionary with seq names as keys and seq strings as values.
     return seqDic; # returns dictionary
 
 
@@ -158,7 +159,7 @@ Returns list with max GC content, name of sequence with max GC content
 """
 def maxGCContent(pData):
     max = [0, 0]; # stores maximum GC
-    for seq in pData.keys(): # for every sequence
+    for seq in list(pData.keys()): # for every sequence
         GC = 0; # Counts number of occurrences of G or C
         for j in pData[seq]: # for every letter in sequence
             if j == "G" or j == "C" or j == "g" or j == "c" : # if letter is G or C
@@ -204,11 +205,11 @@ Takes dictionary of keys=sequence Fasta names, values=sequences
 Return dictionary with { consensus: consensus sequence (string), nucleotide: profile (list of nucleotide frequency in each position)
 """
 def consensus(data):
-    l = len(data.values()[0]); # Stores length of DNA sequences analyzed
+    l = len(list(data.values())[0]); # Stores length of DNA sequences analyzed
     C = { "consensus":"", "A":[0]*l, "T":[0]*l, "C":[0]*l, "G":[0]*l } # Dictionary with consensus sequence and lists of size l, stores consensus sequence and occurrences of nucleotide in all sequences for each position
 
     # Build profile matrix:
-    for seq in data.values(): # For every sequence
+    for seq in list(data.values()): # For every sequence
         for b in range(0,l): # For every base in sequence
             C[seq[b]][b] = C[seq[b]][b] + 1; # Add one to count of corresponding nucleotide at corresponding position
 
@@ -275,7 +276,7 @@ uniform codon usage is assumed by default.
 """
 def codonUsage(tableFilePath=""):
     p = 1/float(64); # calculates probability of a codon according to uniform distribution
-    codonFreqs = dict.fromkeys( geneticCode().keys(), 1/float(len(geneticCode())) ); # creates dictionary with codons as keys and a uniform probability of each key as values
+    codonFreqs = dict.fromkeys( list(geneticCode().keys()), 1/float(len(geneticCode())) ); # creates dictionary with codons as keys and a uniform probability of each key as values
     if len(tableFilePath) > 0: # if a file path was passed as an argument,
         txt = open(tableFilePath); # Access given file
         d = txt.read(); # Read file
@@ -403,7 +404,7 @@ def ambiguousSeqs(seq):
 
     outSeqs = [""];
     for b in seq:
-        if b in ambigCodes.keys():
+        if b in list(ambigCodes.keys()):
             newOutSeqs = [];
             for possibleB in ambigCodes[b]:
                 newNewOutSeqs = [];
@@ -434,7 +435,7 @@ def isTricky(seq):
         tricky = True; # it's tricky
     elif findFirst(seq,"GCGCGCGCGCGCGC") > -1: # if 7 GC repeats found,
         tricky = True; # it's tricky
-    elif findFirst(seq,"AAAAAAAAAA") > -1: # if 10 A repeats found, (used to be 13) 
+    elif findFirst(seq,"AAAAAAAAAA") > -1: # if 10 A repeats found, (used to be 13)
         tricky = True; # it's tricky
     elif findFirst(seq,"TTTTTTTTTT") > -1: # if 10 T repeats found,
         tricky = True; # it's tricky

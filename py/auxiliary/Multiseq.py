@@ -1,5 +1,7 @@
+from __future__ import print_function
 # Used to process batch download from plasmoDB to be input into GeneTargeter
 
+from builtins import str
 from py.utils.GenBankToolbox import *
 from py.utils.BioUtils import *
 from copy import deepcopy
@@ -23,7 +25,7 @@ def processFastas(fastaFilepath):
         gene.save("gb/"+geneName+".gb",True);
 
         if "WARNING:" in f:
-            print "WARNING in seq " + geneName;
+            print("WARNING in seq " + geneName);
 
 
 # Used to process gff_to_genbank output
@@ -50,7 +52,7 @@ def processGenBank(gbFilePath):
                         break
 
                 if len(ann.label) == 0:
-                    print "ERROR: no annotation found"
+                    print("ERROR: no annotation found")
 
                 if ann.type == "gene":
                     annGB.removeSeq([0,max(ann.index[0]-1000,0)]);
@@ -58,4 +60,4 @@ def processGenBank(gbFilePath):
                     annGB.name = ann.label;
                     annGB.save("geneFiles/"+ann.label+".gb",saveToFile=True);
                     count+=1;
-                    print [str(count)+"/"+str(total)];
+                    print([str(count)+"/"+str(total)]);

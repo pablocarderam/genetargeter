@@ -1,3 +1,4 @@
+from builtins import range
 import numpy as np
 from ssk_cython import *
 

@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import division
 import multiprocessing
 import numpy as np
 
@@ -13,7 +15,7 @@ def configure(num_jobs=8, TEST=False, subtract=0, num_proc=None, num_thread_per_
         num_jobs = num_proc
 
     if num_thread_per_proc is None:
-        num_thread_per_proc = int(np.floor(num_proc/num_jobs))
+        num_thread_per_proc = int(np.floor(old_div(num_proc,num_jobs)))
 
     if TEST:
         num_jobs = 1
@@ -21,10 +23,10 @@ def configure(num_jobs=8, TEST=False, subtract=0, num_proc=None, num_thread_per_
 
     try:
         import mkl
-        mkl.set_num_threads(num_thread_per_proc)    
+        mkl.set_num_threads(num_thread_per_proc)
     except ImportError:
-        print "MKL not available, so I'm not adjusting the number of threads"
+        print("MKL not available, so I'm not adjusting the number of threads")
 
-    print "Launching %d jobs with %d MKL threads each" % (num_jobs, num_thread_per_proc)
+    print("Launching %d jobs with %d MKL threads each" % (num_jobs, num_thread_per_proc))
 
     return num_jobs
