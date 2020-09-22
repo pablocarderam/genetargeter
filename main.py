@@ -9,7 +9,6 @@ https://github.com/BruceEckel/hello-flask-websockets
 # from __future__ import print_function
 
 # from builtins import str
-print('START!')
 from py.genetargeter.constants import *; # main python library in py folder
 from py.genetargeter.GeneTargeterMethods import *; # main python library in py folder
 from py.genetargeter.inputProcessing import *; # input handling
@@ -35,8 +34,6 @@ sep = ":::"; # separates files
 pk = open("pk"); # Access given file
 passcode = pk.read().split(sep)[1]; # passcode
 pk.close();
-
-print('READY!')
 
 @app.route('/')
 def index():
@@ -142,6 +139,7 @@ def disconnect_request():
 
 @socketio.on('connect', namespace='/link')
 def test_connect():
+    print('CONNECT!')
     emit('my response', {'data': 'Connected', 'count': 0})
 
 
@@ -183,5 +181,4 @@ def check_gene_files(message):
 
 if __name__ == "__main__":
     # Fetch the environment variable (so it works on Heroku):
-    print('INIT!')
     socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
