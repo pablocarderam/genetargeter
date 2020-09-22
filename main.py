@@ -27,7 +27,7 @@ import traceback # error handling
 app = Flask(__name__)
 app.debug = True # change in dev/prod
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 sep = ":::"; # separates files
 
@@ -181,4 +181,4 @@ def check_gene_files(message):
 
 if __name__ == "__main__":
     # Fetch the environment variable (so it works on Heroku):
-    socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)), cors_allowed_origins="*")
+    socketio.run(app, host='0.0.0.0', port=int(os.environ.get("PORT", 5000)))
