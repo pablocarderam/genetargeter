@@ -6,10 +6,10 @@ arguments from the client. Websockets implementation from
 https://github.com/BruceEckel/hello-flask-websockets
 """
 
-print('START!')
-from __future__ import print_function
+# from __future__ import print_function
 
-from builtins import str
+# from builtins import str
+print('START!')
 from py.genetargeter.constants import *; # main python library in py folder
 from py.genetargeter.GeneTargeterMethods import *; # main python library in py folder
 from py.genetargeter.inputProcessing import *; # input handling
