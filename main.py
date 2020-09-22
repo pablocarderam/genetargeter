@@ -25,7 +25,7 @@ from flask_socketio import SocketIO, emit, disconnect, join_room
 import traceback # error handling
 
 app = Flask(__name__)
-app.debug = True # change in dev/prod
+app.debug = False #True # change in dev/prod
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
