@@ -9,6 +9,7 @@ targeting) developed by the Niles Lab at MIT tagged designed to deliver the
 regulatory element 3' UTR payload to a specific gene, given as a parameter.
 @author: Pablo the awesome molecular jedi
 """
+from __future__ import division
 
 #### Libraries ####
 import os; # needed for file handling

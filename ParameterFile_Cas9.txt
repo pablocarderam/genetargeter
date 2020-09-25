@@ -44,8 +44,8 @@ maxDistRHR            : 500             # Maximum distance in bp between gene en
 enzyme                : 'Cas9'          # Enzyme type used in plasmid ('Cas9', 'Cas12') QUOTES ("" or '') NEEDED
 PAM                   : 'NGG'           # Protospacer-Adjacent Motif (PAM) to be searched for when defining candidate gRNA sequences (most commonly 'NGG' for Cas9 and 'TTTV' for Cas12) QUOTES ("" or '') NEEDED
 minGRNAGCContent      : 25              # Minimum GC content of gRNA (%)
-onTargetMethod        : 'azimuth'       # Algorithm used to score on-target gRNA activity ('azimuth','ruleset2','cindel'); Doench et al. (2016) scores obtained from gradient-boosted regression trees of SpCas9 data. Kim et al. (2017) scores determined through logistic regression of AsCas12 data.
-minOnTargetScore      : 35              # Minimum on-target score for gRNAs (numeric, 0 to 100; 35 and 20 are useful cutoffs for azimuth/ruleset2 and cindel, respectively)
+onTargetMethod        : 'azimuth'       # Algorithm used to score on-target gRNA activity ('azimuth','cindel'); Doench et al. (2016) scores obtained from gradient-boosted regression trees of SpCas9 data. Kim et al. (2017) scores determined through logistic regression of AsCas12 data.
+minOnTargetScore      : 35              # Minimum on-target score for gRNAs (numeric, 0 to 100; 35 and 20 are useful cutoffs for azimuth and cindel, respectively)
 offTargetMethod       : 'cfd'           # Algorithm used to score off-target gRNA activity ('cfd','hsu'); CFD scores are more accurate in Cas9-edited mammalian cells (Doench et al., 2016). Hsu et al. (2013) scores are used by crispr.mit.edu and Benchling, and are used as proxies for Cas12. Individual scores are aggregated as per crispr.mit.edu.
 minOffTargetScore     : 20              # Minimum off-target score for gRNAs (numeric, 0 to 100; 20 and 75 are useful cutoffs for cfd and hsu, respectively)
 maxOffTargetHitScore  : 50              # Maximum off-target score for gRNAs (numeric, 0 to 100; 50 and 5 are useful cutoffs for cfd and hsu, respectively)

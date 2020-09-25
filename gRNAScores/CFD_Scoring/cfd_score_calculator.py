@@ -1,9 +1,11 @@
+from __future__ import print_function
 #Calculates the Cutting Frequency Determination score
 #Requirements: 1. Pickle file with mismatch scores in working directory
 #              2. Pickle file containing PAM scores in working directory
 #Input: 1. 23mer WT sgRNA sequence
 #       2. 23mer Off-target sgRNA sequence
 #Output: CFD score
+from builtins import str
 import pickle
 import argparse
 import re
@@ -73,4 +75,4 @@ if __name__ == '__main__':
         pam = off[-2:]
         sg = off[:-3]
         cfd_score = calc_cfd(wt,sg,pam)
-        print "CFD score: "+str(cfd_score)
+        print("CFD score: "+str(cfd_score))

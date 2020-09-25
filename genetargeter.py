@@ -14,7 +14,10 @@ Calls main method to build targeted vector with arguments from the command line.
 # In this case, all files in the folder will be processed and each gene's name
 # will be taken from the name of its file.
 """
+from __future__ import print_function
 
+from builtins import str
+from builtins import range
 import sys; # Needed for receiving user input
 import os; # for joining file paths
 import multiprocessing # for parallelizing genes
@@ -50,20 +53,22 @@ def getGeneFileStr(pFile):
         txt.close(); # close file
         return d; # returns dictionary
     else:
-        print 'ERROR in '+pFile+' : only GenBank files processed.'
+        print('ERROR in '+pFile+' : only GenBank files processed.')
 
 def runGene(geneName, geneFileStr, params, outputDir, geneNum=0):
+    params_dict = {}
     for l in params: # for every line in parameter file,
-        exec(l) # execute its content
+        if l.find('=') > -1:
+            params_dict[l.split()[0]] = eval(l.split('=')[-1].strip())
 
-    if prefix == "*None*":
-        prefix = "";
-    elif prefixNum != "" and prefixNum > -1:
-        prefix += str(prefixNum+geneNum).zfill(3)+'_';
+    if params_dict['prefix'] == "*None*":
+        params_dict['prefix'] = "";
+    elif params_dict['prefixNum'] != "" and params_dict['prefixNum'] > -1:
+        params_dict['prefix'] += str(params_dict['prefixNum']+geneNum).zfill(3)+'_';
     else:
-        prefix += '_';
+        params_dict['prefix'] += '_';
 
-    minGRNAGCContent=minGRNAGCContent/100.0 # convert to decimal
+    params_dict['minGRNAGCContent']=params_dict['minGRNAGCContent']/100.0 # convert to decimal
     outMsg = ""; # will store output message
     outMsgHA = "HA_Tag_Design-" # will store output message for HA tag design, if any
 
@@ -71,14 +76,14 @@ def runGene(geneName, geneFileStr, params, outputDir, geneNum=0):
 
     for gbName in geneGBs: # for every gb
         sigPep = chkSignalPeptide5Prime(gbName,signalPDB); # signalP info
-        haTag = False; # don't use HA tags by default
-        if plasmidType == "pSN150" and ( haTag == True or (haTag == "Auto" and not sigPep) ): # if forcing HA tags or 5' end does not contain signal peptide and auto HA-tagging
-            haTag = True; # use HA tags
+        params_dict['haTag'] = False; # don't use HA tags by default
+        if params_dict['plasmidType'] == "pSN150" and ( params_dict['haTag'] == True or (params_dict['haTag'] == "Auto" and not sigPep) ): # if forcing HA tags or 5' end does not contain signal peptide and auto HA-tagging
+            params_dict['haTag'] = True; # use HA tags
 
-        if filterCutSites == "Auto": # if filterCutSites is automatic
-            filterCutSites = cut_sites[plasmidType] # set to its plasmid
+        if params_dict['filterCutSites'] == "Auto": # if filterCutSites is automatic
+            params_dict['filterCutSites'] = cut_sites[params_dict['plasmidType']] # set to its plasmid
 
-        output = targetGene(gbName, geneGBs[gbName], codonOptimize=codonOptimize, useFileStrs=False, outputDir=outputDir, HRannotated=HRannotated,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=gibsonHomRange, optimRangeLHR=optimRangeLHR, optimRangeRHR=optimRangeRHR, endSizeLHR=endSizeLHR, endSizeRHR=endSizeRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minGBlockSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, onTargetMethod=onTargetMethod, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, minOffTargetScore=minOffTargetScore, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme, PAM=PAM, gBlockDefault=gBlockDefault, plasmidType=plasmidType, haTag=haTag, sigPep=sigPep, setCoding=setCoding, bulkFile=bulkFile, prefix=prefix, filterCutSites=filterCutSites); # call result
+        output = targetGene(gbName, geneGBs[gbName], codonOptimize=params_dict['codonOptimize'], useFileStrs=False, outputDir=outputDir, HRannotated=params_dict['HRannotated'],lengthLHR=params_dict['lengthLHR'], lengthRHR=params_dict['lengthRHR'], gibsonHomRange=params_dict['gibsonHomRange'], optimRangeLHR=params_dict['optimRangeLHR'], optimRangeRHR=params_dict['optimRangeRHR'], endSizeLHR=params_dict['endSizeLHR'], endSizeRHR=params_dict['endSizeRHR'], endTempLHR=params_dict['endTempLHR'], endTempRHR=params_dict['endTempRHR'], gibTemp=params_dict['gibTemp'], gibTDif=params_dict['gibTDif'], maxDistLHR=params_dict['maxDistLHR'], maxDistRHR=params_dict['maxDistRHR'], minGBlockSize=params_dict['minGBlockSize'], codonSampling=params_dict['codonSampling'], minGRNAGCContent=params_dict['minGRNAGCContent'], onTargetMethod=params_dict['onTargetMethod'], minOnTargetScore=params_dict['minOnTargetScore'], offTargetMethod=params_dict['offTargetMethod'], minOffTargetScore=params_dict['minOffTargetScore'], maxOffTargetHitScore=params_dict['maxOffTargetHitScore'], enzyme=params_dict['enzyme'], PAM=params_dict['PAM'], gBlockDefault=params_dict['gBlockDefault'], plasmidType=params_dict['plasmidType'], haTag=params_dict['haTag'], sigPep=sigPep, setCoding=params_dict['setCoding'], bulkFile=params_dict['bulkFile'], prefix=params_dict['prefix'], filterCutSites=params_dict['filterCutSites']); # call result
 
 
 def parallelRun(file,params,outputDir,geneNum):
@@ -98,7 +103,7 @@ def runAll(args=None):
         script, geneFile, paramsFile, outputDir = args[0:4]; # From console, args returns script name, arguments
         geneName = geneFile[geneFile.rfind('/')+1:geneFile.find('.')] # get gene name from file
     else:
-        print "Wrong number of arguments! Pass GENEBANK_FILE.gb ParameterFile.txt outputDirectory NAME_OF_GENE (last one is optional)"
+        print("Wrong number of arguments! Pass GENEBANK_FILE.gb ParameterFile.txt outputDirectory NAME_OF_GENE (last one is optional)")
         exit()
 
 
@@ -122,7 +127,7 @@ def runAll(args=None):
         geneFileStr = getGeneFileStr(geneFile);
         runGene(geneName, geneFileStr, params, outputDir); # call result
 
-    print geneName + " targeted. Results in output folder."
+    print(geneName + " targeted. Results in output folder.")
 
 
 if __name__ == '__main__':

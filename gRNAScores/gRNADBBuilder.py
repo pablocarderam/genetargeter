@@ -9,6 +9,10 @@ package is not used by GeneTargeterMethods during runtime, but is kept here just
 in case.
 @author: Pablo CR
 """
+from __future__ import print_function
+from __future__ import division
+from builtins import str
+from builtins import range
 from py.utils.BioUtils import *;
 from gRNAScores.Rule_Set_2_scoring_v1.analysis.rs2_score_calculator import *; # Import Doench et al. (2016) on-target scoring module
 from gRNAScores.CFD_Scoring.cfd_score_calculator import *; # Import Doench et al. (2016) off-target scoring module
@@ -28,7 +32,7 @@ with open(model_file_2, 'rb') as f:
 
 def exportCFDMatrix(scoreDict):
     baseCodes = {'A':0,'U':1,'G':2,'C':3};
-    bases = baseCodes.keys();
+    bases = list(baseCodes.keys());
     for i in range(20):
         for b1 in bases:
             for b2 in bases:
@@ -40,7 +44,7 @@ def exportCFDMatrix(scoreDict):
 
 
 
-    print len(scoreDict.keys());
+    print(len(list(scoreDict.keys())));
     baseCodes['T'] = 1;
     scoreList = [];
     newKeysScores = {};
@@ -91,7 +95,7 @@ Returns a list of all possible gRNAs within that multifasta file.
 Each gRNA sequence in return list contains 20mer gRNA and NGG PAM sequence.
 '''
 def buildGRNADB(genome,PAM="GG",gRNAIndexes=[-21,2]):
-    print "Start building";
+    print("Start building");
     pamSeq = PAM.upper(); # should be derived from PAM, but replacing N would involve regex and I'm lazy. The Doench et al. (2016) gRNA scoring technologies only work with NGG PAMs anyway.
     gRNADB = []; # will store all possible gRNAs in genome
     for chrom in genome: # for every separate sequence within multifasta file,
@@ -144,7 +148,7 @@ def offScoreGRNADB(guideList):
     for i in range(len(gList)):
         g = gList[i];
         scoredGRNAs[g] = offScore(g,guideListList);
-        print str(float(c*100)/len(gList)) + "%";
+        print(str(float(c*100)/len(gList)) + "%");
         c += 1;
 
     return scoredGRNAs;
@@ -246,7 +250,7 @@ def calc_Hsu_score(gOn,gOff): # taken from http://crispr.mit.edu/about
 def onScore(pSeq,aa_cut=-1,per_peptide=-1):
     seq = pSeq.upper()
     if len(seq)!=30:
-        print "Please enter a 30mer sequence."
+        print("Please enter a 30mer sequence.")
 
     if (aa_cut == -1) or (per_peptide == -1):
         model = model1
@@ -257,7 +261,7 @@ def onScore(pSeq,aa_cut=-1,per_peptide=-1):
         score = model_comparison.predict(seq, aa_cut, per_peptide, model=model)
         return score
     else:
-        print >> sys.stderr, 'Calculates on-target scores for sgRNAs with NGG PAM only.'
+        print('Calculates on-target scores for sgRNAs with NGG PAM only.', file=sys.stderr)
 '''
 def scoreGRNA(g):
     gOffScoreHsu = offTargetScore(g,'hsu');
@@ -281,7 +285,7 @@ def scoreGRNAs(gRNAs):
         gOffScoreCFD = offTargetScore(g,'cfd');
         gGCContent = gcContent(g[:len(g)-3]);
         outStr = outStr + g +","+ str(gGCContent) +","+ str(gOffScoreCFD[0]) +","+ str(gOffScoreCFD[1]) +","+ str(gOffScoreCFD[2]) +","+ str(gOffScoreHsu[0]) +","+ str(gOffScoreHsu[1]) +","+ str(gOffScoreHsu[2]) +"\n";
-        print i;
+        print(i);
 
     output(outStr,"gRNAOutput.csv");
 

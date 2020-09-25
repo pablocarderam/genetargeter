@@ -5,7 +5,9 @@ Handles connection with client, calls main method to build targeted vector with
 arguments from the client. Websockets implementation from
 https://github.com/BruceEckel/hello-flask-websockets
 """
+from __future__ import print_function
 
+from builtins import str
 from py.genetargeter.constants import *; # main python library in py folder
 from py.genetargeter.GeneTargeterMethods import *; # main python library in py folder
 from py.genetargeter.inputProcessing import *; # input handling
@@ -22,9 +24,9 @@ from flask_socketio import SocketIO, emit, disconnect, join_room
 import traceback # error handling
 
 app = Flask(__name__)
-app.debug = False #True # change in dev/prod
+app.debug = True # change in dev/prod
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 sep = ":::"; # separates files
 
@@ -109,7 +111,7 @@ def gene_message(message):
                 outMsgHA = outMsgHA + sep + outputHA["geneName"] + sep + outputHA["geneFileStr"] + sep + outputHA["plasmidFileStr"] + sep + outputHA["editedLocusFileStr"] + sep + outputHA["oligoFileStr"] + sep + outputHA["gRNATable"] + sep + outputHA["gBlockFileStr"] + sep + outputHA["logFileStr"];
                 sendMsg(outMsgHA, "geneOutput", channel_id);
 
-        except Exception, e:
+        except Exception as e:
             sendMsg(traceback.format_exc(), "runError", channel_id);
             raise e
 
@@ -119,12 +121,12 @@ def gene_message(message):
 
 @socketio.on('misc', namespace='/link')
 def misc_message(message):
-    print message['data'] + " :: received"
+    print(message['data'] + " :: received")
 
 
 def sendMsg(msg,pType,channel_id):
     socketio.emit(pType, {'data': msg}, namespace='/link', room=channel_id);
-    print pType + " :: sent"
+    print(pType + " :: sent")
 
 
 @socketio.on('disconnect request', namespace='/link')

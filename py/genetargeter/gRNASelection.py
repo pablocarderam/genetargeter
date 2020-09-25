@@ -1,4 +1,5 @@
 
+from builtins import str
 import operator; # Needed for sorting
 import copy; # Import object copying methods for deep copies
 
@@ -100,8 +101,8 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
                     else: # if found in DB,
                         if onTargetMethod == "azimuth": # if using Azimuth (Doench et al., 2016)
                             onTarget = gRNAInfo[1]; # use it
-                        elif onTargetMethod == "ruleset2": # if using Rule Set 2 (Doench et al., 2016)
-                            onTarget = onTargetScore(extGRNASeq,onTargetMethod); # store on-target score
+                        # elif onTargetMethod == "ruleset2": # if using Rule Set 2 (Doench et al., 2016)
+                        #     onTarget = onTargetScore(extGRNASeq,onTargetMethod); # store on-target score
                         elif onTargetMethod == "cindel": # if using CINDEL (Kim et al., 2017)
                             onTarget = gRNAInfo[2]; # use it
 

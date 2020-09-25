@@ -69,7 +69,7 @@ Pull requests are welcome, but we'd really appreciate your feedback about it! Pl
 ## Acknowledgements
 This project has been possible thanks to the invaluable help of many others, particularly Drs. Jacquin Niles, Sumanta Dey, and Lisl Escherick.
 
-On-target Cas9 gRNA scoring code and CFD scoring matrix obtained December 27, 2016 from [Doench et al. (2016)](https://dx.doi.org/10.1038/nbt.3437) supplementary material.
+On-target Cas9 gRNA scoring code obtained from [Miles C. Smith's Python 3 port](https://github.com/milescsmith/Azimuth) of [Microsoft Research's Azimuth scoring algorithm](https://github.com/MicrosoftResearch/Azimuth/) developed from the Rule set 2 algorithm presented by [Doench et al. (2016)](https://dx.doi.org/10.1038/nbt.3437). The off-target Cas9 CFD scoring matrix was also from the [Doench et al. (2016)](https://dx.doi.org/10.1038/nbt.3437) supplementary material.
 
 On-target Cas12 gRNA scoring coefficients obtained from [Kim et al. (2017)](https://dx.doi.org/10.1038/nmeth.4104) supplementary material, equivalent to the [CINDEL](http://big.hanyang.ac.kr/cindel/) online tool. Exact on-target scores may vary between GeneTargeter and [CINDEL](http://big.hanyang.ac.kr/cindel/) due to minor differenes in gRNA free energy calculations.
 

@@ -4,7 +4,12 @@ Created on Sat Jun 11 19:24:17 2016
 Classes useful in rosalind bioinformatic algorithms
 @author: Pablo the awesome molecular jedi
 """
+from __future__ import print_function
+from __future__ import division
 
+from builtins import str
+from builtins import range
+from builtins import object
 from py.utils.BioUtils import *; # Imports utils
 from copy import deepcopy; # Import object copying methods for deep copies, used in creating revComp of GenBank objects
 
@@ -75,7 +80,7 @@ class GenBank(object):
             d = pFile; # save the read file string as raw data in d
 
         if len(d) == 0: # if data is empty,
-            print "ERROR: empty file or filestring passed for GenBank loading."
+            print("ERROR: empty file or filestring passed for GenBank loading.")
         else: # if there's data,
             d = d.split("\n"); # Split into lines. d is now a list of strings corresponding to the lines of the file.
 
@@ -204,7 +209,7 @@ class GenBank(object):
                 outStr = outStr + '                     /ApEinfo_revcolor=' + col + '\n'; # write reverse color line
                 outStr = outStr + '                     /ApEinfo_fwdcolor=' + col + '\n'; # write forward color line
             else: # if it wasn't found where it should be,
-                print "ERROR: Annotation sequence " + ann.label + " not found in main sequence."; # warn of error.
+                print("ERROR: Annotation sequence " + ann.label + " not found in main sequence."); # warn of error.
 
         outStr = outStr + "ORIGIN\n"; # starts origin lines
         orSpaced = " ".join([self.origin[i:i+10] for i in range(0, len(self.origin), 10)]); # introduces spaces into string
@@ -348,7 +353,7 @@ class GenBank(object):
                 annList.append(ann); # add annotation to list
 
         if len(annList) == 0 and not suppressError: # if annotation still not found and not suppressing error messages,
-            print "ERROR: Annotations with '" + searchTerm + "' in label not found in sequence " + self.name; # Report error
+            print("ERROR: Annotations with '" + searchTerm + "' in label not found in sequence " + self.name); # Report error
 
         return annList; # returns list
 
@@ -364,7 +369,7 @@ class GenBank(object):
                 annList.append(ann); # add annotation to list
 
         if len(annList) == 0 and not suppressError: # if annotation still not found and not suppressing error messages,
-            print "ERROR: Annotations with '" + searchTerm + "' in type not found in sequence " + self.name; # Report error
+            print("ERROR: Annotations with '" + searchTerm + "' in type not found in sequence " + self.name); # Report error
 
         return annList; # returns list
 
