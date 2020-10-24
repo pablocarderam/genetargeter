@@ -2,7 +2,6 @@ from __future__ import print_function
 from __future__ import division
 from builtins import str
 from builtins import range
-from past.utils import old_div
 from py.utils.BioUtils import *;
 from py.utils.GenBankToolbox import *;
 from os import walk;
@@ -290,7 +289,7 @@ def generateConcatGenBanks(fileDir,gbToGenerate="ALL"):
     sep = "N"*lenSep;
 
     for (dirpath, dirnames, filenames) in walk(fileDir):
-        pctSize = old_div(len(filenames),100);
+        pctSize = len(filenames)/100;
         fileCt = 0;
         pct = 0;
 

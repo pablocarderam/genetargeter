@@ -32,7 +32,7 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
     annRecoded = GenBankAnn(); # creates GenBankAnn object to hold recoded region
     if LHR.index[1] < gene.index[1]: # if end of LHR is inside gene (or before)
         startRecode = max(LHR.index[1], gene.index[0]); # start of recode region (end of LHR or start of gene, most downstream)
-        while not geneGB.checkInExon(startRecode): # while recode region start is in intron,
+        while not geneGB.checkInExon(startRecode) and startRecode <= len(geneGB.origin): # while recode region start is in intron,
             startRecode += 1; # shift downstream
 
         intronStartIndices = []; # stores start indexes of introns starting after recode sequence start
