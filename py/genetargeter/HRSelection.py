@@ -137,9 +137,12 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
         [ meltingTemp( geneGB.origin[ i[0]:i[0]+endsLength ] ),
             meltingTemp( geneGB.origin[ i[1]-endsLength:i[1] ] ) ] ] # save indeces, synthesis problems, and melting temperatures of best HR so far, initial guess as default
 
+    ter = (step<0) # which terminus we're adjusting, 0 is beginning and 1 is ending, start with ending if LHR and beginning if RHR (will get switched at start of next loop)
+    extReg = geneGB.origin[ min(i[ter],i[ter]+(2*(not ter)-1)*endsLength):max(i[ter],i[ter]+(2*(not ter)-1)*endsLength) ] # extreme region to be analyzed
     annealCheckLength = 10 # bp that will be checked for as possible repeated sequence
+    repeats = len(findMotif(geneGB.origin, extReg[-annealCheckLength:])) if ter else len(findMotif(geneGB.origin, extReg[0:annealCheckLength])) # number of repeats of primer-annealing sequence
 
-    satisfiedHR = not ( ( bestHR[1][0] + bestHR[1][1] + ( bestHR[2][0] < minTmEnds ) + ( bestHR[2][1] < minTmEnds ) ) > 0 ) and not repeated # keep track of whether or not adequate HR has been found
+    satisfiedHR = not ( ( bestHR[1][0] + bestHR[1][1] + ( bestHR[2][0] < minTmEnds ) + ( bestHR[2][1] < minTmEnds ) ) > 0 ) and repeats==1 # keep track of whether or not adequate HR has been found
 
     while 0 <= p and p < len(regIdxArr) and not satisfiedHR: # while partitions not exhausted and no good HR found,
         bestInPart = copy.deepcopy(bestHR) # will store best anchors in this partition
@@ -172,7 +175,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
                         ti += step # advance searcher
                         t_extReg = geneGB.origin[ min(ti,ti+(2*(not ter)-1)*endsLength):max(ti,ti+(2*(not ter)-1)*endsLength) ] # extreme region to be analyzed
                         t_tm = meltingTemp( t_extReg ) # Tm for this terminus
-                        t_repeats = len(findMotif(geneGB.origin, t_extReg[-annealCheckLength:])) if ter else len(findMotif(geneGB.origin, t_extReg[0:annealCheckLength])) # number of retreats of primer-annealing sequence
+                        t_repeats = len(findMotif(geneGB.origin, t_extReg[-annealCheckLength:])) if ter else len(findMotif(geneGB.origin, t_extReg[0:annealCheckLength])) # number of repeats of primer-annealing sequence
                         if t_tm > tm and not isTricky( t_extReg ) and lenMax >= abs(i[not ter] - ti) >= lenMin and t_repeats == 1: # if this end point has a better Tm, no repeats, and is still within bounds
                             bi = ti; # make this the ending position
                             tm = t_tm # record this tm as best
