@@ -232,13 +232,16 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
 
         else: # if there are no gRNAs,
             maxGC = 0; # will track max gc content of gRNA
+            maxOnTarget = 0 # will track on-target score of best gRNA
             for g in backupGRNAs: # for every possible backupGRNAs
                 geneGB.features.append(g); # add to features list
                 allGRNAS.append(g); # add to full gRNA list
                 countBackups +=1; # advances counter
-                if g.gc >= maxGC: # if this gRNA has a greater or equal GC content,
+                if g.gc > maxGC or (g.gc == maxGC and g.onTarget > maxOnTarget):
+                        # if this gRNA has a greater GC content,
                     gRNAExtreme = g; # set as most extreme gRNA
                     maxGC = g.gc # set max gc for evaluation
+                    maxOnTarget = g.onTarget # track on-target score of best gRNA
                     bestGRNA = g # set as best gRNA
 
 
