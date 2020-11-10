@@ -181,8 +181,8 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
             log = log + "Warning: no acceptable gRNA with at least " + str(minGCContent*100) + "% GC content, " + str(minOnTargetScore) + " on-target score, " + str(minOffTargetScore) + " off-target total score, no 4-homopolymer sequences, and no TTT sequences found on gene " + gene.label + ".\n" + "Will use backup gRNA with highest GC content, if there are any backups.\n\n"; # add warning to log
         else: # if gRNAs found,
             newList = []; # new list will only contain gRNAs within acceptable range
-            if ( gRNAs[0].index[0] > gene.index[1]-(3*codingGene) and target3Prime ) or ( gRNAs[0].index[1] < gene.index[0] and not target3Prime ): # if most downstream gRNA starts after start of stop codon, or most upstream is before
-                inUTR = True; # note downstream gRNA is in UTR
+            if ( gRNAs[0].index[0] > gene.index[1]-(3*codingGene) and target3Prime ) or ( gRNAs[0].index[1] < gene.index[0] and not target3Prime ): # if most downstream gRNA starts after start of stop codon, or most upstream is before gene start
+                inUTR = True; # note gRNA is in UTR
                 for g in gRNAs: # loop through gRNAs
                     if ( g.index[0] > gene.index[1]-(3*codingGene) and target3Prime ) or ( g.index[1] < gene.index[0] and not target3Prime ): # if this gRNA is still in the UTR or stop codon,
                         newList.append(g); # add it to the new list
@@ -198,9 +198,9 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
 
 
             gRNAs = newList; # keep the new list of gRNAs as the main list
-            gRNAs.sort(reverse=True,key=lambda g: g.gc); # sorts gRNA list according to custom function (GC content)
+            gRNAs.sort(reverse=True,key=lambda g: (g.gc,g.onTarget)); # sorts gRNA list according to custom function (GC content first, on-target score second)
             count = 1; # counter for numbering candidates according to their quality
-            for g in gRNAs: # loop thorugh gRNAs ordered by GC content
+            for g in gRNAs: # loop through gRNAs ordered by GC content
                 g.label = g.label + str(count); # add number to gRNA label
                 count += 1; # advance counter
 
@@ -232,13 +232,16 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
 
         else: # if there are no gRNAs,
             maxGC = 0; # will track max gc content of gRNA
+            maxOnTarget = 0 # will track on-target score of best gRNA
             for g in backupGRNAs: # for every possible backupGRNAs
                 geneGB.features.append(g); # add to features list
                 allGRNAS.append(g); # add to full gRNA list
                 countBackups +=1; # advances counter
-                if g.gc >= maxGC: # if this gRNA has a greater or equal GC content,
+                if g.gc > maxGC or (g.gc == maxGC and g.onTarget > maxOnTarget):
+                        # if this gRNA has a greater GC content,
                     gRNAExtreme = g; # set as most extreme gRNA
                     maxGC = g.gc # set max gc for evaluation
+                    maxOnTarget = g.onTarget # track on-target score of best gRNA
                     bestGRNA = g # set as best gRNA
 
 
