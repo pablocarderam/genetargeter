@@ -428,24 +428,40 @@ def ambiguousSeqs(seq):
 """
 Checks if a sequence is hard to synthesize.
 """
-def isTricky(seq):
+def isTricky(seq,repeatSize=10):
     tricky = False;
 
     if findFirst(seq,"TATATATATATATATATATA") > -1: # if 10 TA repeats found,
-        tricky = True; # it's tricky
+        tricky = findFirst(seq,"TATATATATATATATATATA"); # it's tricky
     elif findFirst(seq,"GCGCGCGCGCGCGC") > -1: # if 7 GC repeats found,
-        tricky = True; # it's tricky
+        tricky = findFirst(seq,"GCGCGCGCGCGCGC"); # it's tricky
     elif findFirst(seq,"AAAAAAAAAA") > -1: # if 10 A repeats found, (used to be 13)
-        tricky = True; # it's tricky
+        tricky = findFirst(seq,"AAAAAAAAAA"); # it's tricky
     elif findFirst(seq,"TTTTTTTTTT") > -1: # if 10 T repeats found,
-        tricky = True; # it's tricky
+        tricky = findFirst(seq,"TTTTTTTTTT"); # it's tricky
     elif findFirst(seq,"GGGGGGGGG") > -1: # if 9 G repeats found,
-        tricky = True; # it's tricky
+        tricky = findFirst(seq,"GGGGGGGGG"); # it's tricky
     elif findFirst(seq,"CCCCCCCCC") > -1: # if 9 C repeats found,
-        tricky = True; # it's tricky
+        tricky = (seq,"CCCCCCCCC") > -1; # it's tricky
+    elif hasRepeatedSeqs(seq,repeatSize): # if contains repeats larger than a given size,
+        tricky = hasRepeatedSeqs(seq,repeatSize); # it's tricky
 
     return tricky;
 
+"""
+Returns False if there are >1 instances of any given k-mer of given size, index
+of first repeat otherwise.
+"""
+def hasRepeatedSeqs(seq,size):
+    motifs = list()
+    if len(seq) > size:
+        for i in range(len(seq)-size+1):
+            if seq[i:i+size] in motifs:
+                return i
+            else:
+                motifs.append(seq[i:i+size])
+
+    return False
 
 """
 Returns a random hex color code.
