@@ -17,7 +17,7 @@ restriction sites given as parameters. Checks that gRNA recoded sequence has a
 pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
-def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString=""):
+def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], codonSampling=False, offScoreThreshold=10, minGCEnd=0.375, gRNATableString=""):
     #TODO: debug #TODO: Recoded if upstream of stop codon add recode values to table
     gRNAs = geneGB.findAnnsLabel("gRNA", True); # List of all gRNAs
     gRNATable = gRNATableString.split('\n'); # split string into lines
@@ -109,8 +109,12 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
             candidateFound = False; # signal possible candidate found
             bestRecodedSeq = recodedSeq; # will store best candidate sequence
             while not cutCheck or offScore > offScoreThreshold or tricky or badStart: # while cutCheck shows hits in a cut sequences, or while the pairwise off-target score is over the threshold, or while there are difficult-to-synthesize structures in the recoded region, or while the first 40 bp have a bad gc content
-                if count > 0: # if recoded region has failed checks once,
-                    codonSampling = True; # forces codonSampling to true if so
+                if count == 1: # if recoded region has failed checks once,
+                    log = log + "Defaulted recoded region recodonization to codon sampling due to possible difficulties in synthesis or enzyme cut sites.\n\n"; # log warning
+                    codonSampling = True; # forces codonSampling to true
+                    if count == 10:
+                        log = log + "Defaulted recoded region recodonization to random codon sampling due to possible difficulties in synthesis or enzyme cut sites.\n\n"; # log warning
+                        orgCodonTable = codonUsage(); # forces random codon selection to true
 
                 cutCheck = True; # reset cutCheck
                 offScore = 0; # reset offScore
@@ -205,22 +209,31 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                     cutCheck = cutCheck * ( findFirst(recodedSeq,revComp(site)) < 0 ); # Find cut site in comp strand, register in cutCheck
 
                 tricky = isTricky(recodedSeq); # check if tricky to synthesize
+                trickyCount = 0
+                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 10000: # targeted recoding of problematic fragments
+                    recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:tricky-tricky%3+9]) + recodedSeq[tricky-tricky%3+9:]; # optimize codons.
+                    tricky = isTricky(recodedSeq); # check if tricky to synthesize
+                    trickyCount += 1
 
-                if gcContent(recodedSeq[0:40]) < minGCEnd5Prime: # if the first bases don't have enough gc content
+                if gcContent(recodedSeq[0:40]) < minGCEnd: # if the first bases don't have enough gc content
                     badStart = True;
 
-                if not tricky and offScore <= offScoreThreshold and cutCheck: # if parameters other than badStart are ok and this sequence has better start than previous best,
-                    if not candidateFound: # if no candidate found until now,
+                if offScore <= offScoreThreshold and cutCheck: # if parameters other than badStart are ok and this sequence has better start than previous best,
+                    if not candidateFound or isTricky(bestRecodedSeq): # if no candidate found until now or current best is already tricky,
                         bestRecodedSeq = recodedSeq; # make this new best
-                    elif gcContent(recodedSeq[0:40]) > gcContent(bestRecodedSeq[0:40]):
+                    elif not tricky and gcContent(recodedSeq[0:40]) > gcContent(bestRecodedSeq[0:40]):
                         bestRecodedSeq = recodedSeq; # make this new best
 
-                    candidateFound = True; # signal possible candidate found
+                    if not tricky:
+                        candidateFound = True; # signal possible candidate found
 
                 count += 1; # advances iteration counter
-                if count > 6000: # if out of iteration limit,
+                if count > 5000: # if out of iteration limit,
                     if not candidateFound: # if no candidate without cut sequences found,
-                        log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle gRNA cut sites enough to fulfill the maximum off-target score threshold, or contains at least one of the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
+                        if tricky:
+                            log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to avoid repeated sequences or low-complexity regions.\n\n"; # log warning
+                        else:
+                            log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to fulfill the maximum off-target sgRNA score threshold, or avoid all the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
 
                     break; # escape loop
 
@@ -251,7 +264,7 @@ restriction sites given as parameters. Checks that gRNA recoded sequence has a
 pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
-def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString="", haTag=True):
+def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], codonSampling=False, offScoreThreshold=10, minGCEnd=0.375, gRNATableString="", haTag=True):
     #TODO: debug #TODO: Recoded if upstream of stop codon add recode values to table
     gRNAs = geneGB.findAnnsLabel("gRNA", True); # List of all gRNAs
     gRNATable = gRNATableString.split('\n'); # split string into lines
@@ -348,8 +361,12 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
             candidateFound = False; # signal possible candidate found
             bestRecodedSeq = recodedSeq; # will store best candidate sequence
             while not cutCheck or offScore > offScoreThreshold or tricky or badStart: # while cutCheck is greater than what you would expect for no hits in all cut sequences plus the gRNAs on both positive and comp strands, or while the pairwise off-target score is over the threshold, or while there are difficult-to-synthesize structures in the recoded region, or while the first 40 bp have a bad gc content
-                if count > 0: # if recoded region has failed checks once,
-                    codonSampling = True; # forces codonSampling to true if so
+                if count == 1: # if recoded region has failed checks once,
+                    log = log + "Defaulted recoded region recodonization to codon sampling due to possible difficulties in synthesis or enzyme cut sites.\n\n"; # log warning
+                    codonSampling = True; # forces codonSampling to true
+                    if count == 10:
+                        log = log + "Defaulted recoded region recodonization to random codon sampling due to possible difficulties in synthesis or enzyme cut sites.\n\n"; # log warning
+                        orgCodonTable = codonUsage(); # forces random codon selection to true
 
                 cutCheck = True; # reset cutCheck
                 offScore = 0; # reset offScore
@@ -444,22 +461,31 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                     cutCheck = cutCheck * ( findFirst(recodedSeq,revComp(site)) < 0 ); # Find cut site in comp strand, register in cutCheck
 
                 tricky = isTricky(recodedSeq); # check if tricky to synthesize
+                trickyCount = 0
+                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 10000: # targeted recoding of problematic fragments
+                    recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:tricky-tricky%3+9]) + recodedSeq[tricky-tricky%3+9:]; # optimize codons.
+                    tricky = isTricky(recodedSeq); # check if tricky to synthesize
+                    trickyCount += 1
 
-                if gcContent(recodedSeq[0:40]) < minGCEnd5Prime: # if the first bases don't have enough gc content
+                if gcContent(recodedSeq[-40:]) < minGCEnd: # if the last bases don't have enough gc content
                     badStart = True;
 
-                if not tricky and offScore <= offScoreThreshold and cutCheck: # if parameters other than badStart are ok and this sequence has better start than previous best,
-                    if not candidateFound: # if no candidate found until now,
+                if offScore <= offScoreThreshold and cutCheck: # if parameters other than badStart are ok and this sequence has better start than previous best,
+                    if not candidateFound or isTricky(bestRecodedSeq): # if no candidate found until now or current best is already tricky,
                         bestRecodedSeq = recodedSeq; # make this new best
-                    elif gcContent(recodedSeq[0:40]) > gcContent(bestRecodedSeq[0:40]):
+                    elif not tricky and gcContent(recodedSeq[-40:]) > gcContent(bestRecodedSeq[-40:]):
                         bestRecodedSeq = recodedSeq; # make this new best
 
-                    candidateFound = True; # signal possible candidate found
+                    if not tricky:
+                        candidateFound = True; # signal possible candidate found
 
                 count += 1; # advances iteration counter
-                if count > 6000: # if out of iteration limit,
+                if count > 5000: # if out of iteration limit,
                     if not candidateFound: # if no candidate without cut sequences found,
-                        log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle gRNA cut sites enough to fulfill the maximum off-target score threshold, or contains at least one of the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
+                        if tricky:
+                            log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to avoid repeated sequences or low-complexity regions.\n\n"; # log warning
+                        else:
+                            log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to fulfill the maximum off-target sgRNA score threshold, or avoid all the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
 
                     break; # escape loop
 
@@ -495,7 +521,7 @@ pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
 #TODO: different cut sites for different plasmids
-def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], codonSampling=False, offScoreThreshold=10, minGCEnd5Prime=0.375, gRNATableString="", target3Prime=True, haTag=False):
+def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], codonSampling=False, offScoreThreshold=10, minGCEnd=0.375, gRNATableString="", target3Prime=True, haTag=False):
     out = {}; # will contain method output
     if target3Prime: # if targeting 3'
         out = chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod, pamType=pamType, orgCodonTable=orgCodonTable,codonSampling=codonSampling, gRNATableString=gRNATableString); # defines region to be recoded, returns recoded sequence
