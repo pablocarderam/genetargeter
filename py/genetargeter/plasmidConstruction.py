@@ -115,6 +115,63 @@ def insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, R
 
 
 """
+Inserts targeting elements given as arguments into pSN150 at predetermined
+sites. Elements given as arguments must be strings, not GenBankAnn objects.
+The gRNA, LHR and RHR given must be in 5' to 3' sense and in the
+positive strand and must not contain RE cut sites cut_FseI, cut_AsiSI,
+cut_IPpoI, cut_ISceI, or cut_AflII. Returns new GenBank object with targeting
+elements.
+Specifically:
+Inserts gRNA used by Cas9 in I-PpoI cut site. Removes recognition sequence. Adds
+    GG at 5'-end of the gRNA sequence. The GG is required for the T7 RNA
+    polymerase to efficiently transcribe the gRNA to high levels.
+Inserts the LHR between FseI and AsiSI cut sites, but leaves the sites intact
+    with their recognition sequences.
+Inserts the recoded region after the LHR, before the AsiSI cut site (leaves the
+    site intact).
+Inserts RHR after I-SceI cut site, leaves the site intact with its recognition
+    sequence.
+"""
+def insertTargetingElementsPPC052(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag=True):
+    plas = copy.deepcopy(plasmid); # makes a copy of the plasmid object to modify without altering the original
+
+    inLHR = findFirst(plas.origin, cut_FseI) + len(cut_FseI); # index of LHR start site (at end of FseI cut sequence)
+    plas.insertSeq(LHR, inLHR); # inserts LHR sequence
+    annLHR = GenBankAnn(geneName+" LHR", "misc_feature", LHR, False, [inLHR,inLHR+len(LHR)], annColors['LHRColor']); # annotation object
+    plas.features.append(annLHR); # adds annotation
+
+    endRHR = findFirst(plas.origin, cut_ApaI) + 6; # index of RHR end site (end of ApaI cut sequence)
+
+    startRHR = endRHR; # assume keeping HA tag
+    if not haTag: # if deleting HA tag,
+        startRHR = findFirst(plas.origin, cut_XmaI) + 6; # index of RHR start site (end of XmaI cut sequence)
+
+    if len(recodedRegion) > 0: # if there is a recoded region,
+        inRecode = startRHR; # index of recoded region start site (end of ApaI cut sequence)
+        plas.insertSeq(recodedRegion, inRecode); # inserts recoded region sequence
+        annRecoded = GenBankAnn(geneName+" Recoded Region", "misc_feature", recodedRegion, False, [inRecode,inRecode+len(recodedRegion)], annColors['recodedRegionColor']); # annotation object
+        if haTag: # if recoded region contains HA tag,
+            annHATag = GenBankAnn("HA tag (recoded)", "misc_feature", recodedRegion[0:len(ha_tag)], False, [inRecode,inRecode+len(ha_tag)], annColors['otherAnnColor']); # annotation object for HA tag
+            plas.features.append(annHATag); # adds annotation
+
+        plas.features.append(annRecoded); # adds annotation
+        startRHR = inRecode + len(recodedRegion); # shift RHR start site downstream of recoded region
+
+    plas.insertSeq(RHR, startRHR); # inserts RHR sequence
+    annRHR = GenBankAnn(geneName+" RHR", "misc_feature", RHR, False, [startRHR,startRHR+len(RHR)], annColors['RHRColor']); # annotation object
+    plas.features.append(annRHR); # adds annotation
+
+    startGRNA = findFirst(plas.origin, cut_IPpoI); # index of gRNA start site (at start of I-PpoI cut sequence)
+    endGRNA = startGRNA + len(cut_IPpoI); # index of gRNA end site (at end of I-PpoI cut sequence)
+    plas.removeSeq([startGRNA, endGRNA]); # removes sequence that gRNA will replace
+    plas.insertSeq("gg" + gRNA, startGRNA); # inserts gRNA sequence with gg sequence used by T7 polymerase
+    annGRNA = GenBankAnn(geneName+" gRNA", "misc_feature", gRNA, False, [startGRNA+2,startGRNA+2+len(gRNA)], annColors['gRNAColor']); # annotation object. Note that gRNA starts after "gg" added for T7 polymerase
+    plas.features.append(annGRNA); # adds annotation
+
+    return plas; # returns modified plasmid
+
+
+"""
 Inserts targeting elements given as arguments into plasmid at predetermined
 sites. Elements given as arguments must be strings, not GenBankAnn objects.
 The gRNA, LHR and RHR given must be in 5' to 3' sense and in the
@@ -130,6 +187,8 @@ def insertTargetingElements(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, pl
         out = insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag); # use other method
     elif plasmidType == 'pSN150-KO': # if using pSN150-KO,
         out = insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag, KO=True); # use other method
+    elif plasmidType == 'pPC052' or plasmidType == 'pPC053': # if using pPC052/pPC053,
+        out = insertTargetingElementsPPC052(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag); # use other method
 
     return out;
 

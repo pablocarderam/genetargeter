@@ -121,7 +121,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
 
 
-        elif plasmidType == "pSN150" or plasmidType == "pSN150-KO" or plasmidType == "pSN150-Ter" or plasmidType == "pSN150-KO-Ter": # if using 5' plasmid
+        elif plasmidType == "pSN150" or plasmidType == "pSN150-KO" or plasmidType == "pSN150-Ter" or plasmidType == "pSN150-KO-Ter" or plasmidType == "pPC052" or plasmidType == "pPC053": # if using 5' plasmid
             if plasmidType == "pSN150" or plasmidType == "pSN150-KO": # if using the normal ones,
                 if enzyme == "Cas9": # if Cas9,
                     plasmid = pSN150_Cas9; # set plasmid
@@ -134,6 +134,18 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                     plasmid = pSN150_Cas9_Ter; # set plasmid
                 elif enzyme == "Cas12": # if Cas12,
                     plasmid = pSN150_Cas12_Ter; # set plasmid
+
+            elif plasmidType == "pPC052": # if using 8X tetO transcriptional cKD construct,
+                if enzyme == "Cas9": # if Cas9,
+                    plasmid = pPC052_Cas9; # set plasmid
+                elif enzyme == "Cas12": # if Cas12,
+                    plasmid = pPC052_Cas12; # set plasmid
+
+            elif plasmidType == "pPC053": # if using 11X tetO transcriptional cKD construct,
+                if enzyme == "Cas9": # if Cas9,
+                    plasmid = pPC053_Cas9; # set plasmid
+                elif enzyme == "Cas12": # if Cas12,
+                    plasmid = pPC053_Cas12; # set plasmid
 
 
             closestGene = 0; # by default, assume next gene downstream is before start of file
@@ -178,7 +190,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                 LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='start', lengthHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, filterCutSites=filterCutSites); # chooses LHR
                 if plasmidType == "pSN150-KO": # if knocking gene out,
                     RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an RHR at end of gene!
-                elif plasmidType == "pSN150": # otherwise if KD construct
+                elif plasmidType == "pSN150" or plasmidType == "pPC052" or plasmidType == "pPC053": # otherwise if KD construct
                     RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='start', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an RHR at beginning
 
             if LHR["out"] is None or RHR["out"] is None and not HRannotated: # if searches fail and HR's not provided,
@@ -339,7 +351,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     if plasmidType == "pSN054": # if using pSN150 instead of pSN054,
         gRNACassetteStart = plasmidArmed.findAnnsLabel("Lox")[0].index[0]; # gBlock starts at first Lox
         gRNACassetteEnd = plasmidArmed.findAnnsLabel("RHR_vector overlap_left")[0].index[1]; # gBlock ends at RHR_vector overlap_left
-    if plasmidType == "pSN150" or plasmidType == "pSN150-KO": # if using pSN150 instead of pSN054,
+    if plasmidType == "pSN150" or plasmidType == "pSN150-KO" or plasmidType == "pPC052" or plasmidType == "pPC053": # if using pSN150 instead of pSN054,
         gRNACassetteStart = plasmidArmed.findAnnsLabel(geneName + " RHR")[0].index[1]; # gBlock starts at BsiWI cut EDIT NOPE AT SECOND HA NOPE NOPE 2A NOPE NOPE NOPE AFTER RHR
         gRNACassetteEnd = max(plasmidArmed.findAnnsLabel(geneName + " RHR")[0].index[1] + minGBlockSize,plasmidArmed.findAnnsLabel("T7 terminator")[0].index[1]); # gBlock ends at AsiSI cut nope T7 terminator NOPE just whatever is required for length
 
