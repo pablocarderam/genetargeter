@@ -20,9 +20,9 @@ gRNA: guide RNA used by CRISPR enzyme.
 Note: argument searchRange is in format [inside_gene,outside_gene] whether
 targeting 3' or 5' end.
 """
-def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, PAM="NGG", minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", gBlockDefault=True, maxTier1GBlockSize=500, gBlockOverlapSize=40, codingGene=True, closestGene=-1, target3Prime=True, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
+def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, PAM="NGG", minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", gBlockDefault=True, maxTier1GBlockSize=500, gBlockOverlapSize=40, codingGene=True, closestGene=-1, target3Prime=True, targetCenter=False, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
     if closestGene < 0: # if closestGene parameter is default,
-        closestGene = len(geneGB.origin); # set to total length of gene as default
+        closestGene = len(geneGB.origin); # set to total length of gene file as default
 
     log = "Choosing gRNA with PAM sequence " + PAM + " for use with enzyme " + enzyme + '\n\n'; # init log
     if not codingGene and searchRange[0] < 0: # if gene is non protein-coding and part of the search region is inside the gene,
@@ -46,7 +46,12 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
     backupGRNAs = []; # stores gRNAs that fail off-target score as possible backups
     gRNAExtreme = GenBankAnn(); # will store gRNA most upstream
 
-    searchRange[0] = max(searchRange[0],-1*len(geneGB.origin)); # adjusts search range in case it goes beyond the total length of the gene (to the left) (SHOULD WORK IN 5' CASE TOO)
+    if targetCenter: # if knocking out and targeting center of gene,
+        center = int((gene.index[1]-gene.index[0])/2) # find center of gene
+        searchRangeLength = int((searchRange[1]-searchRange[0])/2) # find length of search range
+        searchRange = [-center-searchRangeLength,-center+searchRangeLength] # center search range on center; flip order and sign since it'll be flipped due to 3' targeting when KO
+
+    searchRange[0] = max(searchRange[0],-1*len(geneGB.origin)); # adjusts search range in case it goes beyond the total length of the gene file (to the left) (SHOULD WORK IN 5' CASE TOO)
     searchRange[1] = min(abs(closestGene-gene.index[target3Prime]),searchRange[1]); # set end of search range as start of next downstream gene if that happens before the current end of search range (SHOULD WORK IN 5' CASE TOO)
 
     pamSeqs = ambiguousSeqs(PAM); # store actual PAM sequences
@@ -191,7 +196,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
 
             else: # if most downstream gRNA is in gene,
                 for g in gRNAs: # loop through gRNAs
-                    if (gRNAs[0].index[0] - g.index[0] <= maxDistanceBetweenGRNAS) or (gBlockDefault and gene.index[1]-(3*codingGene) - g.index[0] < maxTier1GBlockSize-2*gBlockOverlapSize): # if this gRNA is within the max distance from the most downstream gRNA or gBlocks are the default and the gRNA is within the cheapest gBlock range from the end of the gene
+                    if targetCenter or (gRNAs[0].index[0] - g.index[0] <= maxDistanceBetweenGRNAS) or (gBlockDefault and gene.index[1]-(3*codingGene) - g.index[0] < maxTier1GBlockSize-2*gBlockOverlapSize): # if this gRNA is within the max distance from the most downstream gRNA or gBlocks are the default and the gRNA is within the cheapest gBlock range from the end of the gene, or if doing a knock-out,
                         newList.append(g); # add it to the new list
 
 
@@ -207,7 +212,11 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
             bestGRNA = gRNAs[0]; # will store best gRNA
             gRNAExtreme = gRNAs[0]; # will find most upstream gRNA
             for g in gRNAs: # loop through gRNAs
-                if target3Prime: # if targeting 3',
+                if targetCenter: # if targeting center for KO
+                    center = int((gene.index[1]-gene.index[0])/2) # find center of gene
+                    if g.index[0]-center < gRNAExtreme.index[0]-center: # if more close to center than previous most close
+                        gRNAExtreme = g; # set this gRNA as most close
+                elif target3Prime: # if targeting 3',
                     if g.index[0] < gRNAExtreme.index[0]: # if more upstream than previous most upstream
                         gRNAExtreme = g; # set this gRNA as most upstream
 

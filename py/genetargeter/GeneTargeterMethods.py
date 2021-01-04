@@ -167,10 +167,11 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                 gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=minOffTargetScore, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, filterCutSites=filterCutSites); # chooses gRNA.
 
         else: # if not,
-            gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=minOffTargetScore, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, filterCutSites=filterCutSites); # chooses gRNA.
+            targetCenter = (plasmidType=="pSN150-KO") # if knocking out, search for sgRNA in center of gene
+            gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=minOffTargetScore, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, targetCenter=targetCenter, filterCutSites=filterCutSites); # chooses gRNA.
 
         if plasmidType=="pSN150-KO" and not len(gRNA['out'].label)>0: # if knocking out and no gRNA found,
-            gRNA = chooseGRNA(geneGB, gene, PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=minOffTargetScore, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=True, filterCutSites=filterCutSites); # look at downstream end as well
+            gRNA = chooseGRNA(geneGB, gene, searchRange=[-700,gene.index[1]-gene.index[0]], PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=minOffTargetScore, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=True, targetCenter=False, filterCutSites=filterCutSites); # search through whole gene from start as well
 
         outputDic["logFileStr"] = outputDic["logFileStr"] + gRNA["log"]; # add logs
         outputDic["gRNATable"] = gRNA["gRNATable"]; # saves gRNA output values
@@ -195,7 +196,9 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
             if LHR["out"] is None or RHR["out"] is None and not HRannotated: # if searches fail and HR's not provided,
                 outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"] + RHR["log"]; # add logs
-                output(outputDic["logFileStr"], path + "/" + prefix + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
+                if not useFileStrs:
+                    output(outputDic["logFileStr"], path + "/" + prefix + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
+
             else: # if successful,
                 if HRannotated: # if LHR and RHR are already annotated,
                     LHRlist = geneGB.findAnnsLabel("LHR"); # overwrite LHR annotations
