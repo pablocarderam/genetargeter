@@ -1,11 +1,11 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 """
 Handles connection with client, calls main method to build targeted vector with
 arguments from the client. Websockets implementation from
 https://github.com/BruceEckel/hello-flask-websockets
 """
-from __future__ import print_function
+# from __future__ import print_function
 
 from builtins import str
 from py.genetargeter.constants import *; # main python library in py folder
