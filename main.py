@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 """
 Handles connection with client, calls main method to build targeted vector with
@@ -25,7 +25,7 @@ from flask_socketio import SocketIO, emit, disconnect, join_room
 import traceback # error handling
 
 app = Flask(__name__)
-app.debug = False #True # change in dev/prod
+app.debug = True # change in dev/prod
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
