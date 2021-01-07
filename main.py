@@ -110,7 +110,7 @@ def gene_message(message):
             outMsg = outMsg + sep + output["geneName"] + sep + output["geneFileStr"] + sep + output["plasmidFileStr"] + sep + output["editedLocusFileStr"] + sep + output["oligoFileStr"] + sep + output["gBlockFileStr"] + sep + output["gRNATable"] + sep + output["logFileStr"];
             if haTag and (plasmidType == "pSN150" or plasmidType == "pPC052" or plasmidType == "pPC053"): # if using HA tags and a 5' targeter plasmid,
                 outputHA = output["outputHA"]; # save HA outputs
-                outMsgHA = outMsgHA + sep + outputHA["geneName"] + sep + outputHA["geneFileStr"] + sep + outputHA["plasmidFileStr"] + sep + outputHA["editedLocusFileStr"] + sep + outputHA["oligoFileStr"] + sep + outputHA["gRNATable"] + sep + outputHA["gBlockFileStr"] + sep + outputHA["logFileStr"];
+                outMsgHA = outMsgHA + sep + outputHA["geneName"] + sep + outputHA["geneFileStr"] + sep + outputHA["plasmidFileStr"] + sep + outputHA["editedLocusFileStr"] + sep + outputHA["oligoFileStr"] + sep + outputHA["gBlockFileStr"] + sep + outputHA["gRNATable"] + sep + outputHA["logFileStr"];
                 sendMsg(outMsgHA, "geneOutput", channel_id);
 
         except Exception as e:
