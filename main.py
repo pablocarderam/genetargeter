@@ -7,7 +7,7 @@ https://github.com/BruceEckel/hello-flask-websockets
 """
 # from __future__ import print_function
 
-from builtins import str
+# from builtins import str
 from py.genetargeter.constants import *; # main python library in py folder
 from py.genetargeter.GeneTargeterMethods import *; # main python library in py folder
 from py.genetargeter.inputProcessing import *; # input handling
@@ -36,6 +36,7 @@ pk.close();
 
 @app.route('/')
 def index():
+    print('Sending index')
     return render_template("index.html");
 
 
@@ -108,7 +109,7 @@ def gene_message(message):
             outMsg = outMsg + sep + output["geneName"] + sep + output["geneFileStr"] + sep + output["plasmidFileStr"] + sep + output["editedLocusFileStr"] + sep + output["oligoFileStr"] + sep + output["gBlockFileStr"] + sep + output["gRNATable"] + sep + output["logFileStr"];
             if haTag and plasmidType == "pSN150": # if using HA tags and pSN150,
                 outputHA = output["outputHA"]; # save HA outputs
-                outMsgHA = outMsgHA + sep + outputHA["geneName"] + sep + outputHA["geneFileStr"] + sep + outputHA["plasmidFileStr"] + sep + outputHA["editedLocusFileStr"] + sep + outputHA["oligoFileStr"] + sep + outputHA["gRNATable"] + sep + outputHA["gBlockFileStr"] + sep + outputHA["logFileStr"];
+                outMsgHA = outMsgHA + sep + outputHA["geneName"] + sep + outputHA["geneFileStr"] + sep + outputHA["plasmidFileStr"] + sep + outputHA["editedLocusFileStr"] + sep + outputHA["oligoFileStr"] + sep + outputHA["gBlockFileStr"] + sep + outputHA["gRNATable"] + sep + outputHA["logFileStr"];
                 sendMsg(outMsgHA, "geneOutput", channel_id);
 
         except Exception as e:
