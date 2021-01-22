@@ -304,7 +304,7 @@ def codonUsage(tableFilePath=""):
 Translates RNA to protein (takes rna string, returns peptide string).
 """
 def translate(pSeq):
-    seq = pSeq.upper(); # everything to uppercase
+    seq = transcribe(pSeq.upper()); # everything to uppercase
     code = geneticCode(); # Stores genetic code
     pep = ""; # stores peptide sequence
     i = 0; # position on RNA sequence

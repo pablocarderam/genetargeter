@@ -20,15 +20,15 @@ distance in bp between end of LHR and start of gRNA.
 LHR: Left Homologous Region used for chromosomal integration by homologous
 recombination during repair.
 """
-def chooseHRWrapper(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
+def chooseHRWrapper(geneGB, gene, doingHR='LHR', targetExtreme='end', avoidPeptidesAtTermini=[[],[]], lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
     hr,log = chooseHR(geneGB, gene, doingHR=doingHR, targetExtreme=targetExtreme, lengthHR=lengthHR, minTmEnds=minTmEnds, endsLength=endsLength, codingGene=codingGene, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, optimizeRange=optimizeRange, exploreRHRUpstreamOfStop=0, filterCutSites=filterCutSites)
     if warning and codingGene and doingHR == "RHR" and targetExtreme == "end" and exploreRHRUpstreamOfStop > 0: # (if allowing RHRs to start upstream of stop codon, go into the gene)
-        hr,log = chooseHR(geneGB, gene, doingHR=doingHR, targetExtreme=targetExtreme, lengthHR=lengthHR, minTmEnds=minTmEnds, endsLength=endsLength, codingGene=codingGene, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, optimizeRange=optimizeRange, exploreRHRUpstreamOfStop=exploreRHRUpstreamOfStop, annealCheckLength=10, filterCutSites=filterCutSites)
+        hr,log = chooseHR(geneGB, gene, doingHR=doingHR, targetExtreme=targetExtreme, avoidPeptidesAtTermini=avoidPeptidesAtTermini, lengthHR=lengthHR, minTmEnds=minTmEnds, endsLength=endsLength, codingGene=codingGene, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, optimizeRange=optimizeRange, exploreRHRUpstreamOfStop=exploreRHRUpstreamOfStop, annealCheckLength=10, filterCutSites=filterCutSites)
 
     return hr,log
 
 
-def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, annealCheckLength=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
+def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', avoidPeptidesAtTermini=[[],[]], lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, annealCheckLength=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
     log = "" # init log
     gRNAs = [] # List of all gRNAs
     gRNAExt = GenBankAnn() # init var to hold gRNA
@@ -154,9 +154,11 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
         bestInTer = [ copy.deepcopy(i), [True,True], [0,0] ] # will keep track of last two terminus searches, initialize as default
         while ( terIdxArr[0][p][0] <= i[0] and i[0] <= terIdxArr[0][p][1] ) and ( terIdxArr[1][p][0] <= i[1] and i[1] <= terIdxArr[1][p][1] ) and i[0] < nxtGen and i[0] > prvGen and not satisfiedHR: # while not having exhausted this terminus and not having found a good HR])
-            if lenMin > i[1]-i[0] or i[1]-i[0] > lenMax: # if size is wrong,
-                while i[ter] > 0 and i[ter] < len(geneGB.origin) and ( lenMin > i[1]-i[0] or i[1]-i[0] > lenMax ) and ( terIdxArr[ter][p][0] <= i[ter] and i[ter] <= terIdxArr[ter][p][1] ) and i[0] < nxtGen and i[0] > prvGen: # while not within size bounds and still within search range,
+            moCloProblem = translate(geneGB.origin[i[ter]-6*(not ter):i[ter]+6*(ter)]) in avoidPeptidesAtTermini[ter]; # True if moved past initial point and dipeptide is in list of incompatible dipeptides
+            if lenMin > i[1]-i[0] or i[1]-i[0] > lenMax or moCloProblem: # if size is wrong,
+                while i[ter] > 0 and i[ter] < len(geneGB.origin) and ( lenMin > i[1]-i[0] or i[1]-i[0] > lenMax or moCloProblem ) and ( terIdxArr[ter][p][0] <= i[ter] and i[ter] <= terIdxArr[ter][p][1] ) and i[0] < nxtGen and i[0] > prvGen: # while not within size bounds and still within search range and MoClo compatible,
                     i[ter] += step # move terminus until within size constraints
+                    moCloProblem = translate(geneGB.origin[i[ter]-6*(not ter):i[ter]+6*(ter)]) in avoidPeptidesAtTermini[ter]; # True if moved past initial point and dipeptide is in list of incompatible dipeptides
 
 
             bestInTer[0][ter], bestInTer[1][ter], bestInTer[2][ter] = i[ter], True, 0 # will store best in this terminus search, initialize as default
@@ -164,11 +166,12 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
             while i[ter] > 0 and i[ter] < len(geneGB.origin) and ( terIdxArr[ter][p][0] <= i[ter] and i[ter] <= terIdxArr[ter][p][1] ) and i[0] < nxtGen and i[0] > prvGen and not satisfiedTer: # while within search range and no good terminus found,
                 extReg = geneGB.origin[ min(i[ter],i[ter]+(2*(not ter)-1)*endsLength):max(i[ter],i[ter]+(2*(not ter)-1)*endsLength) ] # extreme region to be analyzed
                 tricky = isTricky( extReg ) # true if this terminus contains homopolymers or AT repeats
+                moCloProblem = translate(geneGB.origin[i[ter]-6*(not ter):i[ter]+6*(ter)]) in avoidPeptidesAtTermini[ter]; # True if moved past initial point and dipeptide is in list of incompatible dipeptides
                 tm = meltingTemp( extReg ) # Tm for this terminus
                 bestHR[3][ter] = len(findMotif(geneGB.origin, extReg[0:annealCheckLength])) if ter else len(findMotif(geneGB.origin, extReg[-annealCheckLength:])) # number of repeats of primer-annealing sequence
                 lenHR = i[1] - i[0] # length of HR as it stands
                 inIntronWhenNotSupposedTo = ((not geneGB.checkInCDS(i[0],gene.label) and targetExtreme!='end' and doingHR=='RHR') or (not geneGB.checkInCDS(i[1],gene.label) and targetExtreme=='end' and doingHR=='LHR')) # shouldn't be in intron if LHR, targeting 3', and end terminus or if RHR, targeting 5', and beginning terminus
-                if (not tricky) and tm >= minTmEnds and not inIntronWhenNotSupposedTo and bestHR[3][ter] == 1: # if sufficiently good and not in intron when not supposed to and no repeats,
+                if (not tricky) and tm >= minTmEnds and not inIntronWhenNotSupposedTo and bestHR[3][ter] == 1 and not moCloProblem: # if sufficiently good and not in intron when not supposed to and no repeats and MoClo compatible,
                     # optimize ends
                     ti = i[ter] # test more indeces to optimize
                     bi = i[ter] # best i
@@ -177,7 +180,8 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
                         t_extReg = geneGB.origin[ min(ti,ti+(2*(not ter)-1)*endsLength):max(ti,ti+(2*(not ter)-1)*endsLength) ] # extreme region to be analyzed
                         t_tm = meltingTemp( t_extReg ) # Tm for this terminus
                         t_repeats = len(findMotif(geneGB.origin, t_extReg[0:annealCheckLength])) if ter else len(findMotif(geneGB.origin, t_extReg[-annealCheckLength:])) # number of repeats of primer-annealing sequence
-                        if t_tm > tm and not isTricky( t_extReg ) and lenMax >= abs(i[not ter] - ti) >= lenMin and t_repeats == 1: # if this end point has a better Tm, no repeats, and is still within bounds
+                        t_moCloProblem = translate(geneGB.origin[ti-6*(not ter):ti+6*(ter)]) in avoidPeptidesAtTermini[ter]; # True if moved past initial point and dipeptide is in list of incompatible dipeptides
+                        if t_tm > tm and not isTricky( t_extReg ) and lenMax >= abs(i[not ter] - ti) >= lenMin and t_repeats == 1 and not t_moCloProblem: # if this end point has a better Tm, no repeats, and is still within bounds
                             bi = ti; # make this the ending position
                             tm = t_tm # record this tm as best
 
@@ -221,6 +225,9 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
         if len(cutSitesRemaining) > 0:
             log = log + "Warning: "+doingHR+" has RE cut sequences: " + str(cutSitesRemaining) + ". Check output manually!" + "\n" # give a warning
+
+        if len(avoidPeptidesAtTermini[0])+len(avoidPeptidesAtTermini[1])>0: # if doing MoClo,
+            log = log + "Warning: suitable "+doingHR+" not found, perhaps due to overly strict Type IIS assembly overhang constraints. Check output manually!" + "\n" # give a warning
 
     log = log + doingHR + " for gene " + gene.label + " selected.\n\n"; # logs this process finished
     HR = GenBankAnn( gene.label + " " + doingHR, "misc_feature", geneGB.origin[ bestHR[0][0]:bestHR[0][1] ], False, [ bestHR[0][0],bestHR[0][1] ], annColors[doingHR+'Color'] ) # creates GenBankAnn object to hold LHR

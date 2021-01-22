@@ -99,7 +99,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
         closestGene = 0; # initialize variable storing index inside closest relevant gene (depends on targeting position)
         target3Prime = True; # initialize position being targeted, default 3' end of gene
         plasmid = GenBank(); # stores plasmid map variable
-        if plasmidType == "pSN054" or plasmidType == "pSN054_V5": # if using 3' plasmid
+        if plasmidType == "pSN054" or plasmidType == "pSN054_V5" or plasmidType == "pQRT": # if using 3' plasmid
             if plasmidType == "pSN054": # if using old version
                 if enzyme == "Cas9": # if Cas9,
                     plasmid = pSN054_Cas9; # set plasmid
@@ -112,6 +112,12 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                     plasmid = pSN054_V5_Cas9; # set plasmid
                 elif enzyme == "Cas12": # if Cas12,
                     plasmid = pSN054_V5_Cas12; # set plasmid
+
+            elif plasmidType == "pQRT": # if using old version
+                if enzyme == "Cas9": # if Cas9,
+                    plasmid = pQRT_Cas9; # set plasmid
+                elif enzyme == "Cas12": # if Cas12,
+                    plasmid = pQRT_Cas12; # set plasmid
 
             closestGene = len(geneGB.origin); # by default, assume next gene downstream is after end of file
             target3Prime = True; # this plasmid targets 3' end
@@ -185,7 +191,8 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
             # pick HRs first
             if target3Prime: # if going for 3' payload,
-                LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an LHR
+                avoidPeptidesAtTermini = [moCloAvoidPeptides,[]] if (plasmidType == "pQRT") else [[],[]];
+                LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', avoidPeptidesAtTermini=avoidPeptidesAtTermini, lengthHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, filterCutSites=filterCutSites); # chooses an LHR
                 RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, filterCutSites=filterCutSites); # chooses RHR
             else: # if going for 5' payload, TODO: switch params?
                 LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='start', lengthHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, filterCutSites=filterCutSites); # chooses LHR
@@ -240,10 +247,10 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
                 recoded = {"out":GenBankAnn(), "log":"", "gRNATable":outputDic["gRNATable"]}; # will contain recoded region
                 if plasmidType != 'pSN150-KO': # if not knocking out,
-                    recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
+                    recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize], codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, avoidPeptidesAtTermini=avoidPeptidesAtTermini, filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
                     recodedHA = {}; # will contain recoded region with HA tag
                     if haTag: # if using HA tags,
-                        recodedHA = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, haTag=True, filterCutSites=filterCutSites); # defines region to be recoded with HA tag, returns recoded sequence
+                        recodedHA = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, avoidPeptidesAtTermini=avoidPeptidesAtTermini, haTag=True, filterCutSites=filterCutSites); # defines region to be recoded with HA tag, returns recoded sequence
                         recodedHA = recodedHA["out"]; # saves actual data
 
                 outputDic["logFileStr"] = outputDic["logFileStr"] + recoded["log"]; # add logs
@@ -303,19 +310,19 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
             extIndex = ( minGBlockSize - gibsonHomRange[1]*2 - len(recoded.seq) ) + recodedOnPlasmid.index[1] # new endpoint of gBlock such that it satisfies minimum gBlock length
             recodedGBlock = GenBankAnn(gene.label + " gBlock extension", "misc_feature", plasmidArmed.origin[recodedOnPlasmid.index[0]:extIndex], False, [recodedOnPlasmid.index[0],extIndex]) # make extended recoded region gBlock annotation
 
-        gBlock = createGBlock(plasmidArmed,recodedGBlock,gibsonHomRange[1]); # annotates gBlock on plasmid
-        outputDic["logFileStr"] = outputDic["logFileStr"] + gBlock["log"]; # add logs
-        gBlock = gBlock["out"]; # saves actual data
-        plasmidArmed.features.append(gBlock); # add to plasmid annotations
-        gBlockString = gBlockString + ">" + prefix + geneName + "_" + plasmidType + "_" + enzyme + "_" + "_Recoded_Region_gBlock\n" + gBlock.seq + "\n\n" # save to filestring
+        if not plasmidType == "pQRT": # if not using MoClo, annotate RR gBlock
+            gBlock = createGBlock(plasmidArmed,recodedGBlock,gibsonHomRange[1]); # annotates gBlock on plasmid
+            outputDic["logFileStr"] = outputDic["logFileStr"] + gBlock["log"]; # add logs
+            gBlock = gBlock["out"]; # saves actual data
+            plasmidArmed.features.append(gBlock); # add to plasmid annotations
+            gBlockString = gBlockString + ">" + prefix + geneName + "_" + plasmidType + "_" + enzyme + "_" + "_Recoded_Region_gBlock\n" + gBlock.seq + "\n\n" # save to filestring
+            primGBlock = createPrimers(plasmidArmed, gBlock); # creates gBlock primers
+            outputDic["logFileStr"] = outputDic["logFileStr"] + primGBlock["log"]; # add logs
+            primGBlock = primGBlock["out"]; # saves actual data
+            plasmidArmed.features.append(primGBlock[0]); # add fwd primer to plasmid annotations
+            plasmidArmed.features.append(primGBlock[1]); # add rev primer to plasmid annotations
+            primerString = primerString + "\n" + prefix + geneName + "Recoded region gBlock primer (fwd)," + primGBlock[0].seq + "\n" + prefix + geneName + "Recoded region gBlock primer (rev)," + primGBlock[1].seq; # write primers to output string
 
-        primGBlock = createPrimers(plasmidArmed, gBlock); # creates gBlock primers
-        outputDic["logFileStr"] = outputDic["logFileStr"] + primGBlock["log"]; # add logs
-        primGBlock = primGBlock["out"]; # saves actual data
-        plasmidArmed.features.append(primGBlock[0]); # add fwd primer to plasmid annotations
-        plasmidArmed.features.append(primGBlock[1]); # add rev primer to plasmid annotations
-
-        primerString = primerString + "\n" + prefix + geneName + "Recoded region gBlock primer (fwd)," + primGBlock[0].seq + "\n" + prefix + geneName + "Recoded region gBlock primer (rev)," + primGBlock[1].seq; # write primers to output string
     elif len(recoded.seq) >= gibsonHomRange[0]/2: # if length of recoded region greater or equal to half of minimum size of homology region,
         outputDic["logFileStr"] = outputDic["logFileStr"] + "gBlock deemed not feasible for recoded region of construct targeting gene " + geneName + ", used Klenow instead.\n\n"; # say so
         klenowRecoded = createKlenowOligos(plasmidArmed, recodedOnPlasmid, gibsonHomRange[1]); # creates Klenow oligos
@@ -327,19 +334,32 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     else: # if Klenow unnecesary too,
         outputDic["logFileStr"] = outputDic["logFileStr"] + "gBlock and Klenow for recoded region deemed unnecesary for construct targeting gene " + geneName +".\n\n"; # say so
 
-    primLHR = createGibsonPrimers(plasmidArmed, LHROnPlasmid, rangeHom=gibsonHomRange, minMeltTemp=gibTemp, maxTempDif=gibTDif); # creates LHR Gibson primers
+    primLHR = None;
+    typeIISOverhangs = "";
+    if plasmidType == "pQRT": # if using pQRT MoClo system,
+        primLHR = createPrimers(plasmidArmed, LHROnPlasmid); # creates LHR primers for Type IIS assembly
+        typeIISOverhangs = cut_AarI + 'caaacctgtgg'; # This bit adds the enzyme cut sequence and spacer before the sticky overhang
+    else:
+        primLHR = createGibsonPrimers(plasmidArmed, LHROnPlasmid, rangeHom=gibsonHomRange, minMeltTemp=gibTemp, maxTempDif=gibTDif); # creates LHR Gibson primers
+
     outputDic["logFileStr"] = outputDic["logFileStr"] + primLHR["log"]; # add logs
     primLHR = primLHR["out"]; # saves actual data
     plasmidArmed.features.append(primLHR[0]); # add fwd primer to plasmid annotations
     plasmidArmed.features.append(primLHR[1]); # add rev primer to plasmid annotations
-    primerString = primerString + "\n" + prefix + geneName + " LHR primer (fwd)," + primLHR[0].seq + "\n" + prefix + geneName + " LHR primer (rev)," + primLHR[1].seq; # write primers to output string
+    primerString = primerString + "\n" + prefix + geneName + " LHR primer (fwd)," + typeIISOverhangs + primLHR[0].seq + "\n" + prefix + geneName + " LHR primer (rev)," + typeIISOverhangs + primLHR[1].seq; # write primers to output string
 
-    primRHR = createGibsonPrimers(plasmidArmed, RHROnPlasmid, rangeHom=gibsonHomRange, minMeltTemp=gibTemp, maxTempDif=gibTDif); # creates RHR Gibson primers
+    primRHR = None;
+    if plasmidType == "pQRT": # if using pQRT MoClo system,
+        primRHR = createPrimers(plasmidArmed, RHROnPlasmid); # creates RHR primers for Type IIS assembly
+        typeIISOverhangs = cut_AarI + 'caaacctgtgg'; # This bit adds the enzyme cut sequence and spacer before the sticky overhang
+    else:
+        primRHR = createGibsonPrimers(plasmidArmed, RHROnPlasmid, rangeHom=gibsonHomRange, minMeltTemp=gibTemp, maxTempDif=gibTDif); # creates RHR Gibson primers
+
     outputDic["logFileStr"] = outputDic["logFileStr"] + primRHR["log"]; # add logs
     primRHR = primRHR["out"]; # saves actual data
     plasmidArmed.features.append(primRHR[0]); # add fwd primer to plasmid annotations
     plasmidArmed.features.append(primRHR[1]); # add rev primer to plasmid annotations
-    primerString = primerString + "\n" + prefix + geneName + " RHR primer (fwd)," + primRHR[0].seq + "\n" + prefix + geneName + " RHR primers (rev)," + primRHR[1].seq; # write primers to output string
+    primerString = primerString + "\n" + prefix + geneName + " RHR primer (fwd)," + typeIISOverhangs + primRHR[0].seq + "\n" + prefix + geneName + " RHR primers (rev)," + typeIISOverhangs + primRHR[1].seq; # write primers to output string
 
     klenow = createKlenowOligos(plasmidArmed, gRNAOnPlasmid, gibsonHomRange[1]); # creates Klenow oligos
     outputDic["logFileStr"] = outputDic["logFileStr"] + klenow["log"]; # add logs
@@ -351,9 +371,12 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     gRNACassetteStart = -1 # will be filled in below
     gRNACassetteEnd = -1
 
-    if plasmidType == "pSN054": # if using pSN150 instead of pSN054,
+    if plasmidType == "pSN054": # if using pSN054,
         gRNACassetteStart = plasmidArmed.findAnnsLabel("Lox")[0].index[0]; # gBlock starts at first Lox
         gRNACassetteEnd = plasmidArmed.findAnnsLabel("RHR_vector overlap_left")[0].index[1]; # gBlock ends at RHR_vector overlap_left
+    if plasmidType == "pQRT":
+        gRNACassetteStart = LHROnPlasmid.index[1]; # gBlock starts at end of LHR
+        gRNACassetteEnd = plasmidArmed.findAnnsLabel("gRNA-RHR overhang CCCC")[0].index[1]; # gBlock ends at CCCC overhang
     if plasmidType == "pSN150" or plasmidType == "pSN150-KO" or plasmidType == "pPC052" or plasmidType == "pPC053": # if using pSN150 instead of pSN054,
         gRNACassetteStart = plasmidArmed.findAnnsLabel(geneName + " RHR")[0].index[1]; # gBlock starts at BsiWI cut EDIT NOPE AT SECOND HA NOPE NOPE 2A NOPE NOPE NOPE AFTER RHR
         gRNACassetteEnd = max(plasmidArmed.findAnnsLabel(geneName + " RHR")[0].index[1] + minGBlockSize,plasmidArmed.findAnnsLabel("T7 terminator")[0].index[1]); # gBlock ends at AsiSI cut nope T7 terminator NOPE just whatever is required for length

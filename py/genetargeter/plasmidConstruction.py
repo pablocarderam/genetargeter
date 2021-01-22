@@ -172,6 +172,59 @@ def insertTargetingElementsPPC052(plasmid, geneName, gRNA, LHR, recodedRegion, R
 
 
 """
+Inserts targeting elements given as arguments into pSN054_V5_Cas9 at predetermined
+sites. Elements given as arguments must be strings, not GenBankAnn objects.
+The gRNA, LHR and RHR given must be in 5' to 3' sense and in the
+positive strand and must not contain RE cut sites cut_FseI, cut_AsiSI,
+cut_IPpoI, cut_ISceI, or cut_AflII. Returns new GenBank object with targeting
+elements.
+Specifically:
+Inserts gRNA used by Cas9 in I-PpoI cut site. Removes recognition sequence. Adds
+    GG at 5'-end of the gRNA sequence. The GG is required for the T7 RNA
+    polymerase to efficiently transcribe the gRNA to high levels.
+Inserts the LHR between FseI and AsiSI cut sites, but leaves the sites intact
+    with their recognition sequences.
+Inserts the recoded region after the LHR, before the AsiSI cut site (leaves the
+    site intact).
+Inserts RHR after I-SceI cut site, leaves the site intact with its recognition
+    sequence.
+"""
+def insertTargetingElementsPQRT(plasmid, geneName, gRNA, LHR, recodedRegion, RHR):
+    plas = copy.deepcopy(plasmid); # makes a copy of the plasmid object to modify without altering the original
+
+    startLHR = plas.findAnnsLabel("vector-LHR overhang GGAG")[0].index[1]; # index of LHR start site
+    endLHR = plas.findAnnsLabel("Recoded_Region")[0].index[1]; # index of LHR end site (at start of AsiSI cut sequence)
+    plas.removeSeq([startLHR, endLHR]); # removes sequence that LHR will replace
+    plas.insertSeq(LHR, startLHR); # inserts LHR sequence
+    annLHR = GenBankAnn(geneName+" LHR", "misc_feature", LHR, False, [startLHR,startLHR+len(LHR)], annColors['LHRColor']); # annotation object
+    plas.features.append(annLHR); # adds annotation
+
+    if len(recodedRegion) > 0: # if there is a recoded region,
+        inRecode = annLHR.index[1]; # index of recoded region start site (at end of LHR)
+        plas.insertSeq(recodedRegion, inRecode); # inserts recoded region sequence
+        annRecoded = GenBankAnn(geneName+" Recoded Region", "misc_feature", recodedRegion, False, [inRecode,inRecode+len(recodedRegion)], annColors['recodedRegionColor']); # annotation object
+        plas.features.append(annRecoded); # adds annotation
+        annOverhang = GenBankAnn("Ad hoc overhang", "misc_feature", recodedRegion[0:4], False, [inRecode,inRecode+4], annColors['recodedRegionColor']); # annotation object
+        plas.features.append(annOverhang); # adds annotation
+
+    startGRNA = plas.findAnnsLabel("PF3D7_0731500.1 gRNA")[0].index[0]; # index of gRNA start site (at start of I-PpoI cut sequence)
+    endGRNA = plas.findAnnsLabel("PF3D7_0731500.1 gRNA")[0].index[1]; # index of gRNA end site (at end of I-PpoI cut sequence)
+    plas.removeSeq([startGRNA, endGRNA]); # removes sequence that gRNA will replace
+    plas.insertSeq(gRNA, startGRNA); # inserts gRNA sequence with gg sequence used by T7 polymerase
+    annGRNA = GenBankAnn(geneName+" gRNA", "misc_feature", gRNA, False, [startGRNA,startGRNA+len(gRNA)], annColors['gRNAColor']); # annotation object. Note that gRNA starts after "gg" added for T7 polymerase
+    plas.features.append(annGRNA); # adds annotation
+
+    startRHR = plas.findAnnsLabel("gRNA-RHR overhang CCCC")[0].index[1]; # index of RHR insertion site (at start of I-SceI cut sequence)
+    endRHR = plas.findAnnsLabel("RHR-vector overhang CGCT")[0].index[0]; # index of LHR end site (at start of AsiSI cut sequence)
+    plas.removeSeq([startRHR, endRHR]); # removes sequence that RHR will replace
+    plas.insertSeq(RHR, startRHR); # inserts RHR sequence
+    annRHR = GenBankAnn(geneName+" RHR", "misc_feature", RHR, False, [startRHR,startRHR+len(RHR)], annColors['RHRColor']); # annotation object
+    plas.features.append(annRHR); # adds annotation
+
+    return plas; # returns modified plasmid
+
+
+"""
 Inserts targeting elements given as arguments into plasmid at predetermined
 sites. Elements given as arguments must be strings, not GenBankAnn objects.
 The gRNA, LHR and RHR given must be in 5' to 3' sense and in the
@@ -189,6 +242,8 @@ def insertTargetingElements(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, pl
         out = insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag, KO=True); # use other method
     elif plasmidType == 'pPC052' or plasmidType == 'pPC053': # if using pPC052/pPC053,
         out = insertTargetingElementsPPC052(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag); # use other method
+    elif plasmidType == 'pQRT': # if using pQRT,
+        out = insertTargetingElementsPQRT(plasmid, geneName, gRNA, LHR, recodedRegion, RHR); # use other method
 
     return out;
 
