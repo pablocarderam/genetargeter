@@ -337,8 +337,9 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     primLHR = None;
     typeIISOverhangs = "";
     if plasmidType == "pQRT": # if using pQRT MoClo system,
+        LHROverhangs = [ plasmidArmed.origin[LHROnPlasmid.index[0]-4:LHROnPlasmid.index[0]], revComp(plasmidArmed.origin[LHROnPlasmid.index[1]:LHROnPlasmid.index[0]+4]) ] # gets 4-mers on either side of LHR
         primLHR = createPrimers(plasmidArmed, LHROnPlasmid); # creates LHR primers for Type IIS assembly
-        typeIISOverhangs = cut_AarI + 'caaacctgtgg'; # This bit adds the enzyme cut sequence and spacer before the sticky overhang
+        typeIISOverhangs = cut_AarI + 'TATA'; # This bit adds the enzyme cut sequence and spacer before the sticky overhang
     else:
         primLHR = createGibsonPrimers(plasmidArmed, LHROnPlasmid, rangeHom=gibsonHomRange, minMeltTemp=gibTemp, maxTempDif=gibTDif); # creates LHR Gibson primers
 
@@ -346,12 +347,13 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     primLHR = primLHR["out"]; # saves actual data
     plasmidArmed.features.append(primLHR[0]); # add fwd primer to plasmid annotations
     plasmidArmed.features.append(primLHR[1]); # add rev primer to plasmid annotations
-    primerString = primerString + "\n" + prefix + geneName + " LHR primer (fwd)," + typeIISOverhangs + primLHR[0].seq + "\n" + prefix + geneName + " LHR primer (rev)," + typeIISOverhangs + primLHR[1].seq; # write primers to output string
+    primerString = primerString + "\n" + prefix + geneName + " LHR primer (fwd)," + typeIISOverhangs + LHROverhangs[0] + primLHR[0].seq + "\n" + prefix + geneName + " LHR primer (rev)," + typeIISOverhangs + LHROverhangs[1] + primLHR[1].seq; # write primers to output string
 
     primRHR = None;
     if plasmidType == "pQRT": # if using pQRT MoClo system,
+        LHROverhangs = [ plasmidArmed.origin[RHROnPlasmid.index[0]-4:RHROnPlasmid.index[0]], revComp(plasmidArmed.origin[RHROnPlasmid.index[1]:RHROnPlasmid.index[0]+4]) ] # gets 4-mers on either side of LHR
         primRHR = createPrimers(plasmidArmed, RHROnPlasmid); # creates RHR primers for Type IIS assembly
-        typeIISOverhangs = cut_AarI + 'caaacctgtgg'; # This bit adds the enzyme cut sequence and spacer before the sticky overhang
+        typeIISOverhangs = cut_AarI + 'TATA'; # This bit adds the enzyme cut sequence and spacer before the sticky overhang
     else:
         primRHR = createGibsonPrimers(plasmidArmed, RHROnPlasmid, rangeHom=gibsonHomRange, minMeltTemp=gibTemp, maxTempDif=gibTDif); # creates RHR Gibson primers
 
@@ -359,7 +361,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     primRHR = primRHR["out"]; # saves actual data
     plasmidArmed.features.append(primRHR[0]); # add fwd primer to plasmid annotations
     plasmidArmed.features.append(primRHR[1]); # add rev primer to plasmid annotations
-    primerString = primerString + "\n" + prefix + geneName + " RHR primer (fwd)," + typeIISOverhangs + primRHR[0].seq + "\n" + prefix + geneName + " RHR primers (rev)," + typeIISOverhangs + primRHR[1].seq; # write primers to output string
+    primerString = primerString + "\n" + prefix + geneName + " RHR primer (fwd)," + typeIISOverhangs + RHROverhangs[0] + primRHR[0].seq + "\n" + prefix + geneName + " RHR primers (rev)," + typeIISOverhangs + RHROverhangs[0] + primRHR[1].seq; # write primers to output string
 
     klenow = createKlenowOligos(plasmidArmed, gRNAOnPlasmid, gibsonHomRange[1]); # creates Klenow oligos
     outputDic["logFileStr"] = outputDic["logFileStr"] + klenow["log"]; # add logs

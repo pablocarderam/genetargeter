@@ -193,7 +193,7 @@ def insertTargetingElementsPQRT(plasmid, geneName, gRNA, LHR, recodedRegion, RHR
     plas = copy.deepcopy(plasmid); # makes a copy of the plasmid object to modify without altering the original
 
     startLHR = plas.findAnnsLabel("vector-LHR overhang GGAG")[0].index[1]; # index of LHR start site
-    endLHR = plas.findAnnsLabel("Recoded_Region")[0].index[1]; # index of LHR end site (at start of AsiSI cut sequence)
+    endLHR = plas.findAnnsLabel("RR")[0].index[1]; # index of LHR end site (at start of AsiSI cut sequence)
     plas.removeSeq([startLHR, endLHR]); # removes sequence that LHR will replace
     plas.insertSeq(LHR, startLHR); # inserts LHR sequence
     annLHR = GenBankAnn(geneName+" LHR", "misc_feature", LHR, False, [startLHR,startLHR+len(LHR)], annColors['LHRColor']); # annotation object
@@ -207,8 +207,8 @@ def insertTargetingElementsPQRT(plasmid, geneName, gRNA, LHR, recodedRegion, RHR
         annOverhang = GenBankAnn("Ad hoc overhang", "misc_feature", recodedRegion[0:4], False, [inRecode,inRecode+4], annColors['recodedRegionColor']); # annotation object
         plas.features.append(annOverhang); # adds annotation
 
-    startGRNA = plas.findAnnsLabel("PF3D7_0731500.1 gRNA")[0].index[0]; # index of gRNA start site (at start of I-PpoI cut sequence)
-    endGRNA = plas.findAnnsLabel("PF3D7_0731500.1 gRNA")[0].index[1]; # index of gRNA end site (at end of I-PpoI cut sequence)
+    startGRNA = plas.findAnnsLabel("gRNA-spacer")[0].index[0]; # index of gRNA start site (at start of I-PpoI cut sequence)
+    endGRNA = plas.findAnnsLabel("gRNA-spacer")[0].index[1]; # index of gRNA end site (at end of I-PpoI cut sequence)
     plas.removeSeq([startGRNA, endGRNA]); # removes sequence that gRNA will replace
     plas.insertSeq(gRNA, startGRNA); # inserts gRNA sequence with gg sequence used by T7 polymerase
     annGRNA = GenBankAnn(geneName+" gRNA", "misc_feature", gRNA, False, [startGRNA,startGRNA+len(gRNA)], annColors['gRNAColor']); # annotation object. Note that gRNA starts after "gg" added for T7 polymerase
