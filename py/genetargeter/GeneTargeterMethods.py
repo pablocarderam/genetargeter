@@ -336,6 +336,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
 
     primLHR = None;
     typeIISOverhangs = "";
+    LHROverhangs = ["",""];
     if plasmidType == "pQRT": # if using pQRT MoClo system,
         LHROverhangs = [ plasmidArmed.origin[LHROnPlasmid.index[0]-4:LHROnPlasmid.index[0]], revComp(plasmidArmed.origin[LHROnPlasmid.index[1]:LHROnPlasmid.index[0]+4]) ] # gets 4-mers on either side of LHR
         primLHR = createPrimers(plasmidArmed, LHROnPlasmid); # creates LHR primers for Type IIS assembly
@@ -350,8 +351,9 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     primerString = primerString + "\n" + prefix + geneName + " LHR primer (fwd)," + typeIISOverhangs + LHROverhangs[0] + primLHR[0].seq + "\n" + prefix + geneName + " LHR primer (rev)," + typeIISOverhangs + LHROverhangs[1] + primLHR[1].seq; # write primers to output string
 
     primRHR = None;
+    RHROverhangs = ["",""];
     if plasmidType == "pQRT": # if using pQRT MoClo system,
-        LHROverhangs = [ plasmidArmed.origin[RHROnPlasmid.index[0]-4:RHROnPlasmid.index[0]], revComp(plasmidArmed.origin[RHROnPlasmid.index[1]:RHROnPlasmid.index[0]+4]) ] # gets 4-mers on either side of LHR
+        RHROverhangs = [ plasmidArmed.origin[RHROnPlasmid.index[0]-4:RHROnPlasmid.index[0]], revComp(plasmidArmed.origin[RHROnPlasmid.index[1]:RHROnPlasmid.index[0]+4]) ] # gets 4-mers on either side of LHR
         primRHR = createPrimers(plasmidArmed, RHROnPlasmid); # creates RHR primers for Type IIS assembly
         typeIISOverhangs = cut_AarI + 'TATA'; # This bit adds the enzyme cut sequence and spacer before the sticky overhang
     else:
