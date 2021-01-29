@@ -194,7 +194,7 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                         offScore = max(offScore,newOffScore); # set offscore for next iteration
 
                         for g in gRNATable: # find this gRNA in table
-                            if g[14] == gOnSeq: # if found,
+                            if "gRNAs not evaluated" not in gRNATableString and g[14] == gOnSeq: # if there is a gRNA table (no table if using custom gRNA) and gRNA found,
                                 g[15] = gOffSeq; # store recoded sequence
                                 g[16] = str(newOffScore); # store recoded sequence's pair score
 
@@ -247,8 +247,10 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
     else: # if no recoded region necessary,
         log = log + "Recoded region not deemed necessary for gene " + gene.label + ".\n\n"; # logs this process finished
 
-    gRNATableString = "\n".join([",".join(g) for g in gRNATable]); # Creates string from grna array
-    gRNATableString = gRNATableString.replace(">=threshold",">="+str(offScoreThreshold)); # adds pairwise recoded threshold values
+    if "gRNAs not evaluated" not in gRNATableString:
+        gRNATableString = "\n".join([",".join(g) for g in gRNATable]); # Creates string from grna array
+        gRNATableString = gRNATableString.replace(">=threshold",">="+str(offScoreThreshold)); # adds pairwise recoded threshold values
+
     return {"out":annRecoded, "log":log, "gRNATable":gRNATableString}; # returns recoded region GenBankAnn object
 
 
@@ -446,7 +448,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                         offScore = max(offScore,newOffScore); # set offscore for next iteration
 
                         for g in gRNATable: # find this gRNA in table
-                            if g[14] == gOnSeq: # if found,
+                            if "gRNAs not evaluated" not in gRNATableString and g[14] == gOnSeq: # if there is a gRNA table (no table if using custom gRNA) and gRNA found,
                                 g[15] = gOffSeq; # store recoded sequence
                                 g[16] = str(newOffScore); # store recoded sequence's pair score
 
@@ -503,8 +505,9 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
     else: # if no recoded region necessary,
         log = log + "Recoded region not deemed necessary for gene " + gene.label + ".\n\n"; # logs this process finished
 
-    gRNATableString = "\n".join([",".join(g) for g in gRNATable]); # Creates string from grna array
-    gRNATableString = gRNATableString.replace(">=threshold",">="+str(offScoreThreshold)); # adds pairwise recoded threshold values
+    if "gRNAs not evaluated" not in gRNATableString:
+        gRNATableString = "\n".join([",".join(g) for g in gRNATable]); # Creates string from grna array
+        gRNATableString = gRNATableString.replace(">=threshold",">="+str(offScoreThreshold)); # adds pairwise recoded threshold values
 
     return {"out":annRecoded, "log":log, "gRNATable":gRNATableString}; # returns recoded region GenBankAnn object
 

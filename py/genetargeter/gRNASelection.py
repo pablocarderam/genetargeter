@@ -361,6 +361,7 @@ def findGRNA(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISce
 
 
 
+    gRNATableString = None
     if len(gRNAs) > 0: # if gRNAs found
         gRNAExtreme = gRNAs[0]; # will store gRNA most upstream
         gRNAExtreme = copy.deepcopy(gRNAExtreme); # fixes referencing issue. We want this to be a genuinenly new annotation
@@ -369,7 +370,8 @@ def findGRNA(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISce
                 log = log + "Warning: gRNA sequence for gene " + gene.label + ": \n" + gRNAExtreme + "\ncontains restriction site " + site + "\n\n"; # add warning to log
 
 
-        gRNAExtreme.label = gene.label + " gRNA"; # renames gRNA according to this program's convention
+        gRNAExtreme.label = gene.label + " gRNA (chosen)"; # renames gRNA according to this program's convention
+        geneGB.features.append(gRNAExtreme);
 
         log = log + "gRNA for gene " + gene.label + " found on gene.\n\n"; # logs this process finished
         gRNATableString = "gRNAs not evaluated if they are user-defined.\nIf you want to check their scores, run the gene in automatic mode!\n"; # add disclaimer

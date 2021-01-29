@@ -238,7 +238,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                 outputDic["gRNATable"] = recoded["gRNATable"]; # saves gRNA output values
                 recoded = recoded["out"]; # saves actual data
 
-                bestGRNA = geneGB.findAnnsLabel("(chosen)")[0]; # saves RHR annotation
+                bestGRNA = geneGB.findAnnsLabel("(chosen)")[0]; # saves gRNA annotation
 
                 plasmidArmed = insertTargetingElements(plasmid, gene.label, bestGRNA.seq, LHR.seq, recoded.seq, RHR.seq, plasmidType=plasmidType, haTag=False); # inserts targeting elements
                 plasmidArmedHA = ""; # will contain plasmid with HA tags
