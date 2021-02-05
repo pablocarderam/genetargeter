@@ -186,7 +186,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                 outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"] + RHR["log"]; # add logs
                 if not useFileStrs:
                     output(outputDic["logFileStr"], path + "/" + prefix + "Message_File_" + geneName +"_"+ plasmidType + "_" + enzyme + ".txt",wipe=True); # saves message log to file
-                    
+
             else: # if successful,
                 if HRannotated: # if LHR and RHR are already annotated,
                     LHRlist = geneGB.findAnnsLabel("LHR"); # overwrite LHR annotations
@@ -340,7 +340,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     gRNACassetteEnd = -1
 
     if plasmidType == "pSN054": # if using pSN150 instead of pSN054,
-        gRNACassetteStart = plasmidArmed.findAnnsLabel("Lox")[0].index[0]; # gBlock starts at first Lox
+        gRNACassetteStart = plasmidArmed.findAnnsLabel("Lox")[0].index[0] + 4; # gBlock starts at first Lox +4 bp to avoid error due to repeated lox sequence
         gRNACassetteEnd = plasmidArmed.findAnnsLabel("RHR_vector overlap_left")[0].index[1]; # gBlock ends at RHR_vector overlap_left
     if plasmidType == "pSN150" or plasmidType == "pSN150-KO": # if using pSN150 instead of pSN054,
         gRNACassetteStart = plasmidArmed.findAnnsLabel(geneName + " RHR")[0].index[1]; # gBlock starts at BsiWI cut EDIT NOPE AT SECOND HA NOPE NOPE 2A NOPE NOPE NOPE AFTER RHR

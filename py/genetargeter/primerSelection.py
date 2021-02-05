@@ -264,8 +264,10 @@ def shortenOligoNames(primerString,prefix):
                 newName = newName + "LHR" + "_";
             elif name.find("RHR") > -1:
                 newName = newName + "RHR" + "_";
+            elif name.find("sgRNA cassette") > -1:
+                newName = newName + "gRNAgB" + "_";
             elif name.find("gRNA") > -1:
-                newName = newName + "gRNA" + "_";
+                newName = newName + "gRNAAE" + "_";
             elif name.find("Recoded region Klenow") > -1:
                 newName = newName + "RecAE" + "_";
 
