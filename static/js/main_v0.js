@@ -96,8 +96,8 @@ function genesNotFound(geneIDsStr) {
 function askCredentials() {
     if (document.getElementById('run').innerHTML === "Target Gene!" || document.getElementById('run').innerHTML === "Target Genes!") {
         document.getElementById('myModal').style.display = "block";
-        document.getElementById("modFooter").innerHTML = "Type passcode";
-        document.getElementById("passcode").value = "";
+        // document.getElementById("modFooter").innerHTML = "Type passcode";
+        // document.getElementById("passcode").value = "";
         if (document.getElementById("modContent").classList.contains("modal-out")) {
             document.getElementById("modContent").classList.remove("modal-out");
         }
