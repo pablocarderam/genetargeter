@@ -122,7 +122,8 @@ function askCredentials() {
 }
 
 function verifyCredentials() {
-    sendMessageToServer(document.getElementById("passcode").value,"cred");
+    // sendMessageToServer(document.getElementById("passcode").value,"cred");
+    validCred();
 }
 
 function invalidCred() {

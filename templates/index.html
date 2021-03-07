@@ -23,7 +23,7 @@
 		<link rel="shortcut icon" href="{{ url_for('static', filename='assets/favicon.ico') }}">
 
 		<link rel="stylesheet" href="static/css/style_v3.css">
-		<script src="static/js/main_v13.js"></script>
+		<script src="static/js/main_v0.js"></script>
 		<script src="static/js/EPPZScroll.js"></script>
 	</head>
 
@@ -122,7 +122,7 @@
 						</p><br>
 
 						<p>
-							Treat as coding/noncoding: &nbsp<select id="setCoding">
+							Treat genes as coding/noncoding: &nbsp<select id="setCoding">
 								<option value="Coding">Coding</option>
 								<option value="Noncoding">Noncoding</option>
 								<option value="Auto" selected="selected">Auto</option>
@@ -293,7 +293,7 @@
 			<br>
 
 			<p>
-				If not selecting gene IDs, upload a
+				Provide a list of 3D7 gene IDs or upload a
 				<a href="https://benchling.com" class="tooltip" target="_blank"
 					tipTxt="A GenBank file (.gb) can
 					be downloaded from Benchling clicking on the Information
@@ -308,7 +308,8 @@
 					can select the whole sequence -> right click -> Copy Special
 					-> Reverse Complement -> paste in new file.">
 					in 5'->3' sense.</a>
-					Make sure the target gene name in the text box matches the gene's annotation on the plasmid.
+					If you load your own files, make sure the target gene name in each
+					text box matches the gene's annotation on the plasmid.
 				</p>
 
 			<p>
@@ -406,7 +407,7 @@
 							settings and preferences before you run to make sure you allow
 							your browser to save all plain text document downloads.
 						</p>
-						<h3>Also...</h3>
+						<!-- <h3>Also...</h3>
 						<p>
 						  GeneTargeter uses DNA sequences that are currently not
 						  available to the public. The full software will be
@@ -418,13 +419,13 @@
 						</p>
 						<p>
 							<input type="text" id="passcode" value="" onkeydown="checkKey()">
-						</p>
+						</p> -->
 						<p>
 							<label class="runBtn" id="submitPassword" onclick="verifyCredentials()">Submit</label>
 						</p>
 			    </div>
 			    <div class="modal-footer" id="modFooter">
-			      <h3>Type passcode</h3>
+			      <h3>.</h3>
 			    </div>
 			  </div>
 
