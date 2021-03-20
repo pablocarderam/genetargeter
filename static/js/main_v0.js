@@ -149,10 +149,10 @@ function validCred() {
     fileCounter = 0;
     if ('files' in x) {
         if (x.files.length == 0 && geneServerFiles.length == 0) {
-            document.getElementById("modFooter").innerHTML = "Valid passcode! Select some gene files though.";
+            document.getElementById("modFooter").innerHTML = "Select some gene files though.";
         }
         else {
-            document.getElementById("modFooter").innerHTML = "Valid passcode!";
+            document.getElementById("modFooter").innerHTML = "...";
             closeModal('modContent','myModal');
             bulkFile = document.getElementById("bulkFileChkBox").checked;
             run();

@@ -77,17 +77,20 @@ def insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, R
     plas = copy.deepcopy(plasmid); # makes a copy of the plasmid object to modify without altering the original
 
     inLHR = findFirst(plas.origin, cut_FseI) + len(cut_FseI); # index of LHR start site (at end of FseI cut sequence)
-    plas.insertSeq(LHR, inLHR); # inserts LHR sequence
+    plas.insertSeq(LHR + cut_FseI, inLHR); # inserts LHR sequence
     annLHR = GenBankAnn(geneName+" LHR", "misc_feature", LHR, False, [inLHR,inLHR+len(LHR)], annColors['LHRColor']); # annotation object
     plas.features.append(annLHR); # adds annotation
 
-    endRHR = findFirst(plas.origin, cut_AhdI) + 6; # index of RHR end site (middle of AhdI cut sequence)
     if KO: # if knocking out,
-        endRHR = findFirst(plas.origin, cut_AsiSI) + 4; # index of RHR end site (middle of AsiSI cut sequence to keep gRNA as barcode)
-
-    startRHR = endRHR; # assume keeping HA tag
-    if not haTag: # if deleting HA tag,
-        startRHR = findFirst(plas.origin, cut_NheI) + 1; # index of RHR start site (middle of NheI cut sequence)
+        endRHR = findFirst(plas.origin, cut_XmaI); # index of RHR end site is start of XmaI cut sequence
+        startRHR = findFirst(plas.origin, cut_AscI) + len(cut_AscI); # index of RHR end site is end of AscI cut sequence
+        plas.removeSeq([startRHR, endRHR]); # removes sequence that LHR will replace
+    else:
+        endRHR = findFirst(plas.origin, cut_AhdI) + 6; # index of RHR end site is middle of AhdI cut sequence, conserves frame
+        startRHR = endRHR; # assume keeping HA tag
+        if not haTag: # if deleting HA tag,
+            startRHR = findFirst(plas.origin, cut_NheI) + len(cut_NheI); # index of RHR start site (end of NheI cut sequence)
+            plas.insertSeq(cut_NheI, startRHR); # inserts other NheI cut sequence downstream
 
     if len(recodedRegion) > 0: # if there is a recoded region,
         inRecode = startRHR; # index of recoded region start site (middle of AhdI cut sequence)

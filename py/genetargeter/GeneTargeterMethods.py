@@ -245,7 +245,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                 outputDicHA = copy.deepcopy(outputDic); # will store outputs
                 outputDicHA["logFileStr"] = outputDicHA["logFileStr"].replace(" **** \n\n", "_HA_Tag **** \n\n")
                 outputDic = postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=False, gBlockDefault=gBlockDefault, prefix=prefix); # generate and annotate assembly info
-                if haTag: # if using HA tags,
+                if haTag and not plasmidType == "pSN150-KO": # if using HA tags,
                     plasmidArmedHA = insertTargetingElements(plasmid, gene.label, bestGRNA.seq, LHR.seq, recodedHA.seq, RHR.seq, plasmidType=plasmidType, haTag=True); # inserts targeting elements
                     outputDicHA = postProcessPlasmid(geneName, geneGB, gene, plasmidArmedHA, recodedHA, outputDicHA, path, useFileStrs, geneOrientationNegative=geneOrientationNegative, plasmidType=plasmidType, enzyme=enzyme, gibsonHomRange=gibsonHomRange, gibTemp=gibTemp, gibTDif=gibTDif, minGBlockSize=minGBlockSize, haTag=True, gBlockDefault=gBlockDefault, prefix=prefix); # generate and annotate assembly info
                     outputDic["outputHA"] = outputDicHA; # if using HA tags, save design inside output dictionary
@@ -342,9 +342,12 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     if plasmidType == "pSN054": # if using pSN150 instead of pSN054,
         gRNACassetteStart = plasmidArmed.findAnnsLabel("Lox")[0].index[0] + 4; # gBlock starts at first Lox +4 bp to avoid error due to repeated lox sequence
         gRNACassetteEnd = plasmidArmed.findAnnsLabel("RHR_vector overlap_left")[0].index[1]; # gBlock ends at RHR_vector overlap_left
-    if plasmidType == "pSN150" or plasmidType == "pSN150-KO": # if using pSN150 instead of pSN054,
-        gRNACassetteStart = plasmidArmed.findAnnsLabel(geneName + " RHR")[0].index[1]; # gBlock starts at BsiWI cut EDIT NOPE AT SECOND HA NOPE NOPE 2A NOPE NOPE NOPE AFTER RHR
-        gRNACassetteEnd = max(plasmidArmed.findAnnsLabel(geneName + " RHR")[0].index[1] + minGBlockSize,plasmidArmed.findAnnsLabel("T7 terminator")[0].index[1]); # gBlock ends at AsiSI cut nope T7 terminator NOPE just whatever is required for length
+    if plasmidType == "pSN150": # if using pSN150 instead of pSN054,
+        gRNACassetteStart = plasmidArmed.findAnnsLabel(geneName + " RHR")[0].index[1]; # gBlock starts at end of RHR
+        gRNACassetteEnd = max(gRNACassetteStart + minGBlockSize,findFirst(plasmidArmed.origin, cut_AsiSI)+len(cut_AsiSI)+gibsonHomRange[1]); # gBlock ends after AsiSI
+    elif plasmidType == "pSN150-KO": # if using pSN150-KO instead of pSN054,
+        gRNACassetteStart = findFirst(plasmidArmed.origin, cut_XmaI); # gBlock starts before XmaI cut
+        gRNACassetteEnd = max(gRNACassetteStart + minGBlockSize,findFirst(plasmidArmed.origin, cut_AsiSI)+len(cut_AsiSI)+gibsonHomRange[1]); # gBlock ends after AsiSI
 
     gRNACassette = GenBankAnn("sgRNA cassette", "misc", plasmidArmed.origin[gRNACassetteStart:gRNACassetteEnd], False, [gRNACassetteStart,gRNACassetteEnd], annColors["otherAnnColor"]); # create cassette annotation
     gRNAGBlock = createGBlock(plasmidArmed,gRNACassette,0); # annotates gBlock on plasmid
