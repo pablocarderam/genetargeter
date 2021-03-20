@@ -1,0 +1,149 @@
+LOCUS       mal_rna_11 2108 bp DNA UNK     26-SEP-2019
+DEFINITION  Pf_M76611 | organism=Plasmodium_falciparum_3D7 | version=2015-06-18            | length=5967 | SO=mitochondrial_chromosomeACCESSION   Pf_M76611VERSION     Pf_M76611KEYWORDS    .
+FEATURES             Location/Qualifiers
+     exon            complement(574..606)
+                     /label="exon_mal_mito_1-E1"
+                     /ApEinfo_revcolor=#9ba183
+                     /ApEinfo_fwdcolor=#9ba183
+     CDS             complement(574..606)
+                     /label="mal_mito_1:mRNA-p1-CDS1"
+                     /ApEinfo_revcolor=#ce45d8
+                     /ApEinfo_fwdcolor=#ce45d8
+     gene            783..848
+                     /label="mal_rna_9"
+                     /ApEinfo_revcolor=#6b9748
+                     /ApEinfo_fwdcolor=#6b9748
+     rRNA            783..848
+                     /label="mal_rna_9:rRNA"
+                     /ApEinfo_revcolor=#0500e4
+                     /ApEinfo_fwdcolor=#0500e4
+     exon            783..848
+                     /label="exon_mal_rna_9-E1"
+                     /ApEinfo_revcolor=#9c0bd3
+                     /ApEinfo_fwdcolor=#9c0bd3
+     gene            1030..2108
+                     /label="mal_mito_2"
+                     /ApEinfo_revcolor=#11d935
+                     /ApEinfo_fwdcolor=#11d935
+     mRNA            1030..2108
+                     /label="mal_mito_2:mRNA"
+                     /ApEinfo_revcolor=#6f60b6
+                     /ApEinfo_fwdcolor=#6f60b6
+     exon            1030..2108
+                     /label="exon_mal_mito_2-E1"
+                     /ApEinfo_revcolor=#2f04eb
+                     /ApEinfo_fwdcolor=#2f04eb
+     CDS             1030..2108
+                     /label="mal_mito_2:mRNA-p1-CDS1"
+                     /ApEinfo_revcolor=#2d931d
+                     /ApEinfo_fwdcolor=#2d931d
+     gene            complement(1001..1108)
+                     /label="mal_rna_11"
+                     /ApEinfo_revcolor=#178b60
+                     /ApEinfo_fwdcolor=#178b60
+     rRNA            complement(1001..1108)
+                     /label="mal_rna_11:rRNA"
+                     /ApEinfo_revcolor=#f63310
+                     /ApEinfo_fwdcolor=#f63310
+     exon            complement(1001..1108)
+                     /label="exon_mal_rna_11-E1"
+                     /ApEinfo_revcolor=#23aabe
+                     /ApEinfo_fwdcolor=#23aabe
+     gene            723..765
+                     /label="mal_rna_8"
+                     /ApEinfo_revcolor=#e64133
+                     /ApEinfo_fwdcolor=#e64133
+     rRNA            723..765
+                     /label="mal_rna_8:rRNA"
+                     /ApEinfo_revcolor=#6daa20
+                     /ApEinfo_fwdcolor=#6daa20
+     exon            723..765
+                     /label="exon_mal_rna_8-E1"
+                     /ApEinfo_revcolor=#9ff5b2
+                     /ApEinfo_fwdcolor=#9ff5b2
+     gene            915..995
+                     /label="mal_rna_10"
+                     /ApEinfo_revcolor=#cd6b10
+                     /ApEinfo_fwdcolor=#cd6b10
+     rRNA            915..995
+                     /label="mal_rna_10:rRNA"
+                     /ApEinfo_revcolor=#f4476e
+                     /ApEinfo_fwdcolor=#f4476e
+     exon            915..995
+                     /label="exon_mal_rna_10-E1"
+                     /ApEinfo_revcolor=#00b22a
+                     /ApEinfo_fwdcolor=#00b22a
+     gene            892..914
+                     /label="malmito_rna_21"
+                     /ApEinfo_revcolor=#bb9d5b
+                     /ApEinfo_fwdcolor=#bb9d5b
+     rRNA            892..914
+                     /label="malmito_rna_21:rRNA"
+                     /ApEinfo_revcolor=#001f43
+                     /ApEinfo_fwdcolor=#001f43
+     exon            892..914
+                     /label="exon_malmito_rna_21-E1"
+                     /ApEinfo_revcolor=#dda735
+                     /ApEinfo_fwdcolor=#dda735
+     gene            849..891
+                     /label="malmito_rna_26"
+                     /ApEinfo_revcolor=#9c9c39
+                     /ApEinfo_fwdcolor=#9c9c39
+     rRNA            849..891
+                     /label="malmito_rna_26.1"
+                     /ApEinfo_revcolor=#a3d1ca
+                     /ApEinfo_fwdcolor=#a3d1ca
+     exon            849..891
+                     /label="exon_malmito_rna_26-E1"
+                     /ApEinfo_revcolor=#df5de9
+                     /ApEinfo_fwdcolor=#df5de9
+     gene            601..715
+                     /label="malmito_rna_LSUF"
+                     /ApEinfo_revcolor=#8a4e4a
+                     /ApEinfo_fwdcolor=#8a4e4a
+     rRNA            601..715
+                     /label="malmito_rna_LSUF:rRNA"
+                     /ApEinfo_revcolor=#aee9f0
+                     /ApEinfo_fwdcolor=#aee9f0
+     exon            601..715
+                     /label="exon_malmito_rna_LSUF-E1"
+                     /ApEinfo_revcolor=#38a88d
+                     /ApEinfo_fwdcolor=#38a88d
+ORIGIN
+        1 ataaacctat tactacatga gaaaaatgta atcctgtaac acaataaaat aatgtagtat 
+       61 atacagtatc atttatatga tatgataaat gtaaatactc tgtagtttgt agagatgcaa 
+      121 aacattctcc taataagtat attatacaaa taatactaga gatttcaaaa ctcattcctt 
+      181 tttctataaa tacttgtaaa catgcagtca tacatgatgc actagctaat ataaatgtaa 
+      241 ttgttaagat taacattctt gatgaagtaa tgataatacc ttcattactt aatggatatg 
+      301 gtgataaact aaaatgtaat ataccccaaa aatatgtaaa gaataataaa gcttctgata 
+      361 ttatgataga taacatacca gaagttaaag atgaaaatac agaataaaaa ctttctcgaa 
+      421 tagaatatac aaatattaat aggattatag ggttaaatgt aaataatatc cctacagaaa 
+      481 agtattttaa agatgtacca tataatgatg ttaatgcagg atatgaaact agatgtgctt 
+      541 ttatatttga taaattacta aataaaataa atttataaga acggtgagat aatgtgccgt 
+      601 aaacatataa cggtaagaag gttcgccggg gataacaggt tatagtatat atagagctct 
+      661 aatctttata tactattggc acctccatgt cgtctcatcg cagccttgca ataaataata 
+      721 tctagcgtgt attgttgcct tgtacacacc gctcgtcacg caatatcaat atactgggta 
+      781 tagaactcca ggcgttaacc tgtagagttg agatggaaac agccggaaag gtaattttac 
+      841 gcccttaacg taaagatcat ttatgaaata gattagcatg ggactaaaaa atgttatgtt 
+      901 gttggtttaa gccctattac catacaagag atcgcgtact ttggaccgaa taaagctgtg 
+      961 aggaaactac attaaaggaa ctcgactggc ctacactata agaacgaacg cttttaacgc 
+     1021 ctgacatgga tggataatac tcgactcttc caaagtataa ccgctgtcgc tgggactgta 
+     1081 tggatcaaat atttctcatt tatatccgag cctcatgtta tttttattgt tttaaataga 
+     1141 tattcactta ttacaaattg taaccataaa actttaggat tatactattt atggttttca 
+     1201 tttttatttg gtagttatgg atttttatta tcagtaatac tacgtactga attatattct 
+     1261 tcatctttaa gaataattgc acaagaaaat gtaaatctat ataatatgat atttacaatt 
+     1321 cacggaataa ttatgatttt tttcaatata atgccaggat tattcggagg atttggtaat 
+     1381 tactttctac ctattttatg tggatctcca gaattagcat atcctagaat taatagtata 
+     1441 tctttactgt tacaaccaat tgcttttgtt ttagttatat tatctactgc agcagaattt 
+     1501 ggtggtggaa ctggatggac tttatatcca ccattaagta catctttaat gtcattatct 
+     1561 cctgtagctg tagatgtaat aatttttggt ttattagtat ctggagtcgc tagtattatg 
+     1621 tcttcattaa attttattac tacagtaatg catttaagag caaaaggatt aacacttggt 
+     1681 atattaagtg tttctacatg gtcattgatc attacatcag gaatgttatt gctaacacta 
+     1741 ccggttttaa ctggaggagt attaatgtta ttatcagact tacattttaa tactttattt 
+     1801 tttgacccaa catttgcagg agatccaata ttatatcaac atttattctg gttttttgga 
+     1861 catcctgaag tatacatttt aatattacct gcttttggag taattagtca tgtaatttct 
+     1921 actaattatt gcagaaatct atttggtaat caatctatga tacttgctat gggatgtata 
+     1981 gctgttttag gaagcttagt atgggtacat catatgtaca ctactggttt agaagttgat 
+     2041 actagagctt attttacttc gactaccatt ttaatatcaa tacctaccgg tacaaaagta 
+     2101 tttaactg
+//

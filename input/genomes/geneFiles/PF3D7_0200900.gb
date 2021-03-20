@@ -1,0 +1,96 @@
+LOCUS       PF3D7_0200900 3002 bp DNA UNK     26-SEP-2019
+DEFINITION  Pf3D7_02_v3 | organism=Plasmodium_falciparum_3D7 |            version=2015-06-18 | length=947102 | SO=chromosomeACCESSION   Pf3D7_02_v3VERSION     Pf3D7_02_v3KEYWORDS    .
+FEATURES             Location/Qualifiers
+     gene            complement(1001..2002)
+                     /label="PF3D7_0200900"
+                     /ApEinfo_revcolor=#3b44f8
+                     /ApEinfo_fwdcolor=#3b44f8
+     mRNA            complement(1001..2002)
+                     /label="PF3D7_0200900.1"
+                     /ApEinfo_revcolor=#be49b4
+                     /ApEinfo_fwdcolor=#be49b4
+     exon            complement(1001..1174)
+                     /label="exon_PF3D7_0200900-E4"
+                     /ApEinfo_revcolor=#4b86d2
+                     /ApEinfo_fwdcolor=#4b86d2
+     exon            complement(1177..1680)
+                     /label="exon_PF3D7_0200900-E3"
+                     /ApEinfo_revcolor=#ec1658
+                     /ApEinfo_fwdcolor=#ec1658
+     exon            complement(1683..1829)
+                     /label="exon_PF3D7_0200900-E2"
+                     /ApEinfo_revcolor=#c96255
+                     /ApEinfo_fwdcolor=#c96255
+     exon            complement(1934..2002)
+                     /label="exon_PF3D7_0200900-E1"
+                     /ApEinfo_revcolor=#8a5405
+                     /ApEinfo_fwdcolor=#8a5405
+     CDS             complement(1001..1174)
+                     /label="PF3D7_0200900.1-p1-CDS4"
+                     /ApEinfo_revcolor=#37ef07
+                     /ApEinfo_fwdcolor=#37ef07
+     CDS             complement(1177..1680)
+                     /label="PF3D7_0200900.1-p1-CDS3"
+                     /ApEinfo_revcolor=#a898c5
+                     /ApEinfo_fwdcolor=#a898c5
+     CDS             complement(1683..1829)
+                     /label="PF3D7_0200900.1-p1-CDS2"
+                     /ApEinfo_revcolor=#9cbdfd
+                     /ApEinfo_fwdcolor=#9cbdfd
+     CDS             complement(1934..2002)
+                     /label="PF3D7_0200900.1-p1-CDS1"
+                     /ApEinfo_revcolor=#fcf9e1
+                     /ApEinfo_fwdcolor=#fcf9e1
+ORIGIN
+        1 ttcatattta ttttttacat actcaaatgt tttaattttt tatataacaa aaaagattac 
+       61 tatatatata tgtgtgtgat ataaattata aaattttcag gggatttttt attattctta 
+      121 actctcataa aatcatattt caaaaaaata tttatgtatt gtaaaaaata tattttataa 
+      181 caaaaaaaaa aaaacattta aataactaaa ataacaaata taaatattag atatttaaat 
+      241 tattaaatat tttaatatta cgcaaatatt ttattagaaa ttatttattt gataaatata 
+      301 aaaatgcttt aatatattct ttttatttga tttccaaata tttactatat ttttcgatac 
+      361 aacatatatt tttatataag gtttgaaata ttcgttgtgc gaattatgaa atgaacctgt 
+      421 acatttttct taaataaagt ataagaaaaa acagatagta aacataatat tataagattt 
+      481 aatatattaa ataatactat agttttatta gttaaaaaac gttgaagatt tagtttatgt 
+      541 acaatagaaa tatgtatata ctatttttca attatatata cataaatgat cattaataat 
+      601 tatttaatta ggagattaat ttttgtatgt tcattatata atattaattt aatataaaaa 
+      661 tataatagga aagtataaaa taaattttat ataaatacat caataaataa aaattataaa 
+      721 atgaattata tattataata gttattattt taacagagaa aaatatacat ttggttagaa 
+      781 atgtaataaa aataaaatat gtaaattgat caacagatat attataacac aatataatat 
+      841 aagactttta atacttttgt ttatttattt ataaataaat atatatattt tctttaaaaa 
+      901 caaataattc taaaaatatt acttctgtaa aaaataatta ttataaaata taatgtatat 
+      961 gcgattcaca aattacataa ttcatatatt taaaaataca ttacttacat aaatgtttct 
+     1021 tgcattcatg tttccatgat ctttttcttc ttctatataa ccatatatat aatattataa 
+     1081 gtagaacagt taatataagc agaaccaaag ctgcaatacc acaggggtat attgcgccca 
+     1141 aagcagcggt tgcaacagtt ccgcctaaat cagcagcacc agatgcacat attccagtgc 
+     1201 ctgtttgaat agctcgatca cagtttccct actaagcatg ttaaatatag aaacaaaggc 
+     1261 tgcacacgca ctataaggtt ctctaaaggt agcaatggca gcagctcttg cagcatacaa 
+     1321 agcgatcgtt gttaagatta cagtagtaag tgaagaaata tatataccac gcgtacatct 
+     1381 cccttttaag tgttttaaat acttatctct tccttttgtt tttcctagtt ttatattatt 
+     1441 aatatcagca cattcacatg ctgaagattt ttcatcaaca tttggactca tgcctgactt 
+     1501 caacgtatta ctttcgtcac caaacatttc ttcatatgtt tccaataaat ctttttctat 
+     1561 cgttgacatg ggttctgcac catttccact tgtatatttt cttccatttt tttctactac 
+     1621 atctttcaat tgttcatatg gatcatgagt ttgttggtat tttttgattg cttcctcgtt 
+     1681 catttatcaa ttatttcttt gagttctgga tcattatgat aatgtggatt atggtttttc 
+     1741 gtttgtgcta ataatcttga atgtatcgtt gttcttttgg tgttattttg aatgagactt 
+     1801 acattataat ggttatttag ataattctcc taaaaaaata ataaagagga ttaatgaata 
+     1861 tgtactgaaa atgtaataat tcttttatta tatatttatg ttattctaat aattatgtat 
+     1921 tttttttaca tacattatga ggtgatacta aaatatttat taaaaaggta aatattaact 
+     1981 ttttaacgtg atatatattc atttttaatt caaaaaaata atattttata tttcaaattg 
+     2041 tattaatcta atttataaaa aatgatctgt tttattttct aatatatatt ttatataata 
+     2101 tattgataag cagaaatttt gttgtaattt tattatataa gaacattata gtttcatcgt 
+     2161 atgtataatt taatttatga ctatattcat ttaatattta aaaaagcaaa tttaaatatg 
+     2221 atataaaata aataattttt ttttatttta tattatatta tttttatttt atttattttt 
+     2281 tttttaattt ttcttaaaat aattctctca tatatatatt ataaattttt aataaatgac 
+     2341 aatatctttt ccttcaaata cacatattaa tgtgtagaac aatagttgtt atgcgtgtaa 
+     2401 accacatata tataatgata gctctcatga tttttatcaa ataaacatcc taaaatatat 
+     2461 tataatataa ttactattat tgaaataatt acaaattttc ttgtaattta taaaatataa 
+     2521 tattaatctt aaaactaata taataaaata attttcaagt gtattttatt atttatattt 
+     2581 tatcttttta atttatttaa tttttcttct aatacgtatt caccaataga aataactctc 
+     2641 tattgtatct actatttttt atgttaatta tattataata atttataaat aataatatat 
+     2701 taatatatat atatatttaa tagtatattt aaatgaatta tttattaaaa aataataaat 
+     2761 tataaatttt gaataatttt taagtgtact actattgcac gaatacaata taaagatttt 
+     2821 ccaaacatgc cagatagtga gatactgtaa tttaaatttc tgtgtataaa tctaaataat 
+     2881 ataattataa tatattttta atttttatgt tgtaaaatat taaatatata tattatattt 
+     2941 atataatatc aaatatcata cattatttgt acaatacata agaaattaat tgtaggatta 
+     3001 ca
+//
