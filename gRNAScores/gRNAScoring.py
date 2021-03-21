@@ -201,7 +201,7 @@ def freeEnergy(seq, binExecPath="./gRNAScores/RNAfold/RNAfoldBin"):
     args = (binExecPath+platform, "--noPS"); # stores command to be passed to console.
 
     popen = subprocess.Popen(args, stdout=subprocess.PIPE, stdin=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, executable='/bin/bash'); # passes command to console
-    output = popen.communicate(input=seq.encode())[0]; # passes sequence to console dialog
+    output = popen.communicate(input=seq.encode())[0].decode(encoding='UTF-8',errors='strict'); # passes sequence to console dialog
 
     numberIndex = output.find("-"); # finds minus sign to search for free energy
     if numberIndex < 0: # if no minus sign found,
