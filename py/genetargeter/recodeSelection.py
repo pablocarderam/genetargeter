@@ -210,8 +210,14 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
                 tricky = isTricky(recodedSeq); # check if tricky to synthesize
                 trickyCount = 0
-                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 1000: # targeted recoding of problematic fragments
+                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 100: # targeted recoding of problematic fragments
                     recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:tricky-tricky%3+9]) + recodedSeq[tricky-tricky%3+9:]; # optimize codons.
+                    tricky = isTricky(recodedSeq); # check if tricky to synthesize
+                    trickyCount += 1
+
+                trickyCount = 0
+                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 100: # general recoding if targeted failed
+                    recodedSeq = optimizeCodons(recodedSeq); # optimize codons.
                     tricky = isTricky(recodedSeq); # check if tricky to synthesize
                     trickyCount += 1
 
@@ -466,6 +472,12 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                 trickyCount = 0
                 while tricky and tricky < len(recodedSeq)-9 and trickyCount < 100: # targeted recoding of problematic fragments
                     recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:tricky-tricky%3+9]) + recodedSeq[tricky-tricky%3+9:]; # optimize codons.
+                    tricky = isTricky(recodedSeq); # check if tricky to synthesize
+                    trickyCount += 1
+
+                trickyCount = 0
+                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 100: # general recoding if targeted failed
+                    recodedSeq = optimizeCodons(recodedSeq); # optimize codons.
                     tricky = isTricky(recodedSeq); # check if tricky to synthesize
                     trickyCount += 1
 
