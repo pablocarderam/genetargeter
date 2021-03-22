@@ -209,17 +209,14 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                     cutCheck = cutCheck * ( findFirst(recodedSeq,revComp(site)) < 0 ); # Find cut site in comp strand, register in cutCheck
 
                 tricky = isTricky(recodedSeq); # check if tricky to synthesize
-                trickyCount = 0
-                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 100: # targeted recoding of problematic fragments
+                trickyCount = 1
+                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 1000: # targeted recoding of problematic fragments
                     recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:tricky-tricky%3+9]) + recodedSeq[tricky-tricky%3+9:]; # optimize codons.
                     tricky = isTricky(recodedSeq); # check if tricky to synthesize
                     trickyCount += 1
+                    if trickyCount % 100 == 0: # shuffle everything every 100 targeted recodings
+                        recodedSeq = optimizeCodons(recodedSeq); # optimize codons.
 
-                trickyCount = 0
-                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 100: # general recoding if targeted failed
-                    recodedSeq = optimizeCodons(recodedSeq); # optimize codons.
-                    tricky = isTricky(recodedSeq); # check if tricky to synthesize
-                    trickyCount += 1
 
                 if gcContent(recodedSeq[0:40]) < minGCEnd: # if the first bases don't have enough gc content
                     badStart = True;
@@ -470,16 +467,13 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
                 tricky = isTricky(recodedSeq); # check if tricky to synthesize
                 trickyCount = 0
-                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 100: # targeted recoding of problematic fragments
+                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 1000: # targeted recoding of problematic fragments
                     recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:tricky-tricky%3+9]) + recodedSeq[tricky-tricky%3+9:]; # optimize codons.
                     tricky = isTricky(recodedSeq); # check if tricky to synthesize
                     trickyCount += 1
-
-                trickyCount = 0
-                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 100: # general recoding if targeted failed
-                    recodedSeq = optimizeCodons(recodedSeq); # optimize codons.
-                    tricky = isTricky(recodedSeq); # check if tricky to synthesize
-                    trickyCount += 1
+                    if trickyCount % 100 == 0: # shuffle everything every 100 targeted recodings
+                        recodedSeq = optimizeCodons(recodedSeq); # optimize codons.
+                        
 
                 if gcContent(recodedSeq[-40:]) < minGCEnd: # if the last bases don't have enough gc content
                     badStart = True;
