@@ -210,12 +210,13 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
                 tricky = isTricky(recodedSeq); # check if tricky to synthesize
                 trickyCount = 1
-                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 1000: # targeted recoding of problematic fragments
+                trickyLimit = 1000
+                while tricky and tricky < len(recodedSeq)-9 and trickyCount < trickyLimit: # targeted recoding of problematic fragments
                     recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:tricky-tricky%3+9]) + recodedSeq[tricky-tricky%3+9:]; # optimize codons.
-                    tricky = isTricky(recodedSeq); # check if tricky to synthesize
+                    tricky = max(tricky,isTricky(recodedSeq)); # check if tricky to synthesize (only downstream to avoid going back to fix newly repeated sequences)
                     trickyCount += 1
-                    if trickyCount % 100 == 0: # shuffle everything every 100 targeted recodings
-                        recodedSeq = optimizeCodons(recodedSeq); # optimize codons.
+                    if trickyCount % 10 == 0: # shuffle everything every 100 targeted recodings
+                        recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:]); # optimize codons of remainder
 
 
                 if gcContent(recodedSeq[0:40]) < minGCEnd: # if the first bases don't have enough gc content
@@ -231,7 +232,7 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                         candidateFound = True; # signal possible candidate found
 
                 count += 1; # advances iteration counter
-                if count > 1000: # if out of iteration limit,
+                if count > 1000 or trickyCount >= trickyLimit: # if out of iteration limit,
                     if not candidateFound: # if no candidate without cut sequences found,
                         if tricky:
                             log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to avoid repeated sequences or low-complexity regions.\n\n"; # log warning
@@ -466,14 +467,15 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                     cutCheck = cutCheck * ( findFirst(recodedSeq,revComp(site)) < 0 ); # Find cut site in comp strand, register in cutCheck
 
                 tricky = isTricky(recodedSeq); # check if tricky to synthesize
-                trickyCount = 0
-                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 1000: # targeted recoding of problematic fragments
+                trickyCount = 1
+                trickyLimit = 1000
+                while tricky and tricky < len(recodedSeq)-9 and trickyCount < trickyLimit: # targeted recoding of problematic fragments
                     recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:tricky-tricky%3+9]) + recodedSeq[tricky-tricky%3+9:]; # optimize codons.
-                    tricky = isTricky(recodedSeq); # check if tricky to synthesize
+                    tricky = max(tricky,isTricky(recodedSeq)); # check if tricky to synthesize (only downstream to avoid going back to fix newly repeated sequences)
                     trickyCount += 1
-                    if trickyCount % 100 == 0: # shuffle everything every 100 targeted recodings
-                        recodedSeq = optimizeCodons(recodedSeq); # optimize codons.
-                        
+                    if trickyCount % 10 == 0: # shuffle everything every 100 targeted recodings
+                        recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:]); # optimize codons of remainder
+
 
                 if gcContent(recodedSeq[-40:]) < minGCEnd: # if the last bases don't have enough gc content
                     badStart = True;
@@ -488,7 +490,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                         candidateFound = True; # signal possible candidate found
 
                 count += 1; # advances iteration counter
-                if count > 1000: # if out of iteration limit,
+                if count > 1000 or trickyCount >= trickyLimit: # if out of iteration limit,
                     if not candidateFound: # if no candidate without cut sequences found,
                         if tricky:
                             log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to avoid repeated sequences or low-complexity regions.\n\n"; # log warning

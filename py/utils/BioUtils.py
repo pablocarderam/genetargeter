@@ -431,20 +431,20 @@ Checks if a sequence is hard to synthesize.
 def isTricky(seq,repeatSize=10):
     tricky = False;
 
-    if findFirst(seq,"TATATATATATATATATATA") > -1: # if 10 TA repeats found,
-        tricky = findFirst(seq,"TATATATATATATATATATA"); # it's tricky
-    elif findFirst(seq,"GCGCGCGCGCGCGC") > -1: # if 7 GC repeats found,
-        tricky = findFirst(seq,"GCGCGCGCGCGCGC"); # it's tricky
-    elif findFirst(seq,"AAAAAAAAAA") > -1: # if 10 A repeats found, (used to be 13)
-        tricky = findFirst(seq,"AAAAAAAAAA"); # it's tricky
-    elif findFirst(seq,"TTTTTTTTTT") > -1: # if 10 T repeats found,
-        tricky = findFirst(seq,"TTTTTTTTTT"); # it's tricky
-    elif findFirst(seq,"GGGGGGGGG") > -1: # if 9 G repeats found,
-        tricky = findFirst(seq,"GGGGGGGGG"); # it's tricky
-    elif findFirst(seq,"CCCCCCCCC") > -1: # if 9 C repeats found,
-        tricky = findFirst(seq,"CCCCCCCCC") > -1; # it's tricky
-    elif hasRepeatedSeqs(seq,repeatSize): # if contains repeats larger than a given size,
+    if hasRepeatedSeqs(seq,repeatSize): # if contains repeats larger than a given size (IMPORTANT TO CHECK THIS FIRST to avoid repeating repeats),
         tricky = hasRepeatedSeqs(seq,repeatSize); # it's tricky
+    if findFirst(seq,"TATATATATATATATATATA") > -1: # if 10 TA repeats found,
+        tricky = min(tricky,findFirst(seq,"TATATATATATATATATATA")); # it's tricky
+    if findFirst(seq,"GCGCGCGCGCGCGC") > -1: # if 7 GC repeats found,
+        tricky = min(tricky,findFirst(seq,"GCGCGCGCGCGCGC")); # it's tricky
+    if findFirst(seq,"AAAAAAAAAA") > -1: # if 10 A repeats found, (used to be 13)
+        tricky = min(tricky,findFirst(seq,"AAAAAAAAAA")); # it's tricky
+    if findFirst(seq,"TTTTTTTTTT") > -1: # if 10 T repeats found,
+        tricky = min(tricky,findFirst(seq,"TTTTTTTTTT")); # it's tricky
+    if findFirst(seq,"GGGGGGGGG") > -1: # if 9 G repeats found,
+        tricky = min(tricky,findFirst(seq,"GGGGGGGGG")); # it's tricky
+    if findFirst(seq,"CCCCCCCCC") > -1: # if 9 C repeats found,
+        tricky = min(tricky,findFirst(seq,"CCCCCCCCC")); # it's tricky
 
     return tricky;
 
