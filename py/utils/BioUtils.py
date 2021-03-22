@@ -442,7 +442,7 @@ def isTricky(seq,repeatSize=10):
     elif findFirst(seq,"GGGGGGGGG") > -1: # if 9 G repeats found,
         tricky = findFirst(seq,"GGGGGGGGG"); # it's tricky
     elif findFirst(seq,"CCCCCCCCC") > -1: # if 9 C repeats found,
-        tricky = (seq,"CCCCCCCCC") > -1; # it's tricky
+        tricky = findFirst(seq,"CCCCCCCCC") > -1; # it's tricky
     elif hasRepeatedSeqs(seq,repeatSize): # if contains repeats larger than a given size,
         tricky = hasRepeatedSeqs(seq,repeatSize); # it's tricky
 
