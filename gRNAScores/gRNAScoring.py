@@ -20,6 +20,8 @@ from py.utils.BioUtils import *;
 # import gRNAScores.Rule_Set_2_scoring_v1.analysis.model_comparison as RS2; # Import Doench et al. (2016) old on-target scoring module
 from gRNAScores.CFD_Scoring.cfd_score_calculator import *; # Import Doench et al. (2016) off-target scoring module
 import gRNAScores.azimuth.model_comparison as azimuth; # Import Doench et al. (2016) new on-target scoring module
+import warnings
+warnings.filterwarnings(action='ignore',category=UserWarning) # sklearn complains about loading pickled files from a different version, but they're okay
 
 # Get models used by old Rule Set 2 scores
 # model_file_1 = 'model1.pkl'#'./gRNAScores/Rule_Set_2_scoring_v1/saved_models/V3_model_nopos.pickle'

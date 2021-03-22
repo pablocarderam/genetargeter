@@ -210,7 +210,7 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
                 tricky = isTricky(recodedSeq); # check if tricky to synthesize
                 trickyCount = 0
-                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 10000: # targeted recoding of problematic fragments
+                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 1000: # targeted recoding of problematic fragments
                     recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:tricky-tricky%3+9]) + recodedSeq[tricky-tricky%3+9:]; # optimize codons.
                     tricky = isTricky(recodedSeq); # check if tricky to synthesize
                     trickyCount += 1
@@ -228,7 +228,7 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                         candidateFound = True; # signal possible candidate found
 
                 count += 1; # advances iteration counter
-                if count > 5000: # if out of iteration limit,
+                if count > 1000: # if out of iteration limit,
                     if not candidateFound: # if no candidate without cut sequences found,
                         if tricky:
                             log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to avoid repeated sequences or low-complexity regions.\n\n"; # log warning
@@ -464,7 +464,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
                 tricky = isTricky(recodedSeq); # check if tricky to synthesize
                 trickyCount = 0
-                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 10000: # targeted recoding of problematic fragments
+                while tricky and tricky < len(recodedSeq)-9 and trickyCount < 100: # targeted recoding of problematic fragments
                     recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:tricky-tricky%3+9]) + recodedSeq[tricky-tricky%3+9:]; # optimize codons.
                     tricky = isTricky(recodedSeq); # check if tricky to synthesize
                     trickyCount += 1
@@ -482,7 +482,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                         candidateFound = True; # signal possible candidate found
 
                 count += 1; # advances iteration counter
-                if count > 5000: # if out of iteration limit,
+                if count > 1000: # if out of iteration limit,
                     if not candidateFound: # if no candidate without cut sequences found,
                         if tricky:
                             log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to avoid repeated sequences or low-complexity regions.\n\n"; # log warning
