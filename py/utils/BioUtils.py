@@ -428,23 +428,17 @@ def ambiguousSeqs(seq):
 """
 Checks if a sequence is hard to synthesize.
 """
-def isTricky(seq,repeatSize=10):
-    tricky = False;
+def isTricky(seq,repeatSize=10,bad_seqs=['TATATATATATATATATATA','GCGCGCGCGCGCGC',
+            'AAAAAAAAAA','TTTTTTTTTT','GGGGGGGGG','CCCCCCCCC']):
+    tricky = -1;
 
-    if hasRepeatedSeqs(seq,repeatSize): # if contains repeats larger than a given size (IMPORTANT TO CHECK THIS FIRST to avoid repeating repeats),
+    if hasRepeatedSeqs(seq,repeatSize) > -1: # if contains repeats larger than a given size
         tricky = hasRepeatedSeqs(seq,repeatSize); # it's tricky
-    if findFirst(seq,"TATATATATATATATATATA") > -1: # if 10 TA repeats found,
-        tricky = min(tricky,findFirst(seq,"TATATATATATATATATATA")); # it's tricky
-    if findFirst(seq,"GCGCGCGCGCGCGC") > -1: # if 7 GC repeats found,
-        tricky = min(tricky,findFirst(seq,"GCGCGCGCGCGCGC")); # it's tricky
-    if findFirst(seq,"AAAAAAAAAA") > -1: # if 10 A repeats found, (used to be 13)
-        tricky = min(tricky,findFirst(seq,"AAAAAAAAAA")); # it's tricky
-    if findFirst(seq,"TTTTTTTTTT") > -1: # if 10 T repeats found,
-        tricky = min(tricky,findFirst(seq,"TTTTTTTTTT")); # it's tricky
-    if findFirst(seq,"GGGGGGGGG") > -1: # if 9 G repeats found,
-        tricky = min(tricky,findFirst(seq,"GGGGGGGGG")); # it's tricky
-    if findFirst(seq,"CCCCCCCCC") > -1: # if 9 C repeats found,
-        tricky = min(tricky,findFirst(seq,"CCCCCCCCC")); # it's tricky
+
+    for bad_seq in bad_seqs:
+        i = findFirst(seq,bad_seq)
+        if i > -1 and i < tricky: # if 10 TA repeats found,
+            tricky = i; # it's tricky
 
     return tricky;
 
@@ -461,7 +455,7 @@ def hasRepeatedSeqs(seq,size):
             else:
                 motifs.append(seq[i:i+size])
 
-    return False
+    return -1
 
 """
 Returns a random hex color code.

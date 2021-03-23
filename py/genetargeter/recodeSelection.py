@@ -104,11 +104,11 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
         recodedSeq = recodeSeq; # assign recoded sequence to same as original
         bestRecodedSeq = recodedSeq; # will store best candidate sequence
         if len(recodeSeq) > 2: # if recodeSeq contains at least one codon,
-            tricky = False; # True if suspected to be hard to synthesize
+            tricky = -1; # > -1 if suspected to be hard to synthesize
             badStart = False; # True if first bases have low melting temp (important for Gibson assembly)
             candidateFound = False; # signal possible candidate found
             bestRecodedSeq = recodedSeq; # will store best candidate sequence
-            while not cutCheck or offScore > offScoreThreshold or tricky or badStart: # while cutCheck shows hits in a cut sequences, or while the pairwise off-target score is over the threshold, or while there are difficult-to-synthesize structures in the recoded region, or while the first 40 bp have a bad gc content
+            while not cutCheck or offScore > offScoreThreshold or tricky > -1 or badStart: # while cutCheck shows hits in a cut sequences, or while the pairwise off-target score is over the threshold, or while there are difficult-to-synthesize structures in the recoded region, or while the first 40 bp have a bad gc content
                 if count == 1: # if recoded region has failed checks once,
                     log = log + "Defaulted recoded region recodonization to codon sampling due to possible difficulties in synthesis or enzyme cut sites.\n\n"; # log warning
                     codonSampling = True; # forces codonSampling to true
@@ -118,7 +118,7 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
                 cutCheck = True; # reset cutCheck
                 offScore = 0; # reset offScore
-                tricky = False; # reset tricky Boolean
+                tricky = -1; # reset tricky index
                 badStart = False; # reset badStart Boolean
                 recodedSeq = optimizeCodons(recodeSeq,orgCodonTable,codonSampling=codonSampling); # optimize codons.
                 for g in gRNAs: # for every gRNA candidate within recoded region,
@@ -216,25 +216,28 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                 tricky = isTricky(recodedSeq); # check if tricky to synthesize
 
                 if offScore <= offScoreThreshold and cutCheck: # if parameters other than badStart are ok and this sequence has better start than previous best,
-                    if not candidateFound or isTricky(bestRecodedSeq): # if no candidate found until now or current best is already tricky,
-                        while tricky and tricky < len(recodedSeq)-9 and trickyCount < trickyLimit: # targeted recoding of problematic fragments
+                    if not candidateFound or isTricky(bestRecodedSeq) > -1: # if no candidate found until now or current best is already tricky,
+                        while tricky > -1 and tricky < len(recodedSeq)-9 and trickyCount < trickyLimit: # targeted recoding of problematic fragments
                             recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:tricky-tricky%3+9]) + recodedSeq[tricky-tricky%3+9:]; # optimize codons.
-                            tricky = max(tricky,isTricky(recodedSeq)); # check if tricky to synthesize (only downstream to avoid going back to fix newly repeated sequences)
+                            new_tricky = isTricky(recodedSeq)
+                            tricky = max(tricky,new_tricky) if new_tricky > -1 else new_tricky; # check if tricky to synthesize (only downstream to avoid going back to fix newly repeated sequences)
                             trickyCount += 1
                             if trickyCount % 10 == 0: # shuffle everything every 100 targeted recodings
                                 recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:]); # optimize codons of remainder
+                                new_tricky = isTricky(recodedSeq)
+                                tricky = max(tricky,new_tricky) if new_tricky > -1 else new_tricky; # check if tricky to synthesize (only downstream to avoid going back to fix newly repeated sequences)
 
                         bestRecodedSeq = recodedSeq; # make this new best
-                    elif not tricky and gcContent(recodedSeq[0:40]) > gcContent(bestRecodedSeq[0:40]):
+                    elif not tricky > -1 and gcContent(recodedSeq[0:40]) > gcContent(bestRecodedSeq[0:40]):
                         bestRecodedSeq = recodedSeq; # make this new best
 
-                    if not tricky:
+                    if not tricky > -1:
                         candidateFound = True; # signal possible candidate found
 
                 count += 1; # advances iteration counter
                 if count > 1000 or trickyCount >= trickyLimit: # if out of iteration limit,
                     if not candidateFound: # if no candidate without cut sequences found,
-                        if tricky:
+                        if tricky > -1:
                             log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to avoid repeated sequences or low-complexity regions.\n\n"; # log warning
                         else:
                             log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to fulfill the maximum off-target sgRNA score threshold, or avoid all the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning
@@ -362,11 +365,11 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
         recodedSeq = recodeSeq; # assign recoded sequence to same as original
         bestRecodedSeq = recodedSeq; # will store best candidate sequence
         if len(recodeSeq) > 2: # if recodeSeq contains at least one codon,
-            tricky = False; # True if suspected to be hard to synthesize
+            tricky = -1; # True if suspected to be hard to synthesize
             badStart = False; # True if first bases have low melting temp (important for Gibson assembly)
             candidateFound = False; # signal possible candidate found
             bestRecodedSeq = recodedSeq; # will store best candidate sequence
-            while not cutCheck or offScore > offScoreThreshold or tricky or badStart: # while cutCheck is greater than what you would expect for no hits in all cut sequences plus the gRNAs on both positive and comp strands, or while the pairwise off-target score is over the threshold, or while there are difficult-to-synthesize structures in the recoded region, or while the first 40 bp have a bad gc content
+            while not cutCheck or offScore > offScoreThreshold or tricky > -1 or badStart: # while cutCheck is greater than what you would expect for no hits in all cut sequences plus the gRNAs on both positive and comp strands, or while the pairwise off-target score is over the threshold, or while there are difficult-to-synthesize structures in the recoded region, or while the first 40 bp have a bad gc content
                 if count == 1: # if recoded region has failed checks once,
                     log = log + "Defaulted recoded region recodonization to codon sampling due to possible difficulties in synthesis or enzyme cut sites.\n\n"; # log warning
                     codonSampling = True; # forces codonSampling to true
@@ -376,7 +379,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
                 cutCheck = True; # reset cutCheck
                 offScore = 0; # reset offScore
-                tricky = False; # reset tricky Boolean
+                tricky = -1; # reset tricky index
                 badStart = False; # reset badStart Boolean
                 recodedSeq = optimizeCodons(recodeSeq,orgCodonTable,codonSampling=codonSampling); # optimize codons.
                 for g in gRNAs: # for every gRNA candidate within recoded region,
@@ -472,27 +475,30 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                 trickyCount = 1
                 trickyLimit = 1000
                 tricky = isTricky(recodedSeq); # check if tricky to synthesize
-                
+
                 if offScore <= offScoreThreshold and cutCheck: # if parameters other than badStart are ok and this sequence has better start than previous best,
-                    if not candidateFound or isTricky(bestRecodedSeq): # if no candidate found until now or current best is already tricky,
-                        while tricky and tricky < len(recodedSeq)-9 and trickyCount < trickyLimit: # targeted recoding of problematic fragments
+                    if not candidateFound or isTricky(bestRecodedSeq) > -1: # if no candidate found until now or current best is already tricky,
+                        while tricky > -1 and tricky < len(recodedSeq)-9 and trickyCount < trickyLimit: # targeted recoding of problematic fragments
                             recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:tricky-tricky%3+9]) + recodedSeq[tricky-tricky%3+9:]; # optimize codons.
-                            tricky = max(tricky,isTricky(recodedSeq)); # check if tricky to synthesize (only downstream to avoid going back to fix newly repeated sequences)
+                            new_tricky = isTricky(recodedSeq)
+                            tricky = max(tricky,new_tricky) if new_tricky > -1 else new_tricky; # check if tricky to synthesize (only downstream to avoid going back to fix newly repeated sequences)
                             trickyCount += 1
                             if trickyCount % 10 == 0: # shuffle everything every 100 targeted recodings
                                 recodedSeq = recodedSeq[0:tricky-tricky%3] + optimizeCodons(recodedSeq[tricky-tricky%3:]); # optimize codons of remainder
+                                new_tricky = isTricky(recodedSeq)
+                                tricky = max(tricky,new_tricky) if new_tricky > -1 else new_tricky; # check if tricky to synthesize (only downstream to avoid going back to fix newly repeated sequences)
 
                         bestRecodedSeq = recodedSeq; # make this new best
-                    elif not tricky and gcContent(recodedSeq[-40:]) > gcContent(bestRecodedSeq[-40:]):
+                    elif not tricky > -1 and gcContent(recodedSeq[-40:]) > gcContent(bestRecodedSeq[-40:]):
                         bestRecodedSeq = recodedSeq; # make this new best
 
-                    if not tricky:
+                    if not tricky > -1:
                         candidateFound = True; # signal possible candidate found
 
                 count += 1; # advances iteration counter
                 if count > 1000 or trickyCount >= trickyLimit: # if out of iteration limit,
                     if not candidateFound: # if no candidate without cut sequences found,
-                        if tricky:
+                        if tricky > -1:
                             log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to avoid repeated sequences or low-complexity regions.\n\n"; # log warning
                         else:
                             log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to fulfill the maximum off-target sgRNA score threshold, or avoid all the following cut sequences: \n" + str(cutSeqs) + "\n\n"; # log warning

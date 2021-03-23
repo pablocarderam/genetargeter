@@ -132,8 +132,8 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
     i = [ min(a,b), max(a,b) ] # search each terminus start position in sequence terminus, start from end if doing LHR or from start if RHR, flipped for loop
     bestHR = [ i,
-        [ isTricky( geneGB.origin[ i[0]:i[0]+endsLength ] ),
-            isTricky( geneGB.origin[ i[1]-endsLength:i[1] ] ) ],
+        [ isTricky( geneGB.origin[ i[0]:i[0]+endsLength ] ) > -1,
+            isTricky( geneGB.origin[ i[1]-endsLength:i[1] ] ) > -1 ],
         [ meltingTemp( geneGB.origin[ i[0]:i[0]+endsLength ] ),
             meltingTemp( geneGB.origin[ i[1]-endsLength:i[1] ] ) ],
         [ len(findMotif(geneGB.origin, geneGB.origin[ i[0]:i[0]+annealCheckLength])),
@@ -163,7 +163,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
             satisfiedTer = not ( ( bestInTer[1][ter] + ( bestInTer[2][ter] < minTmEnds ) ) ) and bestHR[3][ter] == 1 # keep track of whether or not adequate HR has been found
             while i[ter] > 0 and i[ter] < len(geneGB.origin) and ( terIdxArr[ter][p][0] <= i[ter] and i[ter] <= terIdxArr[ter][p][1] ) and i[0] < nxtGen and i[0] > prvGen and not satisfiedTer: # while within search range and no good terminus found,
                 extReg = geneGB.origin[ min(i[ter],i[ter]+(2*(not ter)-1)*endsLength):max(i[ter],i[ter]+(2*(not ter)-1)*endsLength) ] # extreme region to be analyzed
-                tricky = isTricky( extReg ) # true if this terminus contains homopolymers or AT repeats
+                tricky = isTricky( extReg ) > -1 # true if this terminus contains homopolymers or AT repeats
                 tm = meltingTemp( extReg ) # Tm for this terminus
                 bestHR[3][ter] = len(findMotif(geneGB.origin, extReg[0:annealCheckLength])) if ter else len(findMotif(geneGB.origin, extReg[-annealCheckLength:])) # number of repeats of primer-annealing sequence
                 lenHR = i[1] - i[0] # length of HR as it stands
@@ -177,7 +177,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
                         t_extReg = geneGB.origin[ min(ti,ti+(2*(not ter)-1)*endsLength):max(ti,ti+(2*(not ter)-1)*endsLength) ] # extreme region to be analyzed
                         t_tm = meltingTemp( t_extReg ) # Tm for this terminus
                         t_repeats = len(findMotif(geneGB.origin, t_extReg[0:annealCheckLength])) if ter else len(findMotif(geneGB.origin, t_extReg[-annealCheckLength:])) # number of repeats of primer-annealing sequence
-                        if t_tm > tm and not isTricky( t_extReg ) and lenMax >= abs(i[not ter] - ti) >= lenMin and t_repeats == 1: # if this end point has a better Tm, no repeats, and is still within bounds
+                        if t_tm > tm and not isTricky( t_extReg ) > -1 and lenMax >= abs(i[not ter] - ti) >= lenMin and t_repeats == 1: # if this end point has a better Tm, no repeats, and is still within bounds
                             bi = ti; # make this the ending position
                             tm = t_tm # record this tm as best
 
