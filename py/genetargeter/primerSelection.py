@@ -207,27 +207,10 @@ def createGBlock(plasmid, part, overlapSize):
     startGBlock = part.index[0] - overlapSize; # gBlock start position
     endGBlock = part.index[1] + overlapSize; # gBlock end position
     gBlockSeq = plasmid.origin[startGBlock:endGBlock]; # gBlock sequence
-    tricky = False; # True if suspected to be hard to synthesize
-    '''
-    for i in range(0,len(gBlockSeq)-20):
-        if gcContent(gBlockSeq[i:i+20]) < 0.05: # If gc content of 20 bp gBlock window is too low or tricky sequences are present
-            tricky = True; # might be tricky'''
-
-    if findFirst(gBlockSeq.replace("T", "A"),"AAAAAAAAAAAAAAAAAAAA") > -1: # if 20 continuous T/A nucleotides found,
-        tricky = True; # it's tricky
-    elif findFirst(gBlockSeq.replace("G", "C"),"CCCCCCCCCCCCCC") > -1: # if 14 continuous G/C nucleotides found,
-        tricky = True; # it's tricky
-    elif findFirst(gBlockSeq,"AAAAAAAAAAAAA") > -1: # if 13 A repeats found,
-        tricky = True; # it's tricky
-    elif findFirst(gBlockSeq,"TTTTTTTTTTTTT") > -1: # if 13 T repeats found,
-        tricky = True; # it's tricky
-    elif findFirst(gBlockSeq,"GGGGGGGGG") > -1: # if 9 G repeats found,
-        tricky = True; # it's tricky
-    elif findFirst(gBlockSeq,"CCCCCCCCC") > -1: # if 9 C repeats found,
-        tricky = True; # it's tricky
+    tricky = isTricky(gBlockSeq) > -1; # True if suspected to be hard to synthesize
 
     if tricky: # if sequence seems tricky
-        log = log + "Warning: I suspect synthesis company might reject the gene fragment created: \n" + gBlockSeq + "\n\n"; # warn user
+        log = log + "Warning: I suspect synthesis company might reject the gene fragment created for part \n" +part.label+ ": \n" + gBlockSeq + "\n\n"; # warn user
 
     annGBlock = GenBankAnn(part.label + " gBlock", "misc_feature", gBlockSeq, False, [startGBlock,endGBlock], annColors['gBlockColor']); # creates GenBankAnn object to hold gBlock
 
