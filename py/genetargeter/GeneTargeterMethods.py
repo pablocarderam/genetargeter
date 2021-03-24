@@ -288,8 +288,11 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     if len(recoded.seq) > 0 and ( len(recoded.seq) + gibsonHomRange[1]*2 >= minGBlockSize or gBlockDefault ): # if there is a recoded region and length of recoded region plus homology regions necessary for Gibson Assembly is greater or equal to minimum gBlock size, or gBlocks are default
         recodedGBlock = recodedOnPlasmid # by default take gBlock as recoded region
         if len(recoded.seq) + gibsonHomRange[1]*2 < minGBlockSize: # if min gBlock size not achieved and gBlocks are default,
-            extIndex = ( minGBlockSize - gibsonHomRange[1]*2 - len(recoded.seq) ) + recodedOnPlasmid.index[1] # new endpoint of gBlock such that it satisfies minimum gBlock length
-            recodedGBlock = GenBankAnn(gene.label + " gBlock extension", "misc_feature", plasmidArmed.origin[recodedOnPlasmid.index[0]:extIndex], False, [recodedOnPlasmid.index[0],extIndex]) # make extended recoded region gBlock annotation
+            extIndex = ( minGBlockSize - gibsonHomRange[1]*2 ) # extension length of gBlock such that it satisfies minimum gBlock length
+            if plasmidType=="pSN054": # extend in different directions depending on plasmid
+                recodedGBlock = GenBankAnn(gene.label + " extension", "misc_feature", plasmidArmed.origin[recodedOnPlasmid.index[0]:recodedOnPlasmid.index[0]+extIndex], False, [recodedOnPlasmid.index[0],recodedOnPlasmid.index[0]+extIndex]) # make extended recoded region gBlock annotation
+            elif plasmidType=="pSN150":
+                recodedGBlock = GenBankAnn(gene.label + " extension", "misc_feature", plasmidArmed.origin[recodedOnPlasmid.index[1]-extIndex:recodedOnPlasmid.index[1]], False, [recodedOnPlasmid.index[1]-extIndex,recodedOnPlasmid.index[1]]) # make extended recoded region gBlock annotation
 
         gBlock = createGBlock(plasmidArmed,recodedGBlock,gibsonHomRange[1]); # annotates gBlock on plasmid
         outputDic["logFileStr"] = outputDic["logFileStr"] + gBlock["log"]; # add logs

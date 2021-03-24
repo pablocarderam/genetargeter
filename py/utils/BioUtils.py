@@ -428,7 +428,7 @@ def ambiguousSeqs(seq):
 """
 Checks if a sequence is hard to synthesize.
 """
-def isTricky(seq,repeatSize=10,bad_seqs=['TATATATATATATATATATA','GCGCGCGCGCGCGC',
+def isTricky(seq,repeatSize=14,bad_seqs=['TATATATATATATATATATA','GCGCGCGCGCGCGC',
             'AAAAAAAAAA','TTTTTTTTTT','GGGGGGGGG','CCCCCCCCC']):
     tricky = -1;
 
