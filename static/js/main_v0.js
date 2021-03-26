@@ -22,7 +22,7 @@ function init() {
     EPPZScrollTo.scrollVerticalToElementById('Title', 0); // scroll to start at init
     // document.body.style.background = "linear-gradient(rgba(150, 200, 50, 0.4),rgba(76, 0, 0, 0.45)), url('../static/assets/bkgr/bkgr_" + Math.ceil(Math.random()*numBkgrs).toString() + ".jpg') no-repeat center center fixed";
     document.body.style.backgroundSize = "cover";
-    document.getElementById('geneIDSubmissionTxt').value = 'PF3D7_0905100\nPF3D7_1357000\nPF3D7_1221000';
+    document.getElementById('geneIDSubmissionTxt').value = 'PF3D7_0321600\nPF3D7_0819200\nPF3D7_1456700';
 }
 
 function geneIDSubmissionInterface() {

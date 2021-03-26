@@ -61,23 +61,11 @@
 					<input class="chkBox" type="checkbox" unchecked id="HRannChkBox">
 				</p>
 				<p>
-					<a href="" class="tooltip" target="_blank"
-						tipTxt="Useful for bulk processing: aggregates all gene outputs into a single file for each output type, containing all gene outputs of that given file type; oligos are sorted by purpose and orientation before gene.">
-						Consolidate files by type:</a>
-					<input class="chkBox" type="checkbox" unchecked id="bulkFileChkBox">
-					&nbsp <a href="" class="tooltip" target="_blank"
-						tipTxt="If not *None*, adds this prefix to all file, oligo, DNA fragment, and GenBank names.">
-						Project prefix:</a> <input class="txtInput" type="text" id="prefix" value="*None*" style="width:50px">
-					&nbsp <a href="" class="tooltip" target="_blank"
-						tipTxt="If prefix is not *None* and a number is given here, numbers each gene processed consecutively starting at the given value; adds number to prefix on all file, oligo, DNA fragment, and GenBank names.">
-						Start numbering on:</a> <input class="txtInput" type="number" id="prefixNum" value="">
-				</p>
-				<p>
 					Targeting system: &nbsp<select id="plasmidType" onchange="changeUTRTarget()">
-						<option value="pSN054" selected="selected">pSN054 (3' payload)</option>
-						<option value="pSN054_V5" selected="selected">pSN054_V5 (3' payload)</option>
-						<option value="pSN150">pSN150 (5' payload)</option>
-						<option value="pSN150-KO">pSN150 (KO construct)</option>
+						<option value="pSN054_V5" selected="selected">pSN054_V5 (3' knockdown)</option>
+						<option value="pSN054" selected="selected">pSN054 (3' knockdown)</option>
+						<option value="pSN150">pSN150 (5' knockdown)</option>
+						<option value="pSN150-KO">pSN150 (knockout)</option>
 						<!-- <option value="pSN150-Ter">pSN150 with Nhe1-free T7 terminator (5' payload)</option> -->
 						<!-- <option value="pSN150-KO-Ter">pSN150 with Nhe1-free T7 terminator (KO construct)</option> -->
 					</select>
@@ -120,6 +108,19 @@
 							respectively), if
 							you do not want GeneTargeter to choose them automatically for you.
 						</p><br>
+
+						<p class="head">Bulk processing options:</p><p>
+							<a href="" class="tooltip" target="_blank"
+								tipTxt="Useful for bulk processing: aggregates all gene outputs into a single file for each output type, containing all gene outputs of that given file type; oligos are sorted by purpose and orientation before gene.">
+								Consolidate files by type:</a>
+							<input class="chkBox" type="checkbox" unchecked id="bulkFileChkBox">
+							&nbsp <a href="" class="tooltip" target="_blank"
+								tipTxt="If not *None*, adds this prefix to all file, oligo, DNA fragment, and GenBank names.">
+								Project prefix:</a> <input class="txtInput" type="text" id="prefix" value="*None*" style="width:50px">
+							&nbsp <a href="" class="tooltip" target="_blank"
+								tipTxt="If prefix is not *None* and a number is given here, numbers each gene processed consecutively starting at the given value; adds number to prefix on all file, oligo, DNA fragment, and GenBank names.">
+								Start numbering on:</a> <input class="txtInput" type="number" id="prefixNum" value="">
+						</p>
 
 						<p>
 							Treat genes as coding/noncoding: &nbsp<select id="setCoding">
