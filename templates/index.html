@@ -82,6 +82,7 @@
 						<!-- <option value="pSN150-KO-Ter">pSN150 with Nhe1-free T7 terminator (KO construct)</option> -->
 					</select>
 				</p>
+				<p><div id="selectedPlasmidFile"></div></p>
 				<p>
 					<label class="btn" id="optionsBtn" onclick="toggleOptions()">Show more options</label>
 				</p>
@@ -155,8 +156,8 @@
 								&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="RHRMin" value="400"> bp <br>
 								&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="RHRPref" value="500"> bp <br>
 								&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="RHRMax" value="750"> bp <br>
-								<p id="maxDistRHRTxt">
-									Maximum distance from gene:
+								<p>
+									<span id="maxDistRHRTxt">Maximum distance from gene: </span>
 									<input class="txtInput" type="number" id="maxDistRHR" value="500">
 									bp
 								</p>
@@ -180,8 +181,8 @@
 								&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="LHRMin" value="400"> bp <br>
 								&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="LHRPref" value="500"> bp <br>
 								&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="LHRMax" value="750"> bp <br>
-								<p id="maxDistLHRTxt">
-									Maximum distance from gRNA:
+								<p>
+									<span id="maxDistLHRTxt">Maximum distance from gRNA: </span>
 									<input class="txtInput" type="number" id="maxDistLHR" value="500"> bp
 								</p>
 								<p>
