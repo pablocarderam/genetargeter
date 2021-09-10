@@ -528,23 +528,28 @@ function runGeneServerFiles() {
         var basePlasmidName;
 
         if (plasmidType === "custom") {
-            var basePlasmidFile = document.getElementById("plasmidFileForm").files[0];
-            var fR2 = new FileReader();
-            fR2.fileName = document.getElementById('selectedPlasmidFile').children[0].children[0].value;
-            fR2.readAsText(basePlasmidFile, "UTF-8");
-            fR2.onload = function (evt2) {
-                basePlasmid = evt2.target.result
-                basePlasmidName = evt2.target.fileName
+            if (x.files.length == 1) {
+                var basePlasmidFile = document.getElementById("plasmidFileForm").files[0];
+                var fR2 = new FileReader();
+                fR2.fileName = document.getElementById('selectedPlasmidFile').children[0].children[0].value;
+                fR2.readAsText(basePlasmidFile, "UTF-8");
+                fR2.onload = function (evt2) {
+                    basePlasmid = evt2.target.result
+                    basePlasmidName = evt2.target.fileName
 
-                msg = createFileMsg([fileCounter, geneServerFiles[fileCounter], fileName,
-                  HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
-                  endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
-                  optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
-                  offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType,
-                  haTag, setCoding, bulkFile, prefix, prefixNum,
-                  basePlasmid, basePlasmidName, locationType]);
-                sendMessageToServer('Sending requests...', "misc");
-                sendMessageToServer(msg,'sendGeneFile');
+                    msg = createFileMsg([fileCounter, geneServerFiles[fileCounter], fileName,
+                      HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
+                      endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
+                      optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
+                      offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType,
+                      haTag, setCoding, bulkFile, prefix, prefixNum,
+                      basePlasmid, basePlasmidName, locationType]);
+                    sendMessageToServer('Sending requests...', "misc");
+                    sendMessageToServer(msg,'sendGeneFile');
+                }
+            }
+            else {
+                window.alert("Upload a single GenBank (.gb) file as the custom base plasmid.");
             }
 
             fR2.onerror = function (evt) {

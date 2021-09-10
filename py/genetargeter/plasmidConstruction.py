@@ -130,45 +130,50 @@ def insertTargetingElementsCustom(plasmid, geneName, gRNA, LHR, recodedRegion, R
     gRNAcomp = False;
     RRcomp = False;
 
-    if plas.findAnnsLabel("LHR")[0].comp:
-        LHR = revComp(LHR)
-        LHRcomp = True;
-    if plas.findAnnsLabel("RHR")[0].comp:
-        RHR = revComp(RHR)
-        RHRcomp = True;
-    if plas.findAnnsLabel("sgRNA Sequence")[0].comp:
-        gRNA = revComp(gRNA)
-        gRNAcomp = True;
+    if len(plas.findAnnsLabel("LHR")) > 0:
+        if plas.findAnnsLabel("LHR")[0].comp:
+            LHR = revComp(LHR)
+            LHRcomp = True;
 
-    inLHR = plas.findAnnsLabel("LHR")[0].index[0]; # index of LHR start site
-    plas.removeSeq([inLHR, plas.findAnnsLabel("LHR")[0].index[1]]); # removes sequence that LHR will replace
-    plas.insertSeq(LHR, inLHR); # inserts LHR sequence
+        inLHR = plas.findAnnsLabel("LHR")[0].index[0]; # index of LHR start site
+        plas.removeSeq([inLHR, plas.findAnnsLabel("LHR")[0].index[1]]); # removes sequence that LHR will replace
+        plas.insertSeq(LHR, inLHR); # inserts LHR sequence
 
-    if LHRcomp:
-        LHR = revComp(LHR)
+        if LHRcomp:
+            LHR = revComp(LHR)
 
-    annLHR = GenBankAnn(geneName+" LHR", "misc_feature", LHR, LHRcomp, [inLHR,inLHR+len(LHR)], annColors['LHRColor']); # annotation object
-    plas.features.append(annLHR); # adds annotation
+        annLHR = GenBankAnn(geneName+" LHR", "misc_feature", LHR, LHRcomp, [inLHR,inLHR+len(LHR)], annColors['LHRColor']); # annotation object
+        plas.features.append(annLHR); # adds annotation
 
-    inRHR = plas.findAnnsLabel("RHR")[0].index[0]; # index of LHR start site
-    plas.removeSeq([inRHR, plas.findAnnsLabel("RHR")[0].index[1]]); # removes sequence that RHR will replace
-    plas.insertSeq(RHR, inRHR); # inserts LHR sequence
+    if len(plas.findAnnsLabel("RHR")) > 0:
+        if plas.findAnnsLabel("RHR")[0].comp:
+            RHR = revComp(RHR)
+            RHRcomp = True;
 
-    if RHRcomp:
-        RHR = revComp(RHR)
+        inRHR = plas.findAnnsLabel("RHR")[0].index[0]; # index of LHR start site
+        plas.removeSeq([inRHR, plas.findAnnsLabel("RHR")[0].index[1]]); # removes sequence that RHR will replace
+        plas.insertSeq(RHR, inRHR); # inserts LHR sequence
 
-    annRHR = GenBankAnn(geneName+" RHR", "misc_feature", RHR, RHRcomp, [inRHR,inRHR+len(RHR)], annColors['RHRColor']); # annotation object
-    plas.features.append(annRHR); # adds annotation
+        if RHRcomp:
+            RHR = revComp(RHR)
 
-    ingRNA = plas.findAnnsLabel("sgRNA Sequence")[0].index[0]; # index of LHR start site
-    plas.removeSeq([ingRNA, plas.findAnnsLabel("sgRNA Sequence")[0].index[1]]); # removes sequence that RHR will replace
-    plas.insertSeq(gRNA, ingRNA); # inserts LHR sequence
+        annRHR = GenBankAnn(geneName+" RHR", "misc_feature", RHR, RHRcomp, [inRHR,inRHR+len(RHR)], annColors['RHRColor']); # annotation object
+        plas.features.append(annRHR); # adds annotation
 
-    if gRNAcomp:
-        gRNA = revComp(gRNA)
+    if len(plas.findAnnsLabel("sgRNA Sequence")) > 0:
+        if plas.findAnnsLabel("sgRNA Sequence")[0].comp:
+            gRNA = revComp(gRNA)
+            gRNAcomp = True;
 
-    annGRNA = GenBankAnn(geneName+" gRNA", "misc_feature", gRNA, gRNAcomp, [ingRNA,ingRNA+len(gRNA)], annColors['gRNAColor']); # annotation object. Note that gRNA starts after "gg" added for T7 polymerase
-    plas.features.append(annGRNA); # adds annotation
+        ingRNA = plas.findAnnsLabel("sgRNA Sequence")[0].index[0]; # index of LHR start site
+        plas.removeSeq([ingRNA, plas.findAnnsLabel("sgRNA Sequence")[0].index[1]]); # removes sequence that RHR will replace
+        plas.insertSeq(gRNA, ingRNA); # inserts LHR sequence
+
+        if gRNAcomp:
+            gRNA = revComp(gRNA)
+
+        annGRNA = GenBankAnn(geneName+" gRNA", "misc_feature", gRNA, gRNAcomp, [ingRNA,ingRNA+len(gRNA)], annColors['gRNAColor']); # annotation object. Note that gRNA starts after "gg" added for T7 polymerase
+        plas.features.append(annGRNA); # adds annotation
 
     if len(plas.findAnnsLabel("Recoded Region")) > 0:
         if plas.findAnnsLabel("Recoded Region")[0].comp:

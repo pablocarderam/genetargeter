@@ -69,6 +69,8 @@ def preprocessPlasmidInputFile(plasmidFileStr, useFileStrs=False):
     else: # If we're using files,
         plasmidGB.load(plasmidFileStr, loadFromFile=True); # load gene file
 
+    plasmidGB.setAllColors(annColors['otherAnnColor']); # set all annotation colors to grey
+
     return plasmidGB;
 
 '''

@@ -98,7 +98,10 @@ def gene_message(message):
         prefix += '_';
 
     geneGBs = preprocessInputFile(geneName, geneFileStr, useFileStrs=True, doingAltSplices=True); # obtain gb file(s) to be processed
-    basePlasmidGB = preprocessPlasmidInputFile(basePlasmid, useFileStrs=True);
+    if plasmidType == 'custom':
+        basePlasmidGB = preprocessPlasmidInputFile(basePlasmid, useFileStrs=True);
+    else:
+        basePlasmidGB = None;
     outMsg = queryNumber; # will store output message
     outMsgHA = "HA_Tag_Design-" + str(queryNumber); # will store output message for HA tag design, if any
     for gbName in geneGBs: # for every gb
