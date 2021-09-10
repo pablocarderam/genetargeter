@@ -10,7 +10,9 @@
 # ALL PARAMETERS THAT ARE NON-NUMERIC AND NON BOOLEAN SHOULD BE IN QUOTES
 
 ### Plasmid vector content ###
-plasmidType           : 'pSN054_V5'     # Vector backbone to be used ('pSN054_V5', 'pSN054', 'pSN150', 'pSN150-KO' for 3', 5', and for gene knock-outs, respectively; also 'pSN150-Ter', 'pSN150-KO-Ter' with modified T7 terminator with no Nhe1 sequence) QUOTES ("" or '') NEEDED
+plasmidType           : 'pSN054_V5'     # Vector backbone to be used (either 'custom', or 'pSN054_V5', 'pSN054', 'pSN150', 'pSN150-KO' for 3', 5', and for gene knock-outs, respectively; also 'pSN150-Ter', 'pSN150-KO-Ter' with modified T7 terminator with no Nhe1 sequence) QUOTES ("" or '') NEEDED
+basePlasmid           : None            # File path to custom base plasmid, if using 'custom' in plasmidType
+locationType          : '5prime'        # Either '5prime', '3prime', or 'center', if using 'custom' in plasmidType
 haTag                 : 'Auto'          # Adds HA protein tag to 5' end if using pSN150; if 'Auto', adds only if gene has no reported signal peptide ('Auto'/True/False, QUOTES ("" or '') NEEDED FOR AUTO)
 
 ### Plasmid assembly ###

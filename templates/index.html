@@ -58,15 +58,26 @@
 				<br>
 			<div class="small" id="controls">
 				<p>
-					Use user-annotated homology regions and/or guide RNAs (if any):
-					<input class="chkBox" type="checkbox" unchecked id="HRannChkBox">
+					Target location within gene: &nbsp<select id="locationType" onchange="changeUTRTarget()">
+						<option value="5prime" selected="selected">5' extreme</option>
+						<option value="3prime">3' extreme</option>
+						<option value="center">Center (no recoded region)</option>
+					</select>
 				</p>
+
 				<p>
-					Targeting system: &nbsp<select id="plasmidType" onchange="changeUTRTarget()">
+					<label class="btn" ><input type="file" id="plasmidFileForm" accept=".gb" multiple size="50" onchange="uploadPlasmidFile()">
+						<span> <a href="https://benchling.com" class="tooltip" target="_blank"
+							tipTxt='Custom plasmids must contain annotations labeled "LHR", "RHR", "sgRNA
+							Sequence", and "sgRNA Cassette" (used to define a synthesis fragment).
+							An optional "Recoded Region" annotation can be included as well. These
+							regions will be replaced with the sequences specific to the target gene.'>Upload a custom base plasmid .gb file</a></span></label>
+					or choose a pre-loaded targeting system: &nbsp<select id="plasmidType" onchange="changeUTRTarget()">
 						<option value="pSN054_V5" selected="selected">pSN054_V5 (3' knockdown)</option>
-						<option value="pSN054" selected="selected">pSN054 (3' knockdown)</option>
+						<option value="pSN054">pSN054 (3' knockdown)</option>
 						<option value="pSN150">pSN150 (5' knockdown)</option>
 						<option value="pSN150-KO">pSN150 (knockout)</option>
+						<option value="custom">Custom plasmid</option>
 						<!-- <option value="pSN150-Ter">pSN150 with Nhe1-free T7 terminator (5' payload)</option> -->
 						<!-- <option value="pSN150-KO-Ter">pSN150 with Nhe1-free T7 terminator (KO construct)</option> -->
 					</select>
@@ -109,6 +120,12 @@
 							respectively), if
 							you do not want GeneTargeter to choose them automatically for you.
 						</p><br>
+
+						<p>
+							<p class="head">Manual HR/sgRNAs</p>
+							Use user-annotated homology regions and/or guide RNAs (if any):
+							<input class="chkBox" type="checkbox" unchecked id="HRannChkBox">
+						</p>
 
 						<p class="head">Bulk processing options:</p><p>
 							<a href="" class="tooltip" target="_blank"
@@ -318,7 +335,7 @@
 				<label class="btn" onclick="geneIDSubmissionInterface()">
 					<span> Select genes </span></label>
 					or
-					<label class="btn" ><input type="file" id="geneFileForm" accept=".gb" multiple size="50" onchange="uploadFile()">
+					<label class="btn" ><input type="file" id="geneFileForm" accept=".gb" multiple size="50" onchange="uploadGeneFile()">
 					<span> Upload .gb files </span></label>
 			</p>
 

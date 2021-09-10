@@ -212,7 +212,51 @@ function toggleOptions() {
 }
 
 // Load file adapted from http://www.w3schools.com/jsref/prop_fileupload_files.asp
-function uploadFile(){
+function uploadPlasmidFile() {
+    var x = document.getElementById("plasmidFileForm");
+    var parent = document.getElementById("selectedPlasmidFile");
+    var txt = "";
+    fileCounter = 0;
+
+    if ('files' in x) {
+        if (x.files.length == 1) {
+            txt = "";
+            var file = x.files[0];
+            var p = document.createElement("span");
+            if (file.name.substr(file.name.length-3,file.name.length) === ".gb") {
+                if ('name' in file) {
+                    txt += "Base plasmid: " + file.name;
+                }
+                if ('size' in file) {
+                    txt += " | " + Math.round(file.size/100)/10 + " KB";
+                }
+            }
+            else if ('name' in file) {
+                txt += "File " + file.name + " not a GenBank format file (.gb)";
+            }
+            p.innerHTML = txt;
+            p.innerHTML += "<span></span> <br>";
+            parent.appendChild(p);
+            document.getElementById('plasmidType').value = "custom";
+        }
+        else {
+             window.alert("Upload a single GenBank (.gb) file as the custom base plasmid.");
+        }
+    }
+    else {
+        if (x.value === "") {
+            txt += "Select one or more files.";
+        } else {
+            txt += "Sorry, the files property is not supported by your browser.";
+        }
+        var p = document.createElement("p");
+        p.innerHTML = txt;
+        parent.appendChild(p);
+    }
+}
+
+// Load file adapted from http://www.w3schools.com/jsref/prop_fileupload_files.asp
+function uploadGeneFile(){
     var x = document.getElementById("geneFileForm");
     var parent = document.getElementById("selectedFiles");
     var txt = "";
@@ -371,16 +415,51 @@ function run() {
                         bulkFile = document.getElementById("bulkFileChkBox").checked;
                         var prefix = document.getElementById("prefix").value;
                         var prefixNum = document.getElementById("prefixNum").value;
+                        var locationType = document.getElementById("locationType").value;
+                        var basePlasmid;
+                        var basePlasmidName;
 
-                        msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
-                          HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
-                          endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
-                          optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
-                          offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault,
-                          plasmidType, haTag, setCoding, bulkFile, prefix, prefixNum]);
-                        sendMessageToServer('Sending requests...', "misc");
-                        sendMessageToServer(msg,'sendGeneFile');
-                        queryNumber += 1;
+                        if (plasmidType === "custom") {
+                            var basePlasmidFile = document.getElementById("plasmidFileForm").files[0];
+                            var fR2 = new FileReader();
+                            fR2.fileName = document.getElementById('selectedPlasmidFile').children[0].children[0].value;
+                            fR2.readAsText(basePlasmidFile, "UTF-8");
+                            fR2.onload = function (evt2) {
+                                basePlasmid = evt2.target.result
+                                basePlasmidName = evt2.target.fileName
+
+                                msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
+                                  HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
+                                  endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
+                                  optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
+                                  offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault,
+                                  plasmidType, haTag, setCoding, bulkFile, prefix, prefixNum,
+                                  basePlasmid, basePlasmidName, locationType]);
+                                sendMessageToServer('Sending requests...', "misc");
+                                sendMessageToServer(msg,'sendGeneFile');
+                                queryNumber += 1;
+                            }
+
+                            fR2.onerror = function (evt) {
+                                var errMsg = "Error reading file ";
+                                if ('name' in file) {
+                                    errMsg += file.name;
+                                }
+                                document.getElementById("outputLog").innerHTML = errMsg;
+                            }
+                        }
+                        else {
+                            msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
+                              HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
+                              endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
+                              optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
+                              offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault,
+                              plasmidType, haTag, setCoding, bulkFile, prefix, prefixNum,
+                              basePlasmid, basePlasmidName, locationType]);
+                            sendMessageToServer('Sending requests...', "misc");
+                            sendMessageToServer(msg,'sendGeneFile');
+                            queryNumber += 1;
+                        }
                     }
                     fR.onerror = function (evt) {
                         var errMsg = "Error reading file ";
@@ -444,15 +523,49 @@ function runGeneServerFiles() {
         bulkFile = document.getElementById("bulkFileChkBox").checked;
         var prefix = document.getElementById("prefix").value;
         var prefixNum = document.getElementById("prefixNum").value;
+        var locationType = document.getElementById("locationType").value;
+        var basePlasmid;
+        var basePlasmidName;
 
-        msg = createFileMsg([fileCounter, geneServerFiles[fileCounter], fileName,
-          HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
-          endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
-          optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
-          offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType,
-          haTag, setCoding, bulkFile, prefix, prefixNum]);
-        sendMessageToServer('Sending requests...', "misc");
-        sendMessageToServer(msg,'sendGeneFile');
+        if (plasmidType === "custom") {
+            var basePlasmidFile = document.getElementById("plasmidFileForm").files[0];
+            var fR2 = new FileReader();
+            fR2.fileName = document.getElementById('selectedPlasmidFile').children[0].children[0].value;
+            fR2.readAsText(basePlasmidFile, "UTF-8");
+            fR2.onload = function (evt2) {
+                basePlasmid = evt2.target.result
+                basePlasmidName = evt2.target.fileName
+
+                msg = createFileMsg([fileCounter, geneServerFiles[fileCounter], fileName,
+                  HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
+                  endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
+                  optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
+                  offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType,
+                  haTag, setCoding, bulkFile, prefix, prefixNum,
+                  basePlasmid, basePlasmidName, locationType]);
+                sendMessageToServer('Sending requests...', "misc");
+                sendMessageToServer(msg,'sendGeneFile');
+            }
+
+            fR2.onerror = function (evt) {
+                var errMsg = "Error reading file ";
+                if ('name' in file) {
+                    errMsg += file.name;
+                }
+                document.getElementById("outputLog").innerHTML = errMsg;
+            }
+        }
+        else {
+          msg = createFileMsg([fileCounter, geneServerFiles[fileCounter], fileName,
+            HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
+            endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
+            optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
+            offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType,
+            haTag, setCoding, bulkFile, prefix, prefixNum,
+            basePlasmid, basePlasmidName, locationType]);
+          sendMessageToServer('Sending requests...', "misc");
+          sendMessageToServer(msg,'sendGeneFile');
+        }
     }
 }
 
@@ -679,16 +792,26 @@ function changeEnzyme() {
 
 function changeUTRTarget() {
     if (document.getElementById('plasmidType').value === 'pSN054' || document.getElementById('plasmidType').value === 'pSN054_V5') {
-        document.getElementById('maxDistLHRTxt').value = document.getElementById('maxDistLHRTxt').value.replace('gRNA','gene');
-        document.getElementById('maxDistRHRTxt').value = document.getElementById('maxDistRHRTxt').value.replace('gene','gRNA');
-        document.getElementById('maxDistRHR').value = 500;
+        document.getElementById('locationType').value = '5prime';
+    }
+    else if (document.getElementById('plasmidType').value === 'pSN150') {
+        document.getElementById('locationType').value = '3prime';
+    }
+    else if (document.getElementById('plasmidType').value === 'pSN150-KO') {
+        document.getElementById('locationType').value = 'center';
+    }
+
+    if (document.getElementById('locationType').value === '5prime') {
+        document.getElementById('maxDistLHRTxt').textContent = document.getElementById('maxDistLHRTxt').textContent.replace('gRNA','gene');
+        document.getElementById('maxDistRHRTxt').textContent = document.getElementById('maxDistRHRTxt').textContent.replace('gene','gRNA');
+        // document.getElementById('maxDistRHR').value = 500;
     }
     else {
-      document.getElementById('maxDistRHRTxt').value = document.getElementById('maxDistRHRTxt').value.replace('gRNA','gene');
-      document.getElementById('maxDistLHRTxt').value = document.getElementById('maxDistLHRTxt').value.replace('gene','gRNA');
-      if (document.getElementById('plasmidType').value === 'pSN150-KO') {
-          document.getElementById('maxDistRHR').value = 5000;
-      }
+      document.getElementById('maxDistRHRTxt').textContent = document.getElementById('maxDistRHRTxt').textContent.replace('gRNA','gene');
+      document.getElementById('maxDistLHRTxt').textContent = document.getElementById('maxDistLHRTxt').textContent.replace('gene','gRNA');
+      // if (document.getElementById('plasmidType').value === 'pSN150-KO') {
+      //     document.getElementById('maxDistRHR').value = 5000;
+      // }
     }
     changeOffScoringMethod();
     changeOnScoringMethod();

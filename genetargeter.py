@@ -25,6 +25,7 @@ import joblib as jl # for parallelizing genes
 from py.genetargeter.constants import *; # main python library in py folder
 from py.genetargeter.GeneTargeterMethods import *; # main python library in py folder
 from py.genetargeter.inputProcessing import *; # input handling
+from py.utils.GenBankToolbox import *; # Imports utils
 
 '''
 Gets parameters from file passed in function call
@@ -74,6 +75,9 @@ def runGene(geneName, geneFileStr, params, outputDir, geneNum=0):
 
     geneGBs = preprocessInputFile(geneName, geneFileStr, useFileStrs=True, doingAltSplices=True); # obtain gb file(s) to be processed
 
+    basePlasmidGB = GenBank()
+    basePlasmidGB.load(params_dict['basePlasmid'], loadFromFile=True); # load gene from file string
+
     for gbName in geneGBs: # for every gb
         sigPep = chkSignalPeptide5Prime(gbName,signalPDB); # signalP info
         params_dict['haTag'] = False; # don't use HA tags by default
@@ -83,7 +87,7 @@ def runGene(geneName, geneFileStr, params, outputDir, geneNum=0):
         if params_dict['filterCutSites'] == "Auto": # if filterCutSites is automatic
             params_dict['filterCutSites'] = cut_sites[params_dict['plasmidType']] # set to its plasmid
 
-        output = targetGene(gbName, geneGBs[gbName], codonOptimize=params_dict['codonOptimize'], useFileStrs=False, outputDir=outputDir, HRannotated=params_dict['HRannotated'],lengthLHR=params_dict['lengthLHR'], lengthRHR=params_dict['lengthRHR'], gibsonHomRange=params_dict['gibsonHomRange'], optimRangeLHR=params_dict['optimRangeLHR'], optimRangeRHR=params_dict['optimRangeRHR'], endSizeLHR=params_dict['endSizeLHR'], endSizeRHR=params_dict['endSizeRHR'], endTempLHR=params_dict['endTempLHR'], endTempRHR=params_dict['endTempRHR'], gibTemp=params_dict['gibTemp'], gibTDif=params_dict['gibTDif'], maxDistLHR=params_dict['maxDistLHR'], maxDistRHR=params_dict['maxDistRHR'], minGBlockSize=params_dict['minGBlockSize'], codonSampling=params_dict['codonSampling'], minGRNAGCContent=params_dict['minGRNAGCContent'], onTargetMethod=params_dict['onTargetMethod'], minOnTargetScore=params_dict['minOnTargetScore'], offTargetMethod=params_dict['offTargetMethod'], minOffTargetScore=params_dict['minOffTargetScore'], maxOffTargetHitScore=params_dict['maxOffTargetHitScore'], enzyme=params_dict['enzyme'], PAM=params_dict['PAM'], gBlockDefault=params_dict['gBlockDefault'], plasmidType=params_dict['plasmidType'], haTag=params_dict['haTag'], sigPep=sigPep, setCoding=params_dict['setCoding'], bulkFile=params_dict['bulkFile'], prefix=params_dict['prefix'], filterCutSites=params_dict['filterCutSites']); # call result
+        output = targetGene(gbName, geneGBs[gbName], codonOptimize=params_dict['codonOptimize'], useFileStrs=False, outputDir=outputDir, HRannotated=params_dict['HRannotated'],lengthLHR=params_dict['lengthLHR'], lengthRHR=params_dict['lengthRHR'], gibsonHomRange=params_dict['gibsonHomRange'], optimRangeLHR=params_dict['optimRangeLHR'], optimRangeRHR=params_dict['optimRangeRHR'], endSizeLHR=params_dict['endSizeLHR'], endSizeRHR=params_dict['endSizeRHR'], endTempLHR=params_dict['endTempLHR'], endTempRHR=params_dict['endTempRHR'], gibTemp=params_dict['gibTemp'], gibTDif=params_dict['gibTDif'], maxDistLHR=params_dict['maxDistLHR'], maxDistRHR=params_dict['maxDistRHR'], minGBlockSize=params_dict['minGBlockSize'], codonSampling=params_dict['codonSampling'], minGRNAGCContent=params_dict['minGRNAGCContent'], onTargetMethod=params_dict['onTargetMethod'], minOnTargetScore=params_dict['minOnTargetScore'], offTargetMethod=params_dict['offTargetMethod'], minOffTargetScore=params_dict['minOffTargetScore'], maxOffTargetHitScore=params_dict['maxOffTargetHitScore'], enzyme=params_dict['enzyme'], PAM=params_dict['PAM'], gBlockDefault=params_dict['gBlockDefault'], plasmidType=params_dict['plasmidType'], haTag=params_dict['haTag'], sigPep=sigPep, setCoding=params_dict['setCoding'], bulkFile=params_dict['bulkFile'], prefix=params_dict['prefix'], filterCutSites=params_dict['filterCutSites'], basePlasmid=basePlasmidGB, locationType=params_dict['locationType']); # call result
 
 
 def parallelRun(file,params,outputDir,geneNum):

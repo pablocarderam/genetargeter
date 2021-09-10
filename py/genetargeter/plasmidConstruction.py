@@ -118,6 +118,77 @@ def insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, R
 
 
 """
+Inserts targeting elements given as arguments into a custom plasmid.
+Elements given as arguments must be strings, not GenBankAnn objects.
+Returns new GenBank object with targeting elements.
+"""
+def insertTargetingElementsCustom(plasmid, geneName, gRNA, LHR, recodedRegion, RHR):
+    plas = copy.deepcopy(plasmid); # makes a copy of the plasmid object to modify without altering the original
+
+    LHRcomp = False;
+    RHRcomp = False;
+    gRNAcomp = False;
+    RRcomp = False;
+
+    if plas.findAnnsLabel("LHR")[0].comp:
+        LHR = revComp(LHR)
+        LHRcomp = True;
+    if plas.findAnnsLabel("RHR")[0].comp:
+        RHR = revComp(RHR)
+        RHRcomp = True;
+    if plas.findAnnsLabel("sgRNA Sequence")[0].comp:
+        gRNA = revComp(gRNA)
+        gRNAcomp = True;
+
+    inLHR = plas.findAnnsLabel("LHR")[0].index[0]; # index of LHR start site
+    plas.removeSeq([inLHR, plas.findAnnsLabel("LHR")[0].index[1]]); # removes sequence that LHR will replace
+    plas.insertSeq(LHR, inLHR); # inserts LHR sequence
+
+    if LHRcomp:
+        LHR = revComp(LHR)
+
+    annLHR = GenBankAnn(geneName+" LHR", "misc_feature", LHR, LHRcomp, [inLHR,inLHR+len(LHR)], annColors['LHRColor']); # annotation object
+    plas.features.append(annLHR); # adds annotation
+
+    inRHR = plas.findAnnsLabel("RHR")[0].index[0]; # index of LHR start site
+    plas.removeSeq([inRHR, plas.findAnnsLabel("RHR")[0].index[1]]); # removes sequence that RHR will replace
+    plas.insertSeq(RHR, inRHR); # inserts LHR sequence
+
+    if RHRcomp:
+        RHR = revComp(RHR)
+
+    annRHR = GenBankAnn(geneName+" RHR", "misc_feature", RHR, RHRcomp, [inRHR,inRHR+len(RHR)], annColors['RHRColor']); # annotation object
+    plas.features.append(annRHR); # adds annotation
+
+    ingRNA = plas.findAnnsLabel("sgRNA Sequence")[0].index[0]; # index of LHR start site
+    plas.removeSeq([ingRNA, plas.findAnnsLabel("sgRNA Sequence")[0].index[1]]); # removes sequence that RHR will replace
+    plas.insertSeq(gRNA, ingRNA); # inserts LHR sequence
+
+    if gRNAcomp:
+        gRNA = revComp(gRNA)
+
+    annGRNA = GenBankAnn(geneName+" gRNA", "misc_feature", gRNA, gRNAcomp, [ingRNA,ingRNA+len(gRNA)], annColors['gRNAColor']); # annotation object. Note that gRNA starts after "gg" added for T7 polymerase
+    plas.features.append(annGRNA); # adds annotation
+
+    if len(plas.findAnnsLabel("Recoded Region")) > 0:
+        if plas.findAnnsLabel("Recoded Region")[0].comp:
+            recodedRegion = revComp(recodedRegion)
+            RRcomp = True;
+
+        inRR = plas.findAnnsLabel("Recoded Region")[0].index[0]; # index of RR start site
+        plas.removeSeq([inRR, plas.findAnnsLabel("Recoded Region")[0].index[1]]); # removes sequence that RR will replace
+        plas.insertSeq(recodedRegion, inRR); # inserts RR sequence
+
+        if RRcomp:
+            recodedRegion = revComp(recodedRegion)
+
+        annRecoded = GenBankAnn(geneName+" Recoded Region", "misc_feature", recodedRegion, RRcomp, [inRR,inRR+len(recodedRegion)], annColors['recodedRegionColor']); # annotation object
+        plas.features.append(annRecoded); # adds annotation
+
+    return plas; # returns modified plasmid
+
+
+"""
 Inserts targeting elements given as arguments into plasmid at predetermined
 sites. Elements given as arguments must be strings, not GenBankAnn objects.
 The gRNA, LHR and RHR given must be in 5' to 3' sense and in the
@@ -133,6 +204,8 @@ def insertTargetingElements(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, pl
         out = insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag); # use other method
     elif plasmidType == 'pSN150-KO': # if using pSN150-KO,
         out = insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag, KO=True); # use other method
+    elif plasmidType == 'custom':
+        out = insertTargetingElementsCustom(plasmid, geneName, gRNA, LHR, recodedRegion, RHR); # use other method
 
     return out;
 

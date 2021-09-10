@@ -24,7 +24,7 @@ from flask_socketio import SocketIO, emit, disconnect, join_room
 import traceback # error handling
 
 app = Flask(__name__)
-app.debug = True # change in dev/prod
+app.debug = False # change in dev/prod
 app.config['SECRET_KEY'] = 'secret!'
 socketio = SocketIO(app, cors_allowed_origins="*")
 
@@ -86,6 +86,9 @@ def gene_message(message):
     bulkFile = (msgList[32] == "true");
     prefix = msgList[33];
     prefixNum = msgList[34];
+    basePlasmid = msgList[35];
+    basePlasmidName = msgList[36];
+    locationType = msgList[37];
 
     if prefix == "*None*":
         prefix = "";
@@ -95,6 +98,7 @@ def gene_message(message):
         prefix += '_';
 
     geneGBs = preprocessInputFile(geneName, geneFileStr, useFileStrs=True, doingAltSplices=True); # obtain gb file(s) to be processed
+    basePlasmidGB = preprocessPlasmidInputFile(basePlasmid, useFileStrs=True);
     outMsg = queryNumber; # will store output message
     outMsgHA = "HA_Tag_Design-" + str(queryNumber); # will store output message for HA tag design, if any
     for gbName in geneGBs: # for every gb
@@ -104,7 +108,7 @@ def gene_message(message):
             haTag = True; # use HA tags
 
         try:
-            output = targetGene(gbName, geneGBs[gbName], codonOptimize=codonOptimize, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib, optimRangeLHR=optimLHR, optimRangeRHR=optimRHR, endSizeLHR=endsLHR, endSizeRHR=endsRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minFragSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, onTargetMethod=onTargetMethod, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, minOffTargetScore=minOffTargetScore, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme, PAM=PAM, gBlockDefault=gBlockDefault, plasmidType=plasmidType, haTag=haTag, sigPep=sigPep, setCoding=setCoding, bulkFile=bulkFile, prefix=prefix, filterCutSites=cut_sites[plasmidType]); # call result
+            output = targetGene(gbName, geneGBs[gbName], codonOptimize=codonOptimize, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib, optimRangeLHR=optimLHR, optimRangeRHR=optimRHR, endSizeLHR=endsLHR, endSizeRHR=endsRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minFragSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, onTargetMethod=onTargetMethod, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, minOffTargetScore=minOffTargetScore, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme, PAM=PAM, gBlockDefault=gBlockDefault, plasmidType=plasmidType, haTag=haTag, sigPep=sigPep, setCoding=setCoding, bulkFile=bulkFile, prefix=prefix, filterCutSites=cut_sites[plasmidType], basePlasmid=basePlasmidGB, basePlasmidName=basePlasmidName, locationType=locationType); # call result
 
             outMsg = outMsg + sep + output["geneName"] + sep + output["geneFileStr"] + sep + output["plasmidFileStr"] + sep + output["editedLocusFileStr"] + sep + output["oligoFileStr"] + sep + output["gBlockFileStr"] + sep + output["gRNATable"] + sep + output["logFileStr"];
             if haTag and plasmidType == "pSN150": # if using HA tags and pSN150,

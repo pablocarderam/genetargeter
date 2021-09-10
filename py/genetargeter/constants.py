@@ -34,7 +34,8 @@ cut_sites = {
     'pSN150-KO' : [cut_FseI,cut_AsiSI,cut_IPpoI,cut_AhdI,cut_AscI,cut_XmaI,cut_NheI],
     'pSN054_V5' : [cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI],
     'pSN150-Ter' : [cut_FseI,cut_AsiSI,cut_IPpoI,cut_AhdI,cut_XmaI,cut_NheI],
-    'pSN150-KO-Ter' : [cut_FseI,cut_AsiSI,cut_IPpoI,cut_AhdI,cut_AscI,cut_XmaI,cut_NheI]
+    'pSN150-KO-Ter' : [cut_FseI,cut_AsiSI,cut_IPpoI,cut_AhdI,cut_AscI,cut_XmaI,cut_NheI],
+    'custom' : []
     }
 
 # Other sequences
@@ -90,8 +91,11 @@ instructions_pSN150 = '\n*** Assembly instructions for pSN150-type constructs fo
 
 instructions_pSN150_KO = '\n*** Assembly instructions for pSN150-type constructs for knock-out: ***\n\n   1. Obtain primers in Oligo csv file and gene fragments in gBlock fasta file \n      from DNA synthesis\n   2. PCR the RHR and LHR fragments from genomic DNA using the corresponding\n      Gibson Assembly primers in Oligo csv file\n   3. Digest empty parent vector with restriction enzyme FseI\n   4. Gibson Assembly to insert LHR into digestion product\n   5. Digest resulting vector with restriction enzymes AhdI and AsiSI\n   6. Gibson Assembly to insert sgRNA cassette and RHR into digestion product; if design includes \n      recoded region, include in assembly as well\n   7. Check all steps by sequencing\n   8. Transfect into Cas9 or Cas12-containing cell lines!'
 
+instructions_custom = '\n*** Assembly instructions for custom base plasmid constructs: ***\n\n   1. Obtain primers in Oligo csv file and gene fragments in gBlock fasta file \n      from DNA synthesis\n   2. PCR the RHR and LHR fragments from genomic DNA using the corresponding\n      Gibson Assembly primers in Oligo csv file\n   3. Digest empty parent vector with restriction enzymes as needed for the custom plasmid\n   4. Gibson Assembly fragments as required for custom plasmid\n   5. Check all steps by sequencing\n   6. Transfect into Cas9 or Cas12-containing cell lines!'
+
 instructions = {
 'pSN054':instructions_pSN054,
 'pSN150':instructions_pSN150,
-'pSN150-KO':instructions_pSN150_KO
+'pSN150-KO':instructions_pSN150_KO,
+'custom': instructions_custom
 }

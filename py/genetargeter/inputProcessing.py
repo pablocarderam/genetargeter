@@ -59,6 +59,18 @@ def preprocessInputFile(geneName, geneFileStr, useFileStrs=False, doingAltSplice
 
     return gbDict;
 
+def preprocessPlasmidInputFile(plasmidFileStr, useFileStrs=False):
+    gbDict = {}; # will store GenBank objects to be returned
+
+    plasmidGB = GenBank(); # initializes variable to hold gene GenBank object
+    if useFileStrs: # if we are using file strings,
+        plasmidGB.load(plasmidFileStr, loadFromFile=False); # load gene from file string
+        path = ""; # sets an empty path, needed for save functions of class GenBank
+    else: # If we're using files,
+        plasmidGB.load(plasmidFileStr, loadFromFile=True); # load gene file
+
+    return plasmidGB;
+
 '''
 Check if gene's name is in list of predicted signal peptides. Queries DB
 downloaded from PlasmoDB with params:
