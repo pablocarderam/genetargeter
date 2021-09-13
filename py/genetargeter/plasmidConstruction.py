@@ -130,7 +130,10 @@ def insertTargetingElementsCustom(plasmid, geneName, gRNA, LHR, recodedRegion, R
     gRNAcomp = False;
     RRcomp = False;
 
-    if len(plas.findAnnsLabel("LHR")) > 0:
+    if len(LHR) == 0 and len(plas.findAnnsLabel("LHR")) > 0:
+        ann = plas.findAnnsLabel("LHR")[0];
+        plas.removeSeq([ann.index[0], ann.index[1]]);
+    elif len(plas.findAnnsLabel("LHR")) > 0:
         if plas.findAnnsLabel("LHR")[0].comp:
             LHR = revComp(LHR)
             LHRcomp = True;
@@ -145,7 +148,10 @@ def insertTargetingElementsCustom(plasmid, geneName, gRNA, LHR, recodedRegion, R
         annLHR = GenBankAnn(geneName+" LHR", "misc_feature", LHR, LHRcomp, [inLHR,inLHR+len(LHR)], annColors['LHRColor']); # annotation object
         plas.features.append(annLHR); # adds annotation
 
-    if len(plas.findAnnsLabel("RHR")) > 0:
+    if len(RHR) == 0 and len(plas.findAnnsLabel("RHR")) > 0:
+        ann = plas.findAnnsLabel("RHR")[0];
+        plas.removeSeq([ann.index[0], ann.index[1]]);
+    elif len(plas.findAnnsLabel("RHR")) > 0:
         if plas.findAnnsLabel("RHR")[0].comp:
             RHR = revComp(RHR)
             RHRcomp = True;
@@ -160,7 +166,10 @@ def insertTargetingElementsCustom(plasmid, geneName, gRNA, LHR, recodedRegion, R
         annRHR = GenBankAnn(geneName+" RHR", "misc_feature", RHR, RHRcomp, [inRHR,inRHR+len(RHR)], annColors['RHRColor']); # annotation object
         plas.features.append(annRHR); # adds annotation
 
-    if len(plas.findAnnsLabel("sgRNA Sequence")) > 0:
+    if len(gRNA) == 0 and len(plas.findAnnsLabel("sgRNA Sequence")) > 0:
+        ann = plas.findAnnsLabel("sgRNA Sequence")[0];
+        plas.removeSeq([ann.index[0], ann.index[1]]);
+    elif len(plas.findAnnsLabel("sgRNA Sequence")) > 0:
         if plas.findAnnsLabel("sgRNA Sequence")[0].comp:
             gRNA = revComp(gRNA)
             gRNAcomp = True;
@@ -175,7 +184,10 @@ def insertTargetingElementsCustom(plasmid, geneName, gRNA, LHR, recodedRegion, R
         annGRNA = GenBankAnn(geneName+" gRNA", "misc_feature", gRNA, gRNAcomp, [ingRNA,ingRNA+len(gRNA)], annColors['gRNAColor']); # annotation object. Note that gRNA starts after "gg" added for T7 polymerase
         plas.features.append(annGRNA); # adds annotation
 
-    if len(plas.findAnnsLabel("Recoded Region")) > 0:
+    if len(recodedRegion) == 0 and len(plas.findAnnsLabel("Recoded Region")) > 0:
+        ann = plas.findAnnsLabel("Recoded Region")[0];
+        plas.removeSeq([ann.index[0], ann.index[1]]);
+    elif len(plas.findAnnsLabel("Recoded Region")) > 0:
         if plas.findAnnsLabel("Recoded Region")[0].comp:
             recodedRegion = revComp(recodedRegion)
             RRcomp = True;

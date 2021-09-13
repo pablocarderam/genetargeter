@@ -236,6 +236,9 @@ function uploadPlasmidFile() {
             }
             p.innerHTML = txt;
             p.innerHTML += "<span></span> <br>";
+            while (parent.lastChild) {
+                parent.removeChild(parent.lastChild);
+            }
             parent.appendChild(p);
             document.getElementById('plasmidType').value = "custom";
         }
@@ -621,13 +624,16 @@ function downloadOutput() {
     var plasmid = document.getElementById('plasmidType').value;
     var fileExt = [".gb",".gb",".gb",".csv",".fasta",".csv",".txt"];
 
+    var zip = new JSZip();
+
     if (!bulkFile) {
         for (var j = 0; j < currentOutput.length; j++) {
             if (j%(fileTypes.length+1) > 0 && currentOutput[j].length > 1) {
                 var geneName = currentOutput[Math.floor(j/(fileTypes.length+1))*(fileTypes.length+1)] + nonCoding;
-                var file = currentOutput[j];
-                var data = 'data:text/plain;charset=utf-8,' + encodeURIComponent(file);
-                saveAs(data,fileTypes[j%(fileTypes.length+1)-1]+geneName+"_"+plasmid+"_"+enzyme+haTagged+fileExt[j%(fileTypes.length+1)-1]);
+                zip.folder(geneName).file(fileTypes[j%(fileTypes.length+1)-1]+geneName+"_"+plasmid+"_"+enzyme+haTagged+fileExt[j%(fileTypes.length+1)-1], currentOutput[j]);
+                if (j==currentOutput.length-1) {
+                    downloadNamedZip(zip,geneName);
+                }
             }
         }
     }
@@ -700,16 +706,23 @@ function downloadOutput() {
                 }
 
                 var prefix = document.getElementById("prefix").value;
-                var file = bulkFileArray[j];
-                var data = 'data:text/plain;charset=utf-8,' + encodeURIComponent(file);
-                saveAs(data,prefix+"_"+fileTypes[j]+plasmid+"_"+enzyme+haTagged+fileExt[j]);
+                zip.folder('GeneTargeter_bulk').file(prefix+"_"+fileTypes[j]+plasmid+"_"+enzyme+haTagged+fileExt[j], bulkFileArray[j]);
+                if (j==bulkFileArray.length-1) {
+                    downloadNamedZip(zip,'GeneTargeter_bulk');
+                }
             }
 
             bulkFileArray = ["","","","","","",""];
         }
     }
+
 }
 
+function downloadNamedZip(mainZip,fName) {
+    mainZip.generateAsync({type: 'blob'}).then(content => {
+        saveAs(content, fName+'_output.zip');
+    });
+}
 
 function createFileMsg(info) {
     var sep = ":::";
@@ -751,20 +764,6 @@ function decodeFileMsg(content) {
     return files;
 }
 
-
-function saveAs(uri, filename) {
-    var link = document.createElement('a');
-    if (typeof link.download === 'string') {
-        document.body.appendChild(link); // Firefox requires the link to be in the body
-        link.download = filename;
-        link.href = uri;
-        link.click();
-        document.body.removeChild(link); // remove the link when done
-    } else {
-        location.replace(uri);
-    }
-}
-
 function changeOffScoringMethod() {
     if (document.getElementById('gRNAOffTargetMethod').value === 'hsu') {
         document.getElementById('minOffTargetScore').value = 75;
@@ -802,10 +801,10 @@ function changeEnzyme() {
 
 function changeUTRTarget() {
     if (document.getElementById('plasmidType').value === 'pSN054' || document.getElementById('plasmidType').value === 'pSN054_V5') {
-        document.getElementById('locationType').value = '5prime';
+        document.getElementById('locationType').value = '3prime';
     }
     else if (document.getElementById('plasmidType').value === 'pSN150') {
-        document.getElementById('locationType').value = '3prime';
+        document.getElementById('locationType').value = '5prime';
     }
     else if (document.getElementById('plasmidType').value === 'pSN150-KO') {
         document.getElementById('locationType').value = 'center';
