@@ -85,7 +85,7 @@ def gene_message(message):
     setCoding = msgList[31];
     bulkFile = (msgList[32] == "true");
     prefix = msgList[33];
-    prefixNum = int(msgList[34]);
+    prefixNum = int(msgList[34]) if len(msgList[34]) > 0 else '';
     basePlasmid = msgList[35];
     basePlasmidName = msgList[36];
     locationType = msgList[37];
