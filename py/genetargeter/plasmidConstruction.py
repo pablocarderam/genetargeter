@@ -29,25 +29,25 @@ def insertTargetingElementsPSN054(plasmid, geneName, gRNA, LHR, recodedRegion, R
     startLHR = findFirst(plas.origin, cut_FseI) + len(cut_FseI); # index of LHR start site (at end of FseI cut sequence)
     endLHR = findFirst(plas.origin, cut_AsiSI); # index of LHR end site (at start of AsiSI cut sequence)
     plas.removeSeq([startLHR, endLHR]); # removes sequence that LHR will replace
-    plas.insertSeq(LHR, startLHR); # inserts LHR sequence
+    plas.insertSeq(LHR.upper(), startLHR); # inserts LHR sequence
     annLHR = GenBankAnn(geneName+" LHR", "misc_feature", LHR, False, [startLHR,startLHR+len(LHR)], annColors['LHRColor']); # annotation object
     plas.features.append(annLHR); # adds annotation
 
     if len(recodedRegion) > 0: # if there is a recoded region,
         inRecode = annLHR.index[1]; # index of recoded region start site (at end of LHR)
-        plas.insertSeq(recodedRegion, inRecode); # inserts recoded region sequence
+        plas.insertSeq(recodedRegion.upper(), inRecode); # inserts recoded region sequence
         annRecoded = GenBankAnn(geneName+" Recoded Region", "misc_feature", recodedRegion, False, [inRecode,inRecode+len(recodedRegion)], annColors['recodedRegionColor']); # annotation object
         plas.features.append(annRecoded); # adds annotation
 
     startGRNA = findFirst(plas.origin, cut_IPpoI); # index of gRNA start site (at start of I-PpoI cut sequence)
     endGRNA = startGRNA + len(cut_IPpoI); # index of gRNA end site (at end of I-PpoI cut sequence)
     plas.removeSeq([startGRNA, endGRNA]); # removes sequence that gRNA will replace
-    plas.insertSeq("gg" + gRNA, startGRNA); # inserts gRNA sequence with gg sequence used by T7 polymerase
+    plas.insertSeq("gg" + gRNA.upper(), startGRNA); # inserts gRNA sequence with gg sequence used by T7 polymerase
     annGRNA = GenBankAnn(geneName+" gRNA", "misc_feature", gRNA, False, [startGRNA+2,startGRNA+2+len(gRNA)], annColors['gRNAColor']); # annotation object. Note that gRNA starts after "gg" added for T7 polymerase
     plas.features.append(annGRNA); # adds annotation
 
     inRHR = findFirst(plas.origin, cut_ISceI); # index of RHR insertion site (at start of I-SceI cut sequence)
-    plas.insertSeq(RHR, inRHR); # inserts RHR sequence
+    plas.insertSeq(RHR.upper(), inRHR); # inserts RHR sequence
     annRHR = GenBankAnn(geneName+" RHR", "misc_feature", RHR, False, [inRHR,inRHR+len(RHR)], annColors['RHRColor']); # annotation object
     plas.features.append(annRHR); # adds annotation
 
@@ -77,7 +77,7 @@ def insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, R
     plas = copy.deepcopy(plasmid); # makes a copy of the plasmid object to modify without altering the original
 
     inLHR = findFirst(plas.origin, cut_FseI) + len(cut_FseI); # index of LHR start site (at end of FseI cut sequence)
-    plas.insertSeq(LHR + cut_FseI, inLHR); # inserts LHR sequence
+    plas.insertSeq(LHR.upper() + cut_FseI, inLHR); # inserts LHR sequence
     annLHR = GenBankAnn(geneName+" LHR", "misc_feature", LHR, False, [inLHR,inLHR+len(LHR)], annColors['LHRColor']); # annotation object
     plas.features.append(annLHR); # adds annotation
 
@@ -94,7 +94,7 @@ def insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, R
 
     if len(recodedRegion) > 0: # if there is a recoded region,
         inRecode = startRHR; # index of recoded region start site (middle of AhdI cut sequence)
-        plas.insertSeq(recodedRegion, inRecode); # inserts recoded region sequence
+        plas.insertSeq(recodedRegion.upper(), inRecode); # inserts recoded region sequence
         annRecoded = GenBankAnn(geneName+" Recoded Region", "misc_feature", recodedRegion, False, [inRecode,inRecode+len(recodedRegion)], annColors['recodedRegionColor']); # annotation object
         if haTag: # if recoded region contains HA tag,
             annHATag = GenBankAnn("HA tag (recoded)", "misc_feature", recodedRegion[0:len(ha_tag)], False, [inRecode,inRecode+len(ha_tag)], annColors['otherAnnColor']); # annotation object for HA tag
@@ -103,14 +103,14 @@ def insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, R
         plas.features.append(annRecoded); # adds annotation
         startRHR = inRecode + len(recodedRegion); # shift RHR start site downstream of recoded region
 
-    plas.insertSeq(RHR, startRHR); # inserts RHR sequence
+    plas.insertSeq(RHR.upper(), startRHR); # inserts RHR sequence
     annRHR = GenBankAnn(geneName+" RHR", "misc_feature", RHR, False, [startRHR,startRHR+len(RHR)], annColors['RHRColor']); # annotation object
     plas.features.append(annRHR); # adds annotation
 
     startGRNA = findFirst(plas.origin, cut_IPpoI); # index of gRNA start site (at start of I-PpoI cut sequence)
     endGRNA = startGRNA + len(cut_IPpoI); # index of gRNA end site (at end of I-PpoI cut sequence)
     plas.removeSeq([startGRNA, endGRNA]); # removes sequence that gRNA will replace
-    plas.insertSeq("gg" + gRNA, startGRNA); # inserts gRNA sequence with gg sequence used by T7 polymerase
+    plas.insertSeq("gg" + gRNA.upper(), startGRNA); # inserts gRNA sequence with gg sequence used by T7 polymerase
     annGRNA = GenBankAnn(geneName+" gRNA", "misc_feature", gRNA, False, [startGRNA+2,startGRNA+2+len(gRNA)], annColors['gRNAColor']); # annotation object. Note that gRNA starts after "gg" added for T7 polymerase
     plas.features.append(annGRNA); # adds annotation
 
@@ -140,7 +140,7 @@ def insertTargetingElementsCustom(plasmid, geneName, gRNA, LHR, recodedRegion, R
 
         inLHR = plas.findAnnsLabel("LHR")[0].index[0]; # index of LHR start site
         plas.removeSeq([inLHR, plas.findAnnsLabel("LHR")[0].index[1]]); # removes sequence that LHR will replace
-        plas.insertSeq(LHR, inLHR); # inserts LHR sequence
+        plas.insertSeq(LHR.upper(), inLHR); # inserts LHR sequence
 
         if LHRcomp:
             LHR = revComp(LHR)
@@ -158,7 +158,7 @@ def insertTargetingElementsCustom(plasmid, geneName, gRNA, LHR, recodedRegion, R
 
         inRHR = plas.findAnnsLabel("RHR")[0].index[0]; # index of LHR start site
         plas.removeSeq([inRHR, plas.findAnnsLabel("RHR")[0].index[1]]); # removes sequence that RHR will replace
-        plas.insertSeq(RHR, inRHR); # inserts LHR sequence
+        plas.insertSeq(RHR.upper(), inRHR); # inserts LHR sequence
 
         if RHRcomp:
             RHR = revComp(RHR)
@@ -176,7 +176,7 @@ def insertTargetingElementsCustom(plasmid, geneName, gRNA, LHR, recodedRegion, R
 
         ingRNA = plas.findAnnsLabel("sgRNA Sequence")[0].index[0]; # index of LHR start site
         plas.removeSeq([ingRNA, plas.findAnnsLabel("sgRNA Sequence")[0].index[1]]); # removes sequence that RHR will replace
-        plas.insertSeq(gRNA, ingRNA); # inserts LHR sequence
+        plas.insertSeq(gRNA.upper(), ingRNA); # inserts LHR sequence
 
         if gRNAcomp:
             gRNA = revComp(gRNA)
@@ -194,7 +194,7 @@ def insertTargetingElementsCustom(plasmid, geneName, gRNA, LHR, recodedRegion, R
 
         inRR = plas.findAnnsLabel("Recoded Region")[0].index[0]; # index of RR start site
         plas.removeSeq([inRR, plas.findAnnsLabel("Recoded Region")[0].index[1]]); # removes sequence that RR will replace
-        plas.insertSeq(recodedRegion, inRR); # inserts RR sequence
+        plas.insertSeq(recodedRegion.upper(), inRR); # inserts RR sequence
 
         if RRcomp:
             recodedRegion = revComp(recodedRegion)

@@ -44,8 +44,8 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
     genes = geneGB.findAnnsType("gene") # list of all genes
     otherGenes = [] # will list all other genes, used to verify HR doesn't start inside any genes (truncating them)
 
-    for g in otherGenes:
-        if not gene.label in g.label: # if this gene not found in list
+    for g in genes:
+        if not ( gene.label in g.label or g.label in gene.label ): # if this gene not found in list
             otherGenes.append(g) # add
 
 
