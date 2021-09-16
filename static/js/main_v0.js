@@ -818,18 +818,18 @@ function changeUTRTarget() {
     if (document.getElementById('locationType').value === '5prime') {
         document.getElementById('maxDistLHRTxt').textContent = document.getElementById('maxDistLHRTxt').textContent.replace('gRNA','gene');
         document.getElementById('maxDistRHRTxt').textContent = document.getElementById('maxDistRHRTxt').textContent.replace('gene','gRNA');
-        document.getElementById('maxDistLHR').value = 700;
-        document.getElementById('maxDistRHR').value = 125;
+        document.getElementById('maxDistLHR').value = 0;
+        document.getElementById('maxDistRHR').value = 700;
     }
     else {
       document.getElementById('maxDistRHRTxt').textContent = document.getElementById('maxDistRHRTxt').textContent.replace('gRNA','gene');
       document.getElementById('maxDistLHRTxt').textContent = document.getElementById('maxDistLHRTxt').textContent.replace('gene','gRNA');
-      document.getElementById('maxDistLHR').value = 125;
-      document.getElementById('maxDistRHR').value = 700;
-      if (document.getElementById('plasmidType').value === 'pSN150-KO') {
-          document.getElementById('maxDistLHR').value = 5000;
-          document.getElementById('maxDistRHR').value = 5000;
-      }
+      document.getElementById('maxDistLHR').value = 700;
+      document.getElementById('maxDistRHR').value = 125;
+      // if (document.getElementById('plasmidType').value === 'pSN150-KO') {
+      //     document.getElementById('maxDistLHR').value = 5000;
+      //     document.getElementById('maxDistRHR').value = 5000;
+      // }
     }
     changeOffScoringMethod();
     changeOnScoringMethod();
