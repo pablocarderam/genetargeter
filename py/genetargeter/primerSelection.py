@@ -100,7 +100,7 @@ def createGibsonPrimers(plasmid, part, rangeHom=[30,40,50], minMeltTemp=68, maxT
 
         maxIndexes = [startPF, endPF]; # store start and end positions of best primer in search range
         while (meltingTemp(plasmid.origin[part.index[0]:endPF]) < minMeltTemp or not primFwdSeq[len(primFwdSeq)-1].upper().replace("G","C") == "C") and len(primFwdSeq) <= rangeHom[2]*2: # while still no suitable Tm found and still within length parameters,
-            startPF = startPF - 1; # shift primer start position upstream
+            # startPF = startPF - 1; # shift primer start position upstream
             endPF = endPF + 1; # shift primer start position upstream
             primFwdSeq = plasmid.origin[startPF:endPF]; # Fwd primer sequence
             if (meltingTemp(plasmid.origin[part.index[0]:endPF]) > meltingTemp(plasmid.origin[part.index[0]:maxIndexes[1]]) or not plasmid.origin[maxIndexes[1]-1].upper().replace("G","C") == "C") and primFwdSeq[len(primFwdSeq)-1].upper().replace("G","C") == "C" and len(primFwdSeq) <= rangeHom[2]*2: # if this primer has higher Tm than the max or the current max has no gc clamp, and this one does have a gc clamp, and within length constraints,
@@ -125,7 +125,7 @@ def createGibsonPrimers(plasmid, part, rangeHom=[30,40,50], minMeltTemp=68, maxT
         maxIndexes = [startPR, endPR]; # store start and end positions of best primer in search range
         while (meltingTemp(plasmid.origin[startPR:part.index[1]]) < minMeltTemp or meltingTemp(plasmid.origin[startPR:part.index[1]])-meltingTemp(plasmid.origin[startPR:part.index[1]]) > maxTempDif or not primRevSeq[len(primRevSeq)-1].upper().replace("G","C") == "C") and rangeHom[0]*2 <= len(primRevSeq) <= rangeHom[2]*2: # while still no suitable Tm found and still within length parameters,
             startPR = startPR - 1; # shift primer start position upstream
-            endPR = endPR + 1; # shift primer start position upstream
+            # endPR = endPR + 1; # shift primer start position upstream
             primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
             if meltingTemp(plasmid.origin[startPR:part.index[1]]) > meltingTemp(plasmid.origin[maxIndexes[0]:part.index[1]]) and primRevSeq[len(primRevSeq)-1].upper().replace("G","C") == "C" and rangeHom[0]*2 <= len(primRevSeq) <= rangeHom[2]*2: # if this primer has higher Tm than the max and has gc clamp and within max length,
                 maxIndexes = [startPR, endPR]; # store start and end positions of this primer

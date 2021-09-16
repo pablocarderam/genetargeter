@@ -174,7 +174,7 @@
 								&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="RHRMax" value="750"> bp <br>
 								<p>
 									<span id="maxDistRHRTxt">Maximum distance from gene: </span>
-									<input class="txtInput" type="number" id="maxDistRHR" value="500">
+									<input class="txtInput" type="number" id="maxDistRHR" value="125">
 									bp
 								</p>
 								<p>
@@ -199,7 +199,7 @@
 								&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="LHRMax" value="750"> bp <br>
 								<p>
 									<span id="maxDistLHRTxt">Maximum distance from gRNA: </span>
-									<input class="txtInput" type="number" id="maxDistLHR" value="500"> bp
+									<input class="txtInput" type="number" id="maxDistLHR" value="700"> bp
 								</p>
 								<p>
 									Search for best start/end point
@@ -217,12 +217,12 @@
 							</div>
 							<div class="column-right">
 								<p class="head">Gibson Assembly</p>
-								Homologous region size*:
+								Annealing region size:
 								&nbsp&nbsp Minimum: &nbsp&nbsp<input class="txtInput" type="number" id="gibMin" value="20"> bp <br>
 								&nbsp&nbsp Preferred: <input class="txtInput" type="number" id="gibPref" value="30"> bp <br>
-								&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="gibMax" value="40"> bp <br>
+								&nbsp&nbsp Maximum: &nbsp&nbsp<input class="txtInput" type="number" id="gibMax" value="50"> bp <br>
 								<br>
-								*Each primer is twice the homologous region size.
+								*Gibson homology region is taken as above preferred size.
 								<p>
 									Minimum primer melting temperature:
 									<input class="txtInput" type="number" id="gibTemp" value="50"> ºC
@@ -306,6 +306,11 @@
 								<p>
 									Minimum gBlock size:
 									<input class="txtInput" type="number" id="minFragSize" value="250">
+									bp
+								</p>
+								<p>
+									Maximum gBlock size:
+									<input class="txtInput" type="number" id="maxFragSize" value="1000">
 									bp
 								</p>
 								<p>

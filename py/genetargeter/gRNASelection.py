@@ -41,7 +41,8 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
         if g.label == gene.label and g.type == "gene": # if found,
             gene = g; # save it
 
-
+    # This line of code increases the search range if there are introns. We decided to roll this back for the time being.
+    # searchRange[0] = adjustExonicRange(geneGB, gene, target3Prime, searchRange) # expand search range in cases where there are lots of introns or something
     gRNAs = []; # list of GenBankAnn objects for gRNAs.
     backupGRNAs = []; # stores gRNAs that fail off-target score as possible backups
     gRNAExtreme = GenBankAnn(); # will store gRNA most upstream
@@ -377,3 +378,39 @@ def findGRNA(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISce
         gRNATableString = "gRNAs not evaluated if they are user-defined.\nIf you want to check their scores, run the gene in automatic mode!\n"; # add disclaimer
 
     return {"out":gRNAExtreme, "log":log, "gRNATable":gRNATableString}; # returns gRNA and log
+
+
+def adjustExonicRange(geneGB, gene, target3Prime, searchRange):
+    exons = []
+    for ann in geneGB.features: # loop through all annotations
+        if ann.type == "exon" and gene.index[0] <= ann.index[0] and ann.index[1] <= gene.index[1]: # if an exon inside of this gene,
+            exons.append(ann);
+
+    exons = sorted( exons, key=lambda exon: exon.index[target3Prime], reverse=target3Prime )
+        # sort exons by descending end for 3' editing, ascending start for 5'
+
+    rangeCounter = -searchRange[0] # how much synthesis left to cover
+    newRange = 0 # where we really are on gene
+    curExon = exons[0] # current exon
+    sectionStart = curExon.index[target3Prime]
+    while rangeCounter > 0 and len(exons) > 0:
+            # while still within synthesis cap and not done traversing gene
+        curExon = exons[0] # current exon
+        sectionStart = curExon.index[target3Prime]
+        for exon in exons:
+            if (1-target3Prime*2) * curExon.index[not target3Prime] > (1-target3Prime*2) * exon.index[target3Prime] and (1-target3Prime*2) * exon.index[not target3Prime] > (1-target3Prime*2) * curExon.index[not target3Prime]:
+                    # if current exon overlaps with other one (for 3'/5', respectively) and the start/end of the new exon is more upstream/downstream than the current one (for 3'/5', respectively)
+                curExon = exon
+
+        change = min( abs(sectionStart - curExon.index[not target3Prime]), rangeCounter ) # take as much as synthesis allows from this section of exons
+        rangeCounter -= change
+        newRange = change + abs(gene.index[target3Prime] - sectionStart)
+
+        newExons = []
+        for exon in exons:
+            if (1-target3Prime*2) * curExon.index[not target3Prime] < (1-target3Prime*2) * exon.index[target3Prime]:
+                newExons.append(exon)
+
+        exons = newExons
+
+    return -newRange

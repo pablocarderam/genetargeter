@@ -401,6 +401,7 @@ function run() {
                         var maxDistLHR = document.getElementById("maxDistLHR").value;
                         var maxDistRHR = document.getElementById("maxDistRHR").value;
                         var minFragSize = document.getElementById('minFragSize').value;
+                        var maxFragSize = document.getElementById('maxFragSize').value;
                         var optimOrg = document.getElementById('codonOptimizeOrg').value;
                         var codonSampling = document.getElementById('codonOptimStrat').value;
                         var minGCContent = document.getElementById('gRNAGCContent').value;
@@ -434,7 +435,7 @@ function run() {
 
                                     msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
                                       HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
-                                      endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
+                                      endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize, maxFragSize,
                                       optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
                                       offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault,
                                       plasmidType, haTag, setCoding, bulkFile, prefix, prefixNum,
@@ -459,7 +460,7 @@ function run() {
                         else {
                             msg = createFileMsg([queryNumber, evt.target.result, evt.target.fileName,
                               HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
-                              endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
+                              endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize, maxFragSize,
                               optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
                               offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault,
                               plasmidType, haTag, setCoding, bulkFile, prefix, prefixNum,
@@ -514,6 +515,7 @@ function runGeneServerFiles() {
         var maxDistLHR = document.getElementById("maxDistLHR").value;
         var maxDistRHR = document.getElementById("maxDistRHR").value;
         var minFragSize = document.getElementById('minFragSize').value;
+        var maxFragSize = document.getElementById('maxFragSize').value;
         var optimOrg = document.getElementById('codonOptimizeOrg').value;
         var codonSampling = document.getElementById('codonOptimStrat').value;
         var minGCContent = document.getElementById('gRNAGCContent').value;
@@ -547,7 +549,7 @@ function runGeneServerFiles() {
 
                     msg = createFileMsg([fileCounter, geneServerFiles[fileCounter], fileName,
                       HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
-                      endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
+                      endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize, maxFragSize,
                       optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
                       offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType,
                       haTag, setCoding, bulkFile, prefix, prefixNum,
@@ -571,7 +573,7 @@ function runGeneServerFiles() {
         else {
           msg = createFileMsg([fileCounter, geneServerFiles[fileCounter], fileName,
             HRann, lengthLHR, lengthRHR, lengthGib, optimLHR, optimRHR, endsLHR, endsRHR,
-            endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize,
+            endsTempLHR, endsTempRHR, gibTemp, gibTDif, maxDistLHR, maxDistRHR, minFragSize, maxFragSize,
             optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
             offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType,
             haTag, setCoding, bulkFile, prefix, prefixNum,
@@ -706,6 +708,9 @@ function downloadOutput() {
                 }
 
                 var prefix = document.getElementById("prefix").value;
+                if (prefix === '*None*') {
+                    prefix = '';
+                }
                 zip.folder('GeneTargeter_bulk').file(prefix+"_"+fileTypes[j]+plasmid+"_"+enzyme+haTagged+fileExt[j], bulkFileArray[j]);
                 if (j==bulkFileArray.length-1) {
                     downloadNamedZip(zip,'GeneTargeter_bulk');
@@ -813,14 +818,18 @@ function changeUTRTarget() {
     if (document.getElementById('locationType').value === '5prime') {
         document.getElementById('maxDistLHRTxt').textContent = document.getElementById('maxDistLHRTxt').textContent.replace('gRNA','gene');
         document.getElementById('maxDistRHRTxt').textContent = document.getElementById('maxDistRHRTxt').textContent.replace('gene','gRNA');
-        // document.getElementById('maxDistRHR').value = 500;
+        document.getElementById('maxDistLHR').value = 700;
+        document.getElementById('maxDistRHR').value = 125;
     }
     else {
       document.getElementById('maxDistRHRTxt').textContent = document.getElementById('maxDistRHRTxt').textContent.replace('gRNA','gene');
       document.getElementById('maxDistLHRTxt').textContent = document.getElementById('maxDistLHRTxt').textContent.replace('gene','gRNA');
-      // if (document.getElementById('plasmidType').value === 'pSN150-KO') {
-      //     document.getElementById('maxDistRHR').value = 5000;
-      // }
+      document.getElementById('maxDistLHR').value = 125;
+      document.getElementById('maxDistRHR').value = 700;
+      if (document.getElementById('plasmidType').value === 'pSN150-KO') {
+          document.getElementById('maxDistLHR').value = 5000;
+          document.getElementById('maxDistRHR').value = 5000;
+      }
     }
     changeOffScoringMethod();
     changeOnScoringMethod();

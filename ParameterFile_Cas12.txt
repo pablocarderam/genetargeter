@@ -11,8 +11,8 @@
 
 ### Plasmid vector content ###
 plasmidType           : 'pSN054_V5'     # Vector backbone to be used (either 'custom', or 'pSN054_V5', 'pSN054', 'pSN150', 'pSN150-KO' for 3', 5', and for gene knock-outs, respectively; also 'pSN150-Ter', 'pSN150-KO-Ter' with modified T7 terminator with no Nhe1 sequence) QUOTES ("" or '') NEEDED
-basePlasmid           : None            # File path to custom base plasmid, if using 'custom' in plasmidType
-locationType          : '5prime'        # Either '5prime', '3prime', or 'center', if using 'custom' in plasmidType
+basePlasmid           : None            # File path to custom base plasmid (inside quotes '') if using 'custom' in plasmidType, otherwise None
+locationType          : '3prime'        # Either '5prime', '3prime', or 'center', if using 'custom' in plasmidType
 haTag                 : 'Auto'          # Adds HA protein tag to 5' end if using pSN150; if 'Auto', adds only if gene has no reported signal peptide ('Auto'/True/False, QUOTES ("" or '') NEEDED FOR AUTO)
 
 ### Plasmid assembly ###
@@ -21,11 +21,12 @@ filterCutSites        : 'Auto'          # Checks designs for restriction enzyme 
                                         # 'pSN054' : FseI, AsiSI, IPpoI, ISceI, AflII, AhdI
                                         # 'pSN150' : FseI,AsiSI,IPpoI,ISceI,AflII,AhdI,BsiWI, NheI
                                         # 'pSN150-KO' : FseI, AsiSI, IPpoI, ISceI, AflII, AhdI, BsiWI, NheI
-gibsonHomRange        : [20,30,40]      # Length in bp of homology on each side used for Gibson assembly primer design [minimum, preferred, maximum]
+gibsonHomRange        : [20,30,60]      # Length in bp of homology on each side used for Gibson assembly primer design [minimum, preferred, maximum]
 gibTemp               : 50              # Minimum Gibson primer melting temperature in ºC
 gibTDif               : 5               # Maximum melting temperature difference between Gibson primers in ºC
 gBlockDefault         : True            # Defaults to always using gene fragment synthesis for recoded regions, if any (instead of Klenow oligos for smaller regions) (True, False)
 minGBlockSize         : 250             # Minimum gene fragment size in bp (extends fragment if under minimum size if gBlockDefault is True, otherwise uses Klenow oligos)
+maxGBlockSize         : 1000            # Maximum gene fragment size in bp
 codonOptimize         : 'T. gondii'     # Codon usage table used for recodonization when recoding gene fragment region, if any ('P. falciparum 3D7', 'P. vivax', 'T. gondii', 'E. coli K12', 'S. cerevisiae', 'H. sapiens', 'R. norvegicus', 'scramble') QUOTES ("" or '') NEEDED
 codonSampling         : False           # Codon optimization algorithm used to select codons when recodonizing recoded region, if any (True, False for Codon Sampling and CAI maximization, respectively) (http://omicsomics.blogspot.com/2009/04/is-codon-optimization-bunk.html)
 
@@ -39,8 +40,8 @@ endSizeLHR            : 40              # Length in bp of region at start and en
 endSizeRHR            : 40              # Length in bp of region at start and end of RHR to be taken into account when evaluating optimal starts and ends
 endTempLHR            : 55              # Minimum temperature in ºC that LHR start and end regions must have
 endTempRHR            : 55              # Minimum temperature in ºC that RHR start and end regions must have
-maxDistLHR            : 500             # Maximum distance in bp between LHR end and gRNA (if targeting 5') or gene start (if targeting 3' end)
-maxDistRHR            : 500             # Maximum distance in bp between gene end (if targeting 5') or gRNA (if targeting 3' end) and RHR start
+maxDistLHR            : 700             # Maximum distance in bp between LHR end and gRNA (if targeting 5') or gene start (if targeting 3' end)
+maxDistRHR            : 125             # Maximum distance in bp between gene end (if targeting 5') or gRNA (if targeting 3' end) and RHR start
 
 ### gRNA Selection ###
 enzyme                : 'Cas12'         # Enzyme type used in plasmid ('Cas9', 'Cas12') QUOTES ("" or '') NEEDED

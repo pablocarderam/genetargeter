@@ -69,26 +69,27 @@ def gene_message(message):
     maxDistLHR = int(msgList[15]);
     maxDistRHR = int(msgList[16]);
     minFragSize = int(msgList[17]);
-    codonOptimize = msgList[18];
-    codonSampling = (msgList[19] == "Codon Sampling");
-    minGRNAGCContent = float(msgList[20])/100.0;
-    onTargetMethod = msgList[21];
-    minOnTargetScore = float(msgList[22]);
-    offTargetMethod = msgList[23];
-    minOffTargetScore = float(msgList[24]);
-    maxOffTargetHitScore = float(msgList[25]);
-    enzyme = msgList[26];
-    PAM = msgList[27];
-    gBlockDefault = (msgList[28] == "true");
-    plasmidType = msgList[29];
-    haTagMsg = msgList[30];
-    setCoding = msgList[31];
-    bulkFile = (msgList[32] == "true");
-    prefix = msgList[33];
-    prefixNum = int(msgList[34]) if len(msgList[34]) > 0 else '';
-    basePlasmid = msgList[35];
-    basePlasmidName = msgList[36];
-    locationType = msgList[37];
+    maxFragSize = int(msgList[18]);
+    codonOptimize = msgList[19];
+    codonSampling = (msgList[20] == "Codon Sampling");
+    minGRNAGCContent = float(msgList[21])/100.0;
+    onTargetMethod = msgList[22];
+    minOnTargetScore = float(msgList[23]);
+    offTargetMethod = msgList[24];
+    minOffTargetScore = float(msgList[25]);
+    maxOffTargetHitScore = float(msgList[26]);
+    enzyme = msgList[27];
+    PAM = msgList[28];
+    gBlockDefault = (msgList[29] == "true");
+    plasmidType = msgList[30];
+    haTagMsg = msgList[31];
+    setCoding = msgList[32];
+    bulkFile = (msgList[33] == "true");
+    prefix = msgList[34];
+    prefixNum = int(msgList[35]) if len(msgList[35]) > 0 else '';
+    basePlasmid = msgList[36];
+    basePlasmidName = msgList[37];
+    locationType = msgList[38];
 
     if prefix == "*None*":
         prefix = "";
@@ -111,7 +112,7 @@ def gene_message(message):
             haTag = True; # use HA tags
 
         try:
-            output = targetGene(gbName, geneGBs[gbName], codonOptimize=codonOptimize, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib, optimRangeLHR=optimLHR, optimRangeRHR=optimRHR, endSizeLHR=endsLHR, endSizeRHR=endsRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minFragSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, onTargetMethod=onTargetMethod, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, minOffTargetScore=minOffTargetScore, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme, PAM=PAM, gBlockDefault=gBlockDefault, plasmidType=plasmidType, haTag=haTag, sigPep=sigPep, setCoding=setCoding, bulkFile=bulkFile, prefix=prefix, filterCutSites=cut_sites[plasmidType], basePlasmid=basePlasmidGB, basePlasmidName=basePlasmidName, locationType=locationType); # call result
+            output = targetGene(gbName, geneGBs[gbName], codonOptimize=codonOptimize, useFileStrs=True, HRannotated=HRann,lengthLHR=lengthLHR, lengthRHR=lengthRHR, gibsonHomRange=lengthGib, optimRangeLHR=optimLHR, optimRangeRHR=optimRHR, endSizeLHR=endsLHR, endSizeRHR=endsRHR, endTempLHR=endTempLHR, endTempRHR=endTempRHR, gibTemp=gibTemp, gibTDif=gibTDif, maxDistLHR=maxDistLHR, maxDistRHR=maxDistRHR, minGBlockSize=minFragSize, maxGBlockSize=maxFragSize, codonSampling=codonSampling, minGRNAGCContent=minGRNAGCContent, onTargetMethod=onTargetMethod, minOnTargetScore=minOnTargetScore, offTargetMethod=offTargetMethod, minOffTargetScore=minOffTargetScore, maxOffTargetHitScore=maxOffTargetHitScore, enzyme=enzyme, PAM=PAM, gBlockDefault=gBlockDefault, plasmidType=plasmidType, haTag=haTag, sigPep=sigPep, setCoding=setCoding, bulkFile=bulkFile, prefix=prefix, filterCutSites=cut_sites[plasmidType], basePlasmid=basePlasmidGB, basePlasmidName=basePlasmidName, locationType=locationType); # call result
 
             outMsg = outMsg + sep + output["geneName"] + sep + output["geneFileStr"] + sep + output["plasmidFileStr"] + sep + output["editedLocusFileStr"] + sep + output["oligoFileStr"] + sep + output["gBlockFileStr"] + sep + output["gRNATable"] + sep + output["logFileStr"];
             if haTag and plasmidType == "pSN150": # if using HA tags and pSN150,
