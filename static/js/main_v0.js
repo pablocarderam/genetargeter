@@ -240,6 +240,7 @@ function uploadPlasmidFile() {
                 parent.removeChild(parent.lastChild);
             }
             parent.appendChild(p);
+            p.innerHTML = p.innerHTML + 'Restriction sites to avoid in design: <br><textarea id="filterCutSitesTxt" rows="3" cols="30" wrap="soft"></textarea>'
             document.getElementById('plasmidType').value = "custom";
         }
         else {
@@ -425,6 +426,10 @@ function run() {
 
                         if (plasmidType === "custom") {
                             if (document.getElementById("plasmidFileForm").files.length == 1) {
+                                var filterCutSites = document.getElementById("filterCutSitesTxt").value;
+                                filterCutSites = filterCutSites.replaceAll("'","").replaceAll('"','').replaceAll(" ",",").replaceAll("\n",",").replaceAll(",,",",").replaceAll(",,",",").replaceAll(",,",",").split(",");
+                                filterCutSites = filterCutSites.toString();
+
                                 var basePlasmidFile = document.getElementById("plasmidFileForm").files[0];
                                 var fR2 = new FileReader();
                                 fR2.fileName = document.getElementById('selectedPlasmidFile').children[0].children[0].value;
@@ -439,7 +444,7 @@ function run() {
                                       optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
                                       offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault,
                                       plasmidType, haTag, setCoding, bulkFile, prefix, prefixNum,
-                                      basePlasmid, basePlasmidName, locationType]);
+                                      basePlasmid, basePlasmidName, locationType, filterCutSites]);
                                     sendMessageToServer('Sending requests...', "misc");
                                     sendMessageToServer(msg,'sendGeneFile');
                                     queryNumber += 1;
@@ -539,6 +544,10 @@ function runGeneServerFiles() {
 
         if (plasmidType === "custom") {
             if (document.getElementById("plasmidFileForm").files.length == 1) {
+                var filterCutSites = document.getElementById("filterCutSitesTxt").value;
+                filterCutSites = filterCutSites.replaceAll("'","").replaceAll('"','').replaceAll(" ",",").replaceAll("\n",",").replaceAll(",,",",").replaceAll(",,",",").replaceAll(",,",",").split(",");
+                filterCutSites = filterCutSites.toString();
+
                 var basePlasmidFile = document.getElementById("plasmidFileForm").files[0];
                 var fR2 = new FileReader();
                 fR2.fileName = document.getElementById('selectedPlasmidFile').children[0].children[0].value;
@@ -553,7 +562,7 @@ function runGeneServerFiles() {
                       optimOrg, codonSampling, minGCContent, onTargetMethod, onTargetScore, offTargetMethod,
                       offTargetScore, offTargetHitScore, enzyme, pam, gBlockDefault, plasmidType,
                       haTag, setCoding, bulkFile, prefix, prefixNum,
-                      basePlasmid, basePlasmidName, locationType]);
+                      basePlasmid, basePlasmidName, locationType, filterCutSites]);
                     sendMessageToServer('Sending requests...', "misc");
                     sendMessageToServer(msg,'sendGeneFile');
                 }
