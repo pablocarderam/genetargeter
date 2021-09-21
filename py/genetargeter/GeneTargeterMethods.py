@@ -364,8 +364,12 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
             gRNACassetteStart = findFirst(plasmidArmed.origin, cut_XmaI); # gBlock starts before XmaI cut
             gRNACassetteEnd = max(gRNACassetteStart + minGBlockSize,findFirst(plasmidArmed.origin, cut_AsiSI)+len(cut_AsiSI)+gibsonHomRange[1]); # gBlock ends after AsiSI
         elif plasmidType == "custom":
-            gRNACassetteStart = plasmidArmed.findAnnsLabel("sgRNA Cassette")[0].index[0]
-            gRNACassetteEnd = plasmidArmed.findAnnsLabel("sgRNA Cassette")[0].index[1]
+            if len(plasmidArmed.findAnnsLabel("sgRNA Cassette")) > 0:
+                gRNACassetteStart = plasmidArmed.findAnnsLabel("sgRNA Cassette")[0].index[0]
+                gRNACassetteEnd = plasmidArmed.findAnnsLabel("sgRNA Cassette")[0].index[1]
+            else:
+                gRNACassetteStart = gRNAOnPlasmid.index[0] - minGBlockSize / 2
+                gRNACassetteEnd = gRNAOnPlasmid.index[0] + minGBlockSize / 2
 
         gRNACassette = GenBankAnn("sgRNA cassette", "misc", plasmidArmed.origin[gRNACassetteStart:gRNACassetteEnd], False, [gRNACassetteStart,gRNACassetteEnd], annColors["otherAnnColor"]); # create cassette annotation
         gRNAGBlock = createGBlock(plasmidArmed,gRNACassette,0); # annotates gBlock on plasmid
