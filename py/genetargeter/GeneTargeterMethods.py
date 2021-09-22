@@ -156,12 +156,18 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
         maxDist1 = maxDistLHR if target3Prime else maxDistRHR
         maxDist1 = maxDist1 if locationType=="center" else min(maxDist1,maxGBlockSize)
         maxDist2 = maxDistRHR if target3Prime else maxDistLHR
+        targetRegion = geneGB.findAnnsLabel("Target Region");
+        if len(targetRegion) > 0:
+            targetRegion = targetRegion[0]
+            maxDist1 = targetRegion.index[0] - gene.index[1] if target3Prime else gene.index[0] - targetRegion.index[1]
+            maxDist2 = targetRegion.index[0] - gene.index[0] if target3Prime else gene.index[0] - targetRegion.index[0]
+
         if HRannotated: # if using manual annotations
             gRNA = findGRNA(geneGB, gene); # finds gRNA most upstream annotated manually.
             if len(gRNA["out"].label) == 0: # if no manual annotation found,
                 gRNA = chooseGRNA(geneGB, gene, searchRange=[-maxDist1,maxDist2], PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=minOffTargetScore, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, filterCutSites=filterCutSites); # chooses gRNA.
 
-        else: # if not,
+        elif not ( (plasmidType=="pSN150-KO" or (plasmidType=="custom" and locationType=="center")) and not len(gRNA['out'].label)>0 ): # if not,
             targetCenter = (plasmidType=="pSN150-KO" or (plasmidType=="custom" and locationType=="center")) # if knocking out, search for sgRNA in center of gene
             gRNA = chooseGRNA(geneGB, gene, searchRange=[-maxDist1,maxDist2], PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=minOffTargetScore, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, targetCenter=targetCenter, filterCutSites=filterCutSites); # chooses gRNA.
 

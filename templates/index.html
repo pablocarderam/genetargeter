@@ -117,7 +117,16 @@
 							3D7 genome.
 						</p>
 						<p>
-							Alternatively, you may
+							Alternatively, you may also
+							manually annotate a target region to be completely removed. The
+							target region must be labeled as "Target Region" on the input gene
+							GenBank file. All sgRNAs will be selected from this region, and
+							the LHR and RHR will be selected outside of it. If the base
+							plasmid system includes a 5' or 3' recoded region, it will
+							comprise at least the entirety of the annotated target region.
+						</p>
+						<p>
+							Finally, you may
 							manually annotate all
 							<a href="https://benchling.com" class="tooltip" target="_blank"
 								tipTxt="You can use Benchling's CRISPR tool, but you must
@@ -140,7 +149,7 @@
 
 						<p>
 							<p class="head">Manual HR/sgRNAs</p>
-							Use user-annotated homology regions and/or guide RNAs (if any):
+							Use user-annotated target region, homology regions and/or guide RNAs (if any):
 							<input class="chkBox" type="checkbox" unchecked id="HRannChkBox">
 						</p>
 
