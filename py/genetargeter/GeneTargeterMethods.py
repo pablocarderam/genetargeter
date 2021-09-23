@@ -159,8 +159,8 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
         targetRegion = geneGB.findAnnsLabel("Target Region");
         if len(targetRegion) > 0:
             targetRegion = targetRegion[0]
-            maxDist1 = targetRegion.index[0] - gene.index[1] if target3Prime else gene.index[0] - targetRegion.index[1]
-            maxDist2 = targetRegion.index[0] - gene.index[0] if target3Prime else gene.index[0] - targetRegion.index[0]
+            maxDist1 = targetRegion.index[1] - gene.index[0] if target3Prime else gene.index[0] - targetRegion.index[1]
+            maxDist2 = targetRegion.index[1] - gene.index[1] if target3Prime else gene.index[0] - targetRegion.index[0]
 
         if HRannotated: # if using manual annotations
             gRNA = findGRNA(geneGB, gene); # finds gRNA most upstream annotated manually.

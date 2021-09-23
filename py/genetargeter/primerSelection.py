@@ -89,13 +89,13 @@ primer [min,preferred,max].
 """
 def createGibsonPrimers(plasmid, part, rangeHom=[30,40,50], minMeltTemp=68, maxTempDif=5): #TODO: debug.
     log = ""; # init log
-    startPF = part.index[0] - rangeHom[1]; # Fwd primer preferred start position
-    endPF = part.index[0] + rangeHom[1]; # Fwd primer preferred end position
+    startPF = max(part.index[0] - rangeHom[1],0); # Fwd primer preferred start position
+    endPF = min(part.index[0] + rangeHom[1],len(plasmid.origin)); # Fwd primer preferred end position
     primFwdSeq = plasmid.origin[startPF:endPF]; # Fwd primer sequence
 
     if meltingTemp(plasmid.origin[part.index[0]:endPF]) < minMeltTemp or not primFwdSeq[len(primFwdSeq)-1].upper().replace("G","C") == "C": # if still no use
-        startPF = part.index[0] - rangeHom[0]; # Smallest fwd primer start position
-        endPF = part.index[0] + rangeHom[0]; # Smallest fwd primer end position
+        startPF = max(part.index[0] - rangeHom[0],0); # Smallest fwd primer start position
+        endPF = min(part.index[0] + rangeHom[0],len(plasmid.origin)); # Smallest fwd primer end position
         primFwdSeq = plasmid.origin[startPF:endPF]; # Fwd primer sequence
 
         maxIndexes = [startPF, endPF]; # store start and end positions of best primer in search range
@@ -113,13 +113,13 @@ def createGibsonPrimers(plasmid, part, rangeHom=[30,40,50], minMeltTemp=68, maxT
             log = log + "Warning: Best Gibson fwd primer for sequence " + part.label + " under given constraints has a Tm of " + str(meltingTemp(plasmid.origin[part.index[0]:endPF])) + ", below the given threshold of " + str(minMeltTemp) + "\n\n"; # give warning
 
 
-    startPR = part.index[1] - rangeHom[1]; # Rev primer start position
-    endPR = part.index[1] + rangeHom[1]; # Rev primer end position
+    startPR = max(part.index[1] - rangeHom[1],0); # Rev primer start position
+    endPR = min(part.index[1] + rangeHom[1],len(plasmid.origin)); # Rev primer end position
     primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
 
     if meltingTemp(plasmid.origin[startPR:part.index[1]]) < minMeltTemp or meltingTemp(plasmid.origin[startPR:part.index[1]])-meltingTemp(plasmid.origin[startPR:part.index[1]]) > maxTempDif or not primRevSeq[len(primRevSeq)-1].upper().replace("G","C") == "C": # if still no use
-        startPR = part.index[1] - rangeHom[0]; # Smallest fwd primer start position
-        endPR = part.index[1] + rangeHom[0]; # Smallest fwd primer end position
+        startPR = max(part.index[1] - rangeHom[0],1); # Smallest fwd primer start position
+        endPR = min(part.index[1] + rangeHom[0],len(plasmid.origin)); # Smallest fwd primer end position
         primRevSeq = revComp(plasmid.origin[startPR:endPR]); # Rev primer sequence
 
         maxIndexes = [startPR, endPR]; # store start and end positions of best primer in search range
