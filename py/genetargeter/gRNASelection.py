@@ -31,14 +31,10 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
 
     gRNATable = []; # will store information on each gRNA evaluated. Format: Label, Status, Enzyme, Position, Strand, GC_content, On-target_score, On-target_method, Aggregated_off-target_score, Max_pairwise_off-target_score, Off-target_method, >9_consecutive_A/T, 4-Homopolymer, Triple_T, Sequence, Recoded_sequence, Recoded_sequence_pairwise_off-target_score
     geneList = geneGB.findAnnsLabel(gene.label); # stores gene annotation
-    gene = geneList[0]; # stores gene annotation
-    for g in geneList: # search for right gene
-        if g.type == "gene": # if found,
-            gene = g; # save it
 
 
     for g in geneList: # search for right gene
-        if g.label == gene.label and g.type == "gene": # if found,
+        if g.label == gene.label and g.type == "gene" or g.type == "mRNA": # if found,
             gene = g; # save it
 
     # This line of code increases the search range if there are introns. We decided to roll this back for the time being.

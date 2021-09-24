@@ -153,15 +153,17 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
             outputDic["logFileStr"] = outputDic["logFileStr"] + "Note: this gene appears not to be a protein-coding sequence (it does not end on a stop codon).\n\n"; # starts message log to file
             codingGene = False;
 
+        # Handle target regions
         maxDist1 = maxDistLHR if target3Prime else maxDistRHR
         maxDist1 = maxDist1 if locationType=="center" else min(maxDist1,maxGBlockSize)
         maxDist2 = maxDistRHR if target3Prime else maxDistLHR
         targetRegion = geneGB.findAnnsLabel("Target Region");
         if len(targetRegion) > 0:
             targetRegion = targetRegion[0]
-            maxDist1 = targetRegion.index[1] - gene.index[0] if target3Prime else gene.index[0] - targetRegion.index[1]
+            maxDist1 = gene.index[1] - targetRegion.index[0] if target3Prime else gene.index[0] - targetRegion.index[1]
             maxDist2 = targetRegion.index[1] - gene.index[1] if target3Prime else gene.index[0] - targetRegion.index[0]
 
+        # Find gRNA
         gRNA = { 'out':GenBankAnn() }
         if HRannotated: # if using manual annotations
             gRNA = findGRNA(geneGB, gene); # finds gRNA most upstream annotated manually.

@@ -92,12 +92,23 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
         #   if 3' target, end at most upstream between next gene and end of file
         #   if 5' target, end at most upstream between next gene and end of file (same)
 
+    # Adjust for annotated target regions
     targetRegion = geneGB.findAnnsLabel("Target Region");
     if len(targetRegion) > 0:
         targetRegion = targetRegion[0]
-        regEnd = min( regEnd, targetRegion.index[0] )
-        regBeg = max( regBeg, targetRegion.index[1] )
+        regEnd = min( regEnd, targetRegion.index[0] ) if doingHR == 'LHR' else regEnd
+        regBeg = max( regBeg, targetRegion.index[1] ) if doingHR == 'RHR' else regBeg
 
+    # Make sure introns are avoided as starting/ending positions if relevant
+    if targetExtreme=='end' and doingHR=='LHR':
+        while not geneGB.checkInCDS(regEnd,gene.label) and regBeg < regEnd:
+            regEnd -= 1
+
+    elif targetExtreme!='end' and doingHR=='RHR':
+        while not geneGB.checkInCDS(regBeg,gene.label) and regBeg < regEnd:
+            regBeg += 1
+
+    # Check there is still space for HR
     if regBeg > seqEnd-lenMin or regEnd < seqBeg+lenMin: # if not enough space for the HR on the sequence file,
         log = log + "ERROR: Not enough space on either side of gene for HR chosen. Aborting." + "\n" # give an error
         return {"out":None, "log":log}
