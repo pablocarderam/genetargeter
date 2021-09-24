@@ -21,14 +21,14 @@ LHR: Left Homologous Region used for chromosomal integration by homologous
 recombination during repair.
 """
 def chooseHRWrapper(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
-    hr,log = chooseHR(geneGB, gene, doingHR=doingHR, targetExtreme=targetExtreme, lengthHR=lengthHR, minTmEnds=minTmEnds, endsLength=endsLength, codingGene=codingGene, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, optimizeRange=optimizeRange, exploreRHRUpstreamOfStop=0, filterCutSites=filterCutSites)
+    hr,log = chooseHR(geneGB, gene, doingHR=doingHR, targetExtreme=targetExtreme, lengthHR=lengthHR, minTmEnds=minTmEnds, endsLength=endsLength, codingGene=codingGene, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, optimizeRange=optimizeRange, exploreRHRUpstreamOfStop=0, targetRegionOverride=False, filterCutSites=filterCutSites)
     if warning and codingGene and doingHR == "RHR" and targetExtreme == "end" and exploreRHRUpstreamOfStop > 0: # (if allowing RHRs to start upstream of stop codon, go into the gene)
-        hr,log = chooseHR(geneGB, gene, doingHR=doingHR, targetExtreme=targetExtreme, lengthHR=lengthHR, minTmEnds=minTmEnds, endsLength=endsLength, codingGene=codingGene, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, optimizeRange=optimizeRange, exploreRHRUpstreamOfStop=exploreRHRUpstreamOfStop, annealCheckLength=10, filterCutSites=filterCutSites)
+        hr,log = chooseHR(geneGB, gene, doingHR=doingHR, targetExtreme=targetExtreme, lengthHR=lengthHR, minTmEnds=minTmEnds, endsLength=endsLength, codingGene=codingGene, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, optimizeRange=optimizeRange, exploreRHRUpstreamOfStop=exploreRHRUpstreamOfStop, annealCheckLength=10, targetRegionOverride=targetRegionOverride, filterCutSites=filterCutSites)
 
     return hr,log
 
 
-def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, annealCheckLength=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
+def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, annealCheckLength=10, targetRegionOverride=False, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
     log = "" # init log
     gRNAs = [] # List of all gRNAs
     gRNAExt = GenBankAnn() # init var to hold gRNA
@@ -92,13 +92,6 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
         #   if 3' target, end at most upstream between next gene and end of file
         #   if 5' target, end at most upstream between next gene and end of file (same)
 
-    # Adjust for annotated target regions
-    targetRegion = geneGB.findAnnsLabel("Target Region");
-    if len(targetRegion) > 0:
-        targetRegion = targetRegion[0]
-        regEnd = min( regEnd, targetRegion.index[0] ) if doingHR == 'LHR' else regEnd
-        regBeg = max( regBeg, targetRegion.index[1] ) if doingHR == 'RHR' else regBeg
-
     # Make sure introns are avoided as starting/ending positions if relevant
     if targetExtreme=='end' and doingHR=='LHR':
         while not geneGB.checkInCDS(regEnd,gene.label) and regBeg < regEnd:
@@ -107,6 +100,23 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
     elif targetExtreme!='end' and doingHR=='RHR':
         while not geneGB.checkInCDS(regBeg,gene.label) and regBeg < regEnd:
             regBeg += 1
+
+    # Override for annotated target regions
+    targetRegion = geneGB.findAnnsLabel("Target Region");
+    targetRegionFound = False
+    if len(targetRegion) > 0:
+        targetRegion = targetRegion[0]
+        targetRegionFound = True
+        if targetRegionOverride:
+            if doingHR == 'LHR':
+                regBeg = max( targetRegion.index[0]-lenMax-1, prvGen )
+                regEnd = targetRegion.index[0]
+            if doingHR == 'RHR':
+                regBeg = targetRegion.index[1]
+                regEnd = min( targetRegion.index[0] + lenMax, nxtGen, seqEnd )
+        else:
+            regEnd = min( regEnd, targetRegion.index[0] ) if doingHR == 'LHR' else regEnd
+            regBeg = max( regBeg, targetRegion.index[1] ) if doingHR == 'RHR' else regBeg
 
     # Check there is still space for HR
     if regBeg > seqEnd-lenMin or regEnd < seqBeg+lenMin: # if not enough space for the HR on the sequence file,
@@ -137,6 +147,13 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
     begIntArr = [ [ regIdxArr[i][0], regIdxArr[i][1]-lenMin ] for i in range(len(regIdxArr)) ] # intervals to search for beginnings
     endIntArr = [ [ regIdxArr[i][0]+lenMin, regIdxArr[i][1] ] for i in range(len(regIdxArr)) ] # intervals to search for ends
     terIdxArr = [ begIntArr, endIntArr ] # contains array of possible beginning search intervals, and array of possible ending search intervals
+
+    # Override for custom target regions
+    if targetRegionFound and targetRegionOverride:
+        if doingHR == 'LHR':
+            endIntArr = [[ targetRegion.index[0],targetRegion.index[0]+1 ]]
+        if doingHR == 'RHR':
+            begIntArr = [[ targetRegion.index[1],targetRegion.index[1]+1 ]]
 
     # Iteration search
     step = -1 if doingHR == 'LHR' else 1 # step direction for LHR is -1, 1 for RHR
