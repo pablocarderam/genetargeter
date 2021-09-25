@@ -94,11 +94,11 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
     # Make sure introns are avoided as starting/ending positions if relevant
     if targetExtreme=='end' and doingHR=='LHR':
-        while not geneGB.checkInCDS(regEnd,gene.label) and regBeg < regEnd:
+        while not geneGB.checkInExon(regEnd) and regBeg < regEnd:
             regEnd -= 1
 
     elif targetExtreme!='end' and doingHR=='RHR':
-        while not geneGB.checkInCDS(regBeg,gene.label) and regBeg < regEnd:
+        while not geneGB.checkInExon(regBeg) and regBeg < regEnd:
             regBeg += 1
 
     # Override for annotated target regions
@@ -201,7 +201,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
                 tm = meltingTemp( extReg ) # Tm for this terminus
                 bestHR[3][ter] = len(findMotif(geneGB.origin, extReg[0:annealCheckLength])) if ter else len(findMotif(geneGB.origin, extReg[-annealCheckLength:])) # number of repeats of primer-annealing sequence
                 lenHR = i[1] - i[0] # length of HR as it stands
-                inIntronWhenNotSupposedTo = ((not geneGB.checkInCDS(i[0],gene.label) and targetExtreme!='end' and doingHR=='RHR') or (not geneGB.checkInCDS(i[1],gene.label) and targetExtreme=='end' and doingHR=='LHR')) # shouldn't be in intron if LHR, targeting 3', and end terminus or if RHR, targeting 5', and beginning terminus
+                inIntronWhenNotSupposedTo = ((not geneGB.checkInExon(i[0]) and targetExtreme!='end' and doingHR=='RHR') or (not geneGB.checkInExon(i[1]) and targetExtreme=='end' and doingHR=='LHR')) # shouldn't be in intron if LHR, targeting 3', and end terminus or if RHR, targeting 5', and beginning terminus
                 if (not tricky) and tm >= minTmEnds and not inIntronWhenNotSupposedTo and bestHR[3][ter] == 1: # if sufficiently good and not in intron when not supposed to and no repeats,
                     # optimize ends
                     ti = i[ter] # test more indeces to optimize

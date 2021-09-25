@@ -90,7 +90,7 @@ def gene_message(message):
     basePlasmid = msgList[36];
     basePlasmidName = msgList[37];
     locationType = msgList[38];
-    filterCutSites = msgList[39] if len(msgList) == 40 else cut_sites[plasmidType];
+    filterCutSites = msgList[39].split(',') if len(msgList) == 40 else cut_sites[plasmidType];
 
     if prefix == "*None*":
         prefix = "";

@@ -66,6 +66,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
     outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":"", "gRNATable":"", "outputHA":outputDicHA, "gBlockFileStr":""}; # dictionary containing keys to all values being returned
     outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + prefix + geneName + "-targeting construct based on plasmid " + plasmidType + "_" + enzyme + " **** \n\n"; # starts message log to file
 
+    print(filterCutSites)
     if sigPep: # if gene in signal peptide list,
         outputDic["logFileStr"] = outputDic["logFileStr"] + "Gene contains putative signal peptide according to SignalP information downloaded from PlasmoDB.\n\n"; # say so in output log
 
@@ -244,10 +245,10 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
                 recoded = {"out":GenBankAnn(), "log":"", "gRNATable":outputDic["gRNATable"]}; # will contain recoded region
                 if plasmidType != 'pSN150-KO' and not (plasmidType=="custom" and locationType=="center"): # if not knocking out,
-                    recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
+                    recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, targetRegionOverride=(plasmidType=='custom'), filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
                     recodedHA = {}; # will contain recoded region with HA tag
                     if haTag: # if using HA tags,
-                        recodedHA = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, haTag=True, filterCutSites=filterCutSites); # defines region to be recoded with HA tag, returns recoded sequence
+                        recodedHA = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, haTag=True, targetRegionOverride=(plasmidType=='custom'), filterCutSites=filterCutSites); # defines region to be recoded with HA tag, returns recoded sequence
                         recodedHA = recodedHA["out"]; # saves actual data
 
                 outputDic["logFileStr"] = outputDic["logFileStr"] + recoded["log"]; # add logs
