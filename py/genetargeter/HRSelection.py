@@ -146,14 +146,15 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
     # Find beginning and ending indeces
     begIntArr = [ [ regIdxArr[i][0], regIdxArr[i][1]-lenMin ] for i in range(len(regIdxArr)) ] # intervals to search for beginnings
     endIntArr = [ [ regIdxArr[i][0]+lenMin, regIdxArr[i][1] ] for i in range(len(regIdxArr)) ] # intervals to search for ends
-    terIdxArr = [ begIntArr, endIntArr ] # contains array of possible beginning search intervals, and array of possible ending search intervals
 
     # Override for custom target regions
     if targetRegionFound and targetRegionOverride:
         if doingHR == 'LHR':
-            endIntArr = [[ targetRegion.index[0],targetRegion.index[0]+1 ]]
+            endIntArr = [[ targetRegion.index[0],targetRegion.index[0] ]]
         if doingHR == 'RHR':
-            begIntArr = [[ targetRegion.index[1],targetRegion.index[1]+1 ]]
+            begIntArr = [[ targetRegion.index[1],targetRegion.index[1] ]]
+
+    terIdxArr = [ begIntArr, endIntArr ] # contains array of possible beginning search intervals, and array of possible ending search intervals
 
     # Iteration search
     step = -1 if doingHR == 'LHR' else 1 # step direction for LHR is -1, 1 for RHR
@@ -194,7 +195,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
 
             bestInTer[0][ter], bestInTer[1][ter], bestInTer[2][ter] = i[ter], True, 0 # will store best in this terminus search, initialize as default
-            satisfiedTer = not ( ( bestInTer[1][ter] + ( bestInTer[2][ter] < minTmEnds ) ) ) and bestHR[3][ter] == 1 # keep track of whether or not adequate HR has been found
+            satisfiedTer = not ( ( bestInTer[1][ter] + ( bestInTer[2][ter] < minTmEnds ) ) ) and bestHR[3][ter] == 1 and not (targetRegionOverride and ter and doingHR=='LHR') and not (targetRegionOverride and not ter and doingHR=='RHR') # keep track of whether or not adequate HR has been found (or override due to target region)
             while i[ter] > 0 and i[ter] < len(geneGB.origin) and ( terIdxArr[ter][p][0] <= i[ter] and i[ter] <= terIdxArr[ter][p][1] ) and i[0] < nxtGen and i[0] > prvGen and not satisfiedTer: # while within search range and no good terminus found,
                 extReg = geneGB.origin[ min(i[ter],i[ter]+(2*(not ter)-1)*endsLength):max(i[ter],i[ter]+(2*(not ter)-1)*endsLength) ] # extreme region to be analyzed
                 tricky = isTricky( extReg ) > -1 # true if this terminus contains homopolymers or AT repeats
