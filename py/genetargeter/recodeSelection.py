@@ -268,7 +268,7 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                         candidateFound = True; # signal possible candidate found
 
                 count += 1; # advances iteration counter
-                if count > 500 or trickyCount >= trickyLimit: # if out of iteration limit,
+                if count > 200 or trickyCount >= trickyLimit: # if out of iteration limit,
                     if not candidateFound: # if no candidate without cut sequences found,
                         if tricky > -1:
                             log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to avoid repeated sequences or low-complexity regions.\n\n"; # log warning
@@ -553,7 +553,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                         candidateFound = True; # signal possible candidate found
 
                 count += 1; # advances iteration counter
-                if count > 500 or trickyCount >= trickyLimit: # if out of iteration limit,
+                if count > 200 or trickyCount >= trickyLimit: # if out of iteration limit,
                     if not candidateFound: # if no candidate without cut sequences found,
                         if tricky > -1:
                             log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to avoid repeated sequences or low-complexity regions.\n\n"; # log warning
