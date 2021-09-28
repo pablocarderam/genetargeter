@@ -66,7 +66,6 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
     outputDic = {"geneName":geneName, "newGene":GenBank(), "editedLocus":GenBank(), "newPlasmid":GenBank(), "geneFileStr":"", "plasmidFileStr":"", "oligoFileStr":"", "logFileStr":"", "editedLocusFileStr":"", "gRNATable":"", "outputHA":outputDicHA, "gBlockFileStr":""}; # dictionary containing keys to all values being returned
     outputDic["logFileStr"] = outputDic["logFileStr"] + " **** Message log for " + prefix + geneName + "-targeting construct based on plasmid " + plasmidType + "_" + enzyme + " **** \n\n"; # starts message log to file
 
-    print(filterCutSites)
     if sigPep: # if gene in signal peptide list,
         outputDic["logFileStr"] = outputDic["logFileStr"] + "Gene contains putative signal peptide according to SignalP information downloaded from PlasmoDB.\n\n"; # say so in output log
 
@@ -171,9 +170,18 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
             if len(gRNA["out"].label) == 0: # if no manual annotation found,
                 gRNA = chooseGRNA(geneGB, gene, searchRange=[-maxDist1,maxDist2], PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=minOffTargetScore, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, filterCutSites=filterCutSites); # chooses gRNA.
 
-        elif not ( (plasmidType=="pSN150-KO" or (plasmidType=="custom" and locationType=="center")) and not len(gRNA['out'].label)>0 ): # if not,
-            targetCenter = (plasmidType=="pSN150-KO" or (plasmidType=="custom" and locationType=="center")) # if knocking out, search for sgRNA in center of gene
-            gRNA = chooseGRNA(geneGB, gene, searchRange=[-maxDist1,maxDist2], PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=minOffTargetScore, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, targetCenter=targetCenter, filterCutSites=filterCutSites); # chooses gRNA.
+        else:
+            # overwrite manual HR and sgRNA annotations if needed
+            for ann in geneGB.findAnnsLabel("LHR"):
+                ann.label = ann.label + ' (unused)'
+            for ann in geneGB.findAnnsLabel("RHR"):
+                ann.label = ann.label + ' (unused)'
+            for ann in geneGB.findAnnsLabel("gRNA"):
+                ann.label = ann.label + ' (unused)'
+
+            if not ( (plasmidType=="pSN150-KO" or (plasmidType=="custom" and locationType=="center")) and not len(gRNA['out'].label)>0 ): # if not,
+                targetCenter = (plasmidType=="pSN150-KO" or (plasmidType=="custom" and locationType=="center")) # if knocking out, search for sgRNA in center of gene
+                gRNA = chooseGRNA(geneGB, gene, searchRange=[-maxDist1,maxDist2], PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=minOffTargetScore, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, targetCenter=targetCenter, filterCutSites=filterCutSites); # chooses gRNA.
 
         if (plasmidType=="pSN150-KO" or (plasmidType=="custom" and locationType=="center")) and not len(gRNA['out'].label)>0: # if knocking out and no gRNA found,
             gRNA = chooseGRNA(geneGB, gene, searchRange=[gene.index[0]-gene.index[1],0], PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=minOffTargetScore, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=True, targetCenter=False, filterCutSites=filterCutSites); # search through whole gene from start as well

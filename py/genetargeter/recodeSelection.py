@@ -27,8 +27,21 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
         offScoreThreshold = 1; # set threshold to 1%
 
     log = ""; # init log
-    LHR = geneGB.findAnnsLabel("LHR")[0]; # LHR annotation object
-    RHR = geneGB.findAnnsLabel("RHR")[0]; # LHR annotation object
+    LHRs = geneGB.findAnnsLabel("LHR"); # LHR annotation objects
+    RHRs = geneGB.findAnnsLabel("RHR"); # LHR annotation objects
+
+    LHR = None
+    RHR = None
+
+    for ann in LHRs:
+        if '(unused)' not in ann.label:
+            LHR = ann
+            break
+
+    for ann in RHRs:
+        if '(unused)' not in ann.label:
+            RHR = ann
+            break
 
     annRecoded = GenBankAnn(); # creates GenBankAnn object to hold recoded region
     if LHR.index[1] < gene.index[1]: # if end of LHR is inside gene (or before)
@@ -255,7 +268,7 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                         candidateFound = True; # signal possible candidate found
 
                 count += 1; # advances iteration counter
-                if count > 1000 or trickyCount >= trickyLimit: # if out of iteration limit,
+                if count > 500 or trickyCount >= trickyLimit: # if out of iteration limit,
                     if not candidateFound: # if no candidate without cut sequences found,
                         if tricky > -1:
                             log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to avoid repeated sequences or low-complexity regions.\n\n"; # log warning
@@ -381,14 +394,18 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
                 restSeq = restSeq + geneGB.origin[intronIndices[len(intronIndices)-1][1]:gene.index[1]]; # get rest of recode sequence until endRecode
 
-                frame2 = 3-((len(restSeq)-len(recodeSeq)) % 3); # stores reading frame, index from start of sequence to be recoded
-                frame2 = frame2 if frame2 != 3 else 0
+                frame2 = len(recodeSeq) % 3; # stores reading frame, index from start of sequence to be recoded
+                frame = 3-((len(restSeq)-len(recodeSeq)) % 3) # stores reading frame, index from start of sequence to be recoded
+                frame = frame if frame != 3 else 0
                 startRecode += frame2; # modify recode start site according to reading frame
                 nonRecodedStart = recodeSeq[0:frame2] if frame2!=0 else ''; # stores 0, 1 or 2 nucleotides not recoded due to reading frame
                 recodeSeq = recodeSeq[frame2:]; # adjust recode region
 
+        else:
+            frame = len(recodeSeq) % 3; # stores reading frame, index from start of sequence to be recoded
 
-        frame = len(recodeSeq) % 3; # stores reading frame, index from start of sequence to be recoded
+
+        # frame = len(recodeSeq) % 3; # stores reading frame, index from start of sequence to be recoded
         endRecode -= frame; # modify recode end site according to reading frame
         nonRecodedEnd = ""; # stores 0, 1 or 2 nucleotides not recoded due to reading frame
         if frame != 0: # if frame shift is not zero, to avoid listing all of recode region with recodeSeq[-0:],
@@ -536,7 +553,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                         candidateFound = True; # signal possible candidate found
 
                 count += 1; # advances iteration counter
-                if count > 1000 or trickyCount >= trickyLimit: # if out of iteration limit,
+                if count > 500 or trickyCount >= trickyLimit: # if out of iteration limit,
                     if not candidateFound: # if no candidate without cut sequences found,
                         if tricky > -1:
                             log = log + "Warning: Recoded region for gene " + gene.label + " could not reshuffle enough to avoid repeated sequences or low-complexity regions.\n\n"; # log warning
