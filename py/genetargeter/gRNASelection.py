@@ -20,7 +20,7 @@ gRNA: guide RNA used by CRISPR enzyme.
 Note: argument searchRange is in format [inside_gene,outside_gene] whether
 targeting 3' or 5' end.
 """
-def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, PAM="NGG", minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", gBlockDefault=True, maxTier1GBlockSize=500, gBlockOverlapSize=40, codingGene=True, closestGene=-1, target3Prime=True, targetCenter=False, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
+def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, PAM="NGG", minGCContent=0.3, minOnTargetScore=25, minOffTargetScore=75, maxOffTargetHitScore=35, onTargetMethod="azimuth", offTargetMethod="hsu", gLength=20, maxDistanceBetweenGRNAS=50, enzyme="Cas9", gBlockDefault=True, maxTier1GBlockSize=500, gBlockOverlapSize=40, codingGene=True, closestGene=-1, target3Prime=True, targetCenter=False, targetRegionOverride=False, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]): # could've been useful at some point: http://grna.ctegd.uga.edu/ http://www.broadinstitute.org/rnai/public/software/sgrna-scoring-help http://crispr.mit.edu/about
     if closestGene < 0: # if closestGene parameter is default,
         closestGene = len(geneGB.origin); # set to total length of gene file as default
 
@@ -69,6 +69,14 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
     if len(gene.label) > 0: # if gene found,
         searchStart = gene.index[target3Prime] + (-1+(2*target3Prime)) * searchRange[(not target3Prime)]; # Start searching for gRNAs in a position relative to gene start or end point
         searchEnd = gene.index[target3Prime] + (-1+(2*target3Prime)) * searchRange[target3Prime]; # Finish searching for gRNAs in a position relative to gene start or end point
+
+        # Override for annotated target regions
+        if targetRegionOverride:
+            targetRegion = geneGB.findAnnsLabel("Target Region");
+            if len(targetRegion) > 0:
+                searchStart = targetRegion[0].index[0]; # Start searching for gRNAs in target region
+                searchEnd = targetRegion[0].index[1]; # Finish searching for gRNAs in target region
+
         searchSeq = geneGB.origin[searchStart:searchEnd].upper(); # get sequence where gRNAs will be searched for, centered around start or end of gene
         i = len(PAM) + 1; # indexer used to search for PAMs. Start searching for gRNAs by searching for PAM in searchSeq. Start at upstream end, go downstream
         if target3Prime: # if going for 3',
