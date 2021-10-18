@@ -248,6 +248,8 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                 trickyLimit = 1000
                 tricky = isTricky(recodedSeq); # check if tricky to synthesize
 
+                bestRecodedSeq = recodedSeq if bestRecodedSeq==recodeSeq else bestRecodedSeq; # store this sequence if no recoded sequence has been stored as best
+
                 if offScore <= offScoreThreshold and cutCheck: # if parameters other than badStart are ok and this sequence has better start than previous best,
                     if not candidateFound or isTricky(bestRecodedSeq) > -1: # if no candidate found until now or current best is already tricky,
                         while tricky > -1 and tricky < len(recodedSeq)-9 and trickyCount < trickyLimit: # targeted recoding of problematic fragments
@@ -532,6 +534,8 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                 trickyCount = 1
                 trickyLimit = 1000
                 tricky = isTricky(recodedSeq); # check if tricky to synthesize
+
+                bestRecodedSeq = recodedSeq if bestRecodedSeq==recodeSeq else bestRecodedSeq; # store this sequence if no recoded sequence has been stored as best
 
                 if offScore <= offScoreThreshold and cutCheck: # if parameters other than badStart are ok and this sequence has better start than previous best,
                     if not candidateFound or isTricky(bestRecodedSeq) > -1: # if no candidate found until now or current best is already tricky,
