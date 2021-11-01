@@ -110,20 +110,21 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
             if intronIndices[len(intronIndices)-1][1] < endRecode:
                 recodeSeq = recodeSeq + geneGB.origin[intronIndices[len(intronIndices)-1][1]:endRecode]; # get rest of recode sequence until endRecode
 
-            # Adjust frame if not recoding to the stop codon
-            if targetRegionOverride:
+        # Adjust frame if not recoding to the stop codon
+        if targetRegionOverride:
+            restSeq = geneGB.origin[startRecode:gene.index[1]]
+            if len(intronIndices) > 0 and intronIndices[0][0] < endRecode: # if there are introns inside the target region,
                 restSeq = geneGB.origin[startRecode:intronIndices[0][0]]; # get recode sequence until first intron
                 for i in range(len(intronIndices)-1): # for every intron except last one,
                     restSeq = restSeq + geneGB.origin[intronIndices[i][1]:intronIndices[i+1][0]]; # add next exon to recode seq
 
                 restSeq = restSeq + geneGB.origin[intronIndices[len(intronIndices)-1][1]:gene.index[1]]; # get rest of recode sequence until endRecode
 
-                frame2 = 3-((len(restSeq)-len(recodeSeq)) % 3); # stores reading frame, index from start of sequence to be recoded
-                frame2 = frame2 if frame2 != 3 else 0
-                endRecode -= frame2; # modify recode start site according to reading frame
-                nonRecodedEnd = recodeSeq[-frame2:] if frame2!=0 else ''; # stores 0, 1 or 2 nucleotides not recoded due to reading frame
-                recodeSeq = recodeSeq[0:len(recodeSeq)-frame2]; # adjust recode region
-
+            frame2 = 3-((len(restSeq)-len(recodeSeq)) % 3); # stores reading frame, index from start of sequence to be recoded
+            frame2 = frame2 if frame2 != 3 else 0
+            endRecode -= frame2; # modify recode start site according to reading frame
+            nonRecodedEnd = recodeSeq[-frame2:] if frame2!=0 else ''; # stores 0, 1 or 2 nucleotides not recoded due to reading frame
+            recodeSeq = recodeSeq[0:len(recodeSeq)-frame2]; # adjust recode region
 
         frame = len(recodeSeq) % 3; # stores reading frame, index from start of sequence to be recoded
         startRecode += frame; # modify recode start site according to reading frame
@@ -388,24 +389,25 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
             if intronIndices[len(intronIndices)-1][1] < endRecode:
                 recodeSeq = recodeSeq + geneGB.origin[intronIndices[len(intronIndices)-1][1]:endRecode]; # get rest of recode sequence until endRecode
 
-            # Adjust frame if not recoding from the start codon
-            if targetRegionOverride:
+        else:
+            frame = len(recodeSeq) % 3; # stores reading frame, index from start of sequence to be recoded
+
+        # Adjust frame if not recoding from the start codon
+        if targetRegionOverride:
+            restSeq = geneGB.origin[startRecode:gene.index[1]]
+            if len(intronIndices) > 0 and intronIndices[0][0] < endRecode: # if there are introns inside the target region,
                 restSeq = geneGB.origin[startRecode:intronIndices[0][0]]; # get recode sequence until first intron
                 for i in range(len(intronIndices)-1): # for every intron except last one,
                     restSeq = restSeq + geneGB.origin[intronIndices[i][1]:intronIndices[i+1][0]]; # add next exon to recode seq
 
                 restSeq = restSeq + geneGB.origin[intronIndices[len(intronIndices)-1][1]:gene.index[1]]; # get rest of recode sequence until endRecode
 
-                frame2 = len(recodeSeq) % 3; # stores reading frame, index from start of sequence to be recoded
-                frame = 3-((len(restSeq)-len(recodeSeq)) % 3) # stores reading frame, index from start of sequence to be recoded
-                frame = frame if frame != 3 else 0
-                startRecode += frame2; # modify recode start site according to reading frame
-                nonRecodedStart = recodeSeq[0:frame2] if frame2!=0 else ''; # stores 0, 1 or 2 nucleotides not recoded due to reading frame
-                recodeSeq = recodeSeq[frame2:]; # adjust recode region
-
-        else:
-            frame = len(recodeSeq) % 3; # stores reading frame, index from start of sequence to be recoded
-
+            frame2 = len(recodeSeq) % 3; # stores reading frame, index from start of sequence to be recoded
+            frame = 3-((len(restSeq)-len(recodeSeq)) % 3) # stores reading frame, index from start of sequence to be recoded
+            frame = frame if frame != 3 else 0
+            startRecode += frame2; # modify recode start site according to reading frame
+            nonRecodedStart = recodeSeq[0:frame2] if frame2!=0 else ''; # stores 0, 1 or 2 nucleotides not recoded due to reading frame
+            recodeSeq = recodeSeq[frame2:]; # adjust recode region
 
         # frame = len(recodeSeq) % 3; # stores reading frame, index from start of sequence to be recoded
         endRecode -= frame; # modify recode end site according to reading frame
