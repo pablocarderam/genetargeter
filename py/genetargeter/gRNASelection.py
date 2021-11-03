@@ -71,11 +71,12 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
         searchEnd = gene.index[target3Prime] + (-1+(2*target3Prime)) * searchRange[target3Prime]; # Finish searching for gRNAs in a position relative to gene start or end point
 
         # Override for annotated target regions
+        extraLength = 30
         if targetRegionOverride:
             targetRegion = geneGB.findAnnsLabel("Target Region");
             if len(targetRegion) > 0:
-                searchStart = targetRegion[0].index[0]; # Start searching for gRNAs in target region
-                searchEnd = targetRegion[0].index[1]; # Finish searching for gRNAs in target region
+                searchStart = targetRegion[0].index[0]-extraLength; # Start searching for gRNAs in target region
+                searchEnd = targetRegion[0].index[1]+extraLength; # Finish searching for gRNAs in target region
 
         searchSeq = geneGB.origin[searchStart:searchEnd].upper(); # get sequence where gRNAs will be searched for, centered around start or end of gene
         i = len(PAM) + 1; # indexer used to search for PAMs. Start searching for gRNAs by searching for PAM in searchSeq. Start at upstream end, go downstream
@@ -94,7 +95,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
                 gRNAIndexes = [searchStart+i+extGRNASeqIndexes[3]-realGRNASeqIndexes[1],searchStart+i+extGRNASeqIndexes[3]-realGRNASeqIndexes[0]]; # store gRNA indexes on comp strand
                 comp = True; # set sense to complementary strand
 
-            if len(extGRNASeq) == extGRNASeqIndexes[1]-extGRNASeqIndexes[0] and not (geneGB.checkInExon(gRNAIndexes[0]) and (gRNAIndexes[1] < gene.index[0] or gene.index[1] < gRNAIndexes[0]) ): # if extended gRNA is right size (doesn't overstep boundaries) and isn't inside a gene further upstream or downstream,
+            if len(extGRNASeq) == extGRNASeqIndexes[1]-extGRNASeqIndexes[0] and not (geneGB.checkInExon(gRNAIndexes[0]) and (gRNAIndexes[1] < gene.index[0] or gene.index[1] < gRNAIndexes[0]) ) and not (targetRegionOverride and (i<extraLength or i>len(searchSeq)+2*extraLength)): # if extended gRNA is right size (doesn't overstep boundaries) and isn't inside a gene further upstream or downstream,
                 pamSeq = extGRNASeq[pamIndexes[0]:pamIndexes[1]]; # stores PAM sequence
                 gRNASeq = extGRNASeq[realGRNASeqIndexes[0]:realGRNASeqIndexes[1]]; # store actual gRNA seq without PAM
                 gc = gcContent(gRNASeq); # store gc content
