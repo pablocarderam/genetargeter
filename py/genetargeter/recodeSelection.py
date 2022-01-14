@@ -163,7 +163,7 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                         anchor = -1; # will store index of gRNA bp most to the left (whichever strand). Default to -1 to indicate excision
                         if geneGB.checkInExon(g.index[0]) or geneGB.checkInExon(g.index[1]): # if the gRNA hasn't been completely excised,
                             if pamType == "NGG" and g.comp or pamType == "TTTV" and not g.comp: # if PAM is to the left of the rest of the gRNA sequence (on whichever strand),
-                                anchor = g.index[0]-startRecode-frame; # stores index of gRNA bp most to the left (whichever strand)
+                                anchor = g.index[0]-startRecode+frame; # stores index of gRNA bp most to the left (whichever strand)
                                 for intron in intronIndices: # for every intron,
                                     if g.index[0] > intron[1]: # if anchor after end of intron,
                                         anchor -= intron[1]-intron[0]; # substract intron length from anchor index
@@ -228,9 +228,9 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                         offScore = max(offScore,newOffScore); # set offscore for next iteration
 
                         for g in gRNATable: # find this gRNA in table
-                            if "gRNAs not evaluated" not in gRNATableString and g[14] == gOnSeq: # if there is a gRNA table (no table if using custom gRNA) and gRNA found,
-                                g[15] = gOffSeq; # store recoded sequence
-                                g[16] = str(newOffScore); # store recoded sequence's pair score
+                            if "gRNAs not evaluated" not in gRNATableString and g[15] == gOnSeq: # if there is a gRNA table (no table if using custom gRNA) and gRNA found,
+                                g[16] = gOffSeq; # store recoded sequence
+                                g[17] = str(newOffScore); # store recoded sequence's pair score
 
 
 
