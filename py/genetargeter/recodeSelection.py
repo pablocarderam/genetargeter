@@ -156,7 +156,7 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                 badStart = False; # reset badStart Boolean
                 recodedSeq = optimizeCodons(recodeSeq,orgCodonTable,codonSampling=codonSampling); # optimize codons.
                 for g in gRNAs: # for every gRNA candidate within recoded region,
-                    if g.index[0] >= startRecode-frame and g.index[1] <= endRecode+frame2: # if grna is inside recoded region
+                    if (g.index[0] >= startRecode-frame and g.index[0] <= endRecode+frame2) or (g.index[1] >= startRecode-frame and g.index[1] <= endRecode+frame2): # if grna is inside recoded region
                         gOnSeq = g.seq; # get original gRNA sequence
                         wholeRecSeq = nonRecodedStart + recodedSeq; # add initial bases
                         gOffSeq = "";
@@ -184,7 +184,7 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                                         anchor -= g.index[1] - intron[0]; # substract distance between intron start and anchor from anchor
 
 
-                                gOffSeq = wholeRecSeq[anchor-len(g.seq):anchor]; # get recoded sequence that used to be gRNA
+                                gOffSeq = wholeRecSeq[max(anchor-len(g.seq),0):anchor]; # get recoded sequence that used to be gRNA
                                 if g.comp: # if on comp strand
                                     gOffSeq = revComp(gOffSeq); # save as reverse complement
 
@@ -444,7 +444,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                 badStart = False; # reset badStart Boolean
                 recodedSeq = optimizeCodons(recodeSeq,orgCodonTable,codonSampling=codonSampling); # optimize codons.
                 for g in gRNAs: # for every gRNA candidate within recoded region,
-                    if g.index[0] >= startRecode-frame2 and g.index[1] <= endRecode+frame: # if grna is inside recoded region
+                    if (g.index[0] >= startRecode-frame and g.index[0] <= endRecode+frame2) or (g.index[1] >= startRecode-frame and g.index[1] <= endRecode+frame2): # if grna is inside recoded region
                         gOnSeq = g.seq; # get original gRNA sequence
                         wholeRecSeq = nonRecodedStart + recodedSeq + nonRecodedEnd; # add initial bases
                         gOffSeq = "";
@@ -472,7 +472,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
                                         anchor -= g.index[1] - intron[0]; # substract distance between intron start and anchor from anchor
 
 
-                                gOffSeq = wholeRecSeq[anchor-len(g.seq):anchor]; # get recoded sequence that used to be gRNA
+                                gOffSeq = wholeRecSeq[max(anchor-len(g.seq),0):anchor]; # get recoded sequence that used to be gRNA
                                 if g.comp: # if on comp strand
                                     gOffSeq = revComp(gOffSeq); # save as reverse complement
 

@@ -319,9 +319,17 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
         gRNATable = [g.split(',') for g in gRNATable]; # split each line into values
         for g in gRNATable: # find this gRNA in table
             gStart = findFirst(plasmidArmed.origin, g[16]) if g[5]=='+' else findFirst(plasmidArmed.origin, revComp(g[16]))
-            if gStart > -1:
+            gEnd = gStart+len(g[16])
+            gRNALength = 20
+            if len(g[16]) < gRNALength:
+                if g[5]=='-':
+                    gEnd = gStart + gRNALength
+                else:
+                    gStart -= gRNALength - len(g[16])
+
+            if gStart > -1 and len(g[16]) > 0:
                 gID = g[1][g[1].find('gRNA') + 5:]
-                recodedGRNA = GenBankAnn("Recoded gRNA "+gID, "misc_feature", g[16], g[5]=='-', [gStart,gStart+len(g[16])], annColors['gRNAColor']); # annotation object
+                recodedGRNA = GenBankAnn("Recoded gRNA "+gID, "misc_feature", plasmidArmed.origin[gStart:gEnd], g[5]=='-', [gStart,gEnd], annColors['gRNAColor']); # annotation object
                 plasmidArmed.features.append(recodedGRNA)
 
         recodedGBlock = recodedOnPlasmid # by default take gBlock as recoded region
