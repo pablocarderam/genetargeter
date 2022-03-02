@@ -199,16 +199,28 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
             LHR["out"] = None
             RHR["out"] = None
 
+            flankingSeqsLHR = ['ggcc',''] # 054
+            flankingSeqsRHR = ['tcgg','atta']
+            if plasmidType=="pSN150":
+                flankingSeqsLHR = ['ggcc','ggcc']
+                flankingSeqsRHR = ['','gcta']
+            elif plasmidType=="pSN150-KO":
+                flankingSeqsLHR = ['ggcc','ggcc']
+                flankingSeqsRHR = ['cgcc','cccg']
+            elif plasmidType=="custom":
+                flankingSeqsLHR = ['','']
+                flankingSeqsRHR = ['','']
+
             # pick HRs first
             if target3Prime: # if going for 3' payload,
-                LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, targetRegionOverride=(plasmidType=="custom"), filterCutSites=filterCutSites); # chooses an LHR
-                RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, targetRegionOverride=(plasmidType=="custom"), filterCutSites=filterCutSites); # chooses RHR
+                LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, targetRegionOverride=(plasmidType=="custom"), flankingSeqs=flankingSeqsLHR, filterCutSites=filterCutSites); # chooses an LHR
+                RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, targetRegionOverride=(plasmidType=="custom"), flankingSeqs=flankingSeqsRHR, filterCutSites=filterCutSites); # chooses RHR
             else: # if going for 5' payload, TODO: switch params?
-                LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='start', lengthHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, targetRegionOverride=(plasmidType=="custom" or plasmidType=="pSN150-KO"), filterCutSites=filterCutSites); # chooses LHR
+                LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='start', lengthHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, targetRegionOverride=(plasmidType=="custom" or plasmidType=="pSN150-KO"), flankingSeqs=flankingSeqsLHR, filterCutSites=filterCutSites); # chooses LHR
                 if plasmidType == "pSN150-KO" or (plasmidType=="custom" and locationType=="center"): # if knocking gene out,
-                    RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, targetRegionOverride=(plasmidType=="custom" or plasmidType=="pSN150-KO"), filterCutSites=filterCutSites); # chooses an RHR at end of gene!
+                    RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, targetRegionOverride=(plasmidType=="custom" or plasmidType=="pSN150-KO"), flankingSeqs=flankingSeqsRHR, filterCutSites=filterCutSites); # chooses an RHR at end of gene!
                 elif plasmidType == "pSN150" or (plasmidType=="custom" and locationType=="5prime"): # otherwise if KD construct
-                    RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='start', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, targetRegionOverride=(plasmidType=="custom" or plasmidType=="pSN150-KO"), filterCutSites=filterCutSites); # chooses an RHR at beginning
+                    RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='start', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, targetRegionOverride=(plasmidType=="custom" or plasmidType=="pSN150-KO"), flankingSeqs=flankingSeqsRHR, filterCutSites=filterCutSites); # chooses an RHR at beginning
 
             if LHR["out"] is None or RHR["out"] is None and not HRannotated: # if searches fail and HR's not provided,
                 outputDic["logFileStr"] = outputDic["logFileStr"] + LHR["log"] + RHR["log"]; # add logs
@@ -256,10 +268,16 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
                 recoded = {"out":GenBankAnn(), "log":"", "gRNATable":outputDic["gRNATable"]}; # will contain recoded region
                 if plasmidType != 'pSN150-KO' and not (plasmidType=="custom" and locationType=="center"): # if not knocking out,
-                    recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, targetRegionOverride=(plasmidType=='custom'), filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
+                    flankingSeqsRec = [LHR.seq[-4:],'gcga'] # 054
+                    if plasmidType=="pSN150":
+                        flankingSeqsRec = ['tagc',RHR.seq[0:4]]
+                    elif plasmidType=="custom":
+                        flankingSeqsRec = ['','']
+
+                    recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, targetRegionOverride=(plasmidType=='custom'), flankingSeqsRec=flankingSeqsRec, filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
                     recodedHA = {}; # will contain recoded region with HA tag
                     if haTag: # if using HA tags,
-                        recodedHA = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, haTag=True, targetRegionOverride=(plasmidType=='custom'), filterCutSites=filterCutSites); # defines region to be recoded with HA tag, returns recoded sequence
+                        recodedHA = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, haTag=True, targetRegionOverride=(plasmidType=='custom'), flankingSeqsRec=flankingSeqsRec, filterCutSites=filterCutSites); # defines region to be recoded with HA tag, returns recoded sequence
                         recodedHA = recodedHA["out"]; # saves actual data
 
                 outputDic["logFileStr"] = outputDic["logFileStr"] + recoded["log"]; # add logs

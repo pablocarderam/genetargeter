@@ -20,15 +20,27 @@ distance in bp between end of LHR and start of gRNA.
 LHR: Left Homologous Region used for chromosomal integration by homologous
 recombination during repair.
 """
-def chooseHRWrapper(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
-    hr,log = chooseHR(geneGB, gene, doingHR=doingHR, targetExtreme=targetExtreme, lengthHR=lengthHR, minTmEnds=minTmEnds, endsLength=endsLength, codingGene=codingGene, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, optimizeRange=optimizeRange, exploreRHRUpstreamOfStop=0, targetRegionOverride=False, filterCutSites=filterCutSites)
+def chooseHRWrapper(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, flankingSeqs=['',''], filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
+    hr,log = chooseHR(geneGB, gene, doingHR=doingHR, targetExtreme=targetExtreme, lengthHR=lengthHR, minTmEnds=minTmEnds, endsLength=endsLength, codingGene=codingGene, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, optimizeRange=optimizeRange, exploreRHRUpstreamOfStop=0, targetRegionOverride=False, flankingSeqs=flankingSeqs, filterCutSites=filterCutSites)
     if warning and codingGene and doingHR == "RHR" and targetExtreme == "end" and exploreRHRUpstreamOfStop > 0: # (if allowing RHRs to start upstream of stop codon, go into the gene)
-        hr,log = chooseHR(geneGB, gene, doingHR=doingHR, targetExtreme=targetExtreme, lengthHR=lengthHR, minTmEnds=minTmEnds, endsLength=endsLength, codingGene=codingGene, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, optimizeRange=optimizeRange, exploreRHRUpstreamOfStop=exploreRHRUpstreamOfStop, annealCheckLength=10, targetRegionOverride=targetRegionOverride, filterCutSites=filterCutSites)
+        hr,log = chooseHR(geneGB, gene, doingHR=doingHR, targetExtreme=targetExtreme, lengthHR=lengthHR, minTmEnds=minTmEnds, endsLength=endsLength, codingGene=codingGene, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, optimizeRange=optimizeRange, exploreRHRUpstreamOfStop=exploreRHRUpstreamOfStop, annealCheckLength=10, targetRegionOverride=targetRegionOverride, flankingSeqs=flankingSeqs, filterCutSites=filterCutSites)
 
     return hr,log
 
 
-def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, annealCheckLength=10, targetRegionOverride=False, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
+def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500,750], minTmEnds=59, endsLength=40, codingGene=True, gBlockDefault=True, minGBlockSize=125, optimizeRange=20, exploreRHRUpstreamOfStop=10, annealCheckLength=10, targetRegionOverride=False, flankingSeqs=['',''], filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
+
+    def cutsiteFormed(seq,upstream=True,filterCutSites=filterCutSites,flankingSeqs=flankingSeqs):
+        ext_seq = flankingSeqs[0] + seq if upstream else seq + flankingSeqs[1]
+        for site in filterCutSites: # check for cut sites
+            if len(findMotif( ext_seq, site )) > 0:
+                return True
+
+        return False
+
+    def problemSequence(seq,upstreamCutsite=True):
+        return isTricky(seq) > -1 or cutsiteFormed(seq,upstream=upstreamCutsite)
+
     log = "" # init log
     gRNAs = [] # List of all gRNAs
     gRNAExt = GenBankAnn() # init var to hold gRNA
@@ -167,8 +179,8 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
 
     i = [ min(a,b), max(a,b) ] # search each terminus start position in sequence terminus, start from end if doing LHR or from start if RHR, flipped for loop
     bestHR = [ i,
-        [ isTricky( geneGB.origin[ i[0]:i[0]+endsLength ] ) > -1,
-            isTricky( geneGB.origin[ i[1]-endsLength:i[1] ] ) > -1 ],
+        [ problemSequence( geneGB.origin[ i[0]:i[0]+endsLength ], True ),
+            problemSequence( geneGB.origin[ i[1]-endsLength:i[1] ], False ) ],
         [ meltingTemp( geneGB.origin[ i[0]:i[0]+endsLength ] ),
             meltingTemp( geneGB.origin[ i[1]-endsLength:i[1] ] ) ],
         [ len(findMotif(geneGB.origin, geneGB.origin[ i[0]:i[0]+annealCheckLength])),
@@ -198,7 +210,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
             satisfiedTer = not ( ( bestInTer[1][ter] + ( bestInTer[2][ter] < minTmEnds ) ) ) and bestHR[3][ter] == 1 and not (targetRegionOverride and ter and doingHR=='LHR') and not (targetRegionOverride and not ter and doingHR=='RHR') # keep track of whether or not adequate HR has been found (or override due to target region)
             while i[ter] > 0 and i[ter] < len(geneGB.origin) and ( terIdxArr[ter][p][0] <= i[ter] and i[ter] <= terIdxArr[ter][p][1] ) and i[0] < nxtGen and i[0] > prvGen and not satisfiedTer: # while within search range and no good terminus found,
                 extReg = geneGB.origin[ min(i[ter],i[ter]+(2*(not ter)-1)*endsLength):max(i[ter],i[ter]+(2*(not ter)-1)*endsLength) ] # extreme region to be analyzed
-                tricky = isTricky( extReg ) > -1 # true if this terminus contains homopolymers or AT repeats
+                tricky = problemSequence( extReg,ter ) # true if this terminus contains homopolymers or AT repeats
                 tm = meltingTemp( extReg ) # Tm for this terminus
                 bestHR[3][ter] = len(findMotif(geneGB.origin, extReg[0:annealCheckLength])) if ter else len(findMotif(geneGB.origin, extReg[-annealCheckLength:])) # number of repeats of primer-annealing sequence
                 lenHR = i[1] - i[0] # length of HR as it stands
@@ -212,7 +224,7 @@ def chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='end', lengthHR=[450,500
                         t_extReg = geneGB.origin[ min(ti,ti+(2*(not ter)-1)*endsLength):max(ti,ti+(2*(not ter)-1)*endsLength) ] # extreme region to be analyzed
                         t_tm = meltingTemp( t_extReg ) # Tm for this terminus
                         t_repeats = len(findMotif(geneGB.origin, t_extReg[0:annealCheckLength])) if ter else len(findMotif(geneGB.origin, t_extReg[-annealCheckLength:])) # number of repeats of primer-annealing sequence
-                        if t_tm > tm and not isTricky( t_extReg ) > -1 and lenMax >= abs(i[not ter] - ti) >= lenMin and t_repeats == 1: # if this end point has a better Tm, no repeats, and is still within bounds
+                        if t_tm > tm and not problemSequence( t_extReg,ter ) and lenMax >= abs(i[not ter] - ti) >= lenMin and t_repeats == 1: # if this end point has a better Tm, no repeats, and is still within bounds
                             bi = ti; # make this the ending position
                             tm = t_tm # record this tm as best
 

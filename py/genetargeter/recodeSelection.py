@@ -17,7 +17,7 @@ restriction sites given as parameters. Checks that gRNA recoded sequence has a
 pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
-def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), targetRegionOverride=False, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], codonSampling=False, offScoreThreshold=10, minGCEnd=0.375, gRNATableString=""):
+def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), targetRegionOverride=False, flankingSeqsRec=['',''], filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], codonSampling=False, offScoreThreshold=10, minGCEnd=0.375, gRNATableString=""):
     #TODO: debug #TODO: Recoded if upstream of stop codon add recode values to table
     gRNAs = geneGB.findAnnsLabel("gRNA", True); # List of all gRNAs
     gRNATable = gRNATableString.split('\n'); # split string into lines
@@ -239,8 +239,8 @@ def chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
 
                 for site in cutSeqs: # for every cut site being filtered,
-                    cutCheck = cutCheck * ( findFirst(recodedSeq,site) < 0 ); # Find cut site, register in cutCheck
-                    cutCheck = cutCheck * ( findFirst(recodedSeq,revComp(site)) < 0 ); # Find cut site in comp strand, register in cutCheck
+                    cutCheck = cutCheck * ( findFirst(flankingSeqsRec[0]+recodedSeq+flankingSeqsRec[1],site) < 0 ); # Find cut site, register in cutCheck
+                    cutCheck = cutCheck * ( findFirst(flankingSeqsRec[0]+recodedSeq+flankingSeqsRec[1],revComp(site)) < 0 ); # Find cut site in comp strand, register in cutCheck
 
                 if gcContent(recodedSeq[0:40]) < minGCEnd: # if the first bases don't have enough gc content
                     badStart = True;
@@ -309,7 +309,7 @@ restriction sites given as parameters. Checks that gRNA recoded sequence has a
 pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
-def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), targetRegionOverride=False, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], codonSampling=False, offScoreThreshold=10, minGCEnd=0.375, gRNATableString="", haTag=True):
+def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), targetRegionOverride=False, flankingSeqsRec=['',''], filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], codonSampling=False, offScoreThreshold=10, minGCEnd=0.375, gRNATableString="", haTag=True):
     #TODO: debug #TODO: Recoded if upstream of stop codon add recode values to table
     gRNAs = geneGB.findAnnsLabel("gRNA", True); # List of all gRNAs
     gRNATable = gRNATableString.split('\n'); # split string into lines
@@ -527,8 +527,8 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
 
                 for site in cutSeqs: # for every cut site being filtered,
-                    cutCheck = cutCheck * ( findFirst(recodedSeq,site) < 0 ); # Find cut site, register in cutCheck
-                    cutCheck = cutCheck * ( findFirst(recodedSeq,revComp(site)) < 0 ); # Find cut site in comp strand, register in cutCheck
+                    cutCheck = cutCheck * ( findFirst(flankingSeqsRec[0]+recodedSeq+flankingSeqsRec[1],site) < 0 ); # Find cut site, register in cutCheck
+                    cutCheck = cutCheck * ( findFirst(flankingSeqsRec[0]+recodedSeq+flankingSeqsRec[1],revComp(site)) < 0 ); # Find cut site in comp strand, register in cutCheck
 
                 if gcContent(recodedSeq[-40:]) < minGCEnd: # if the last bases don't have enough gc content
                     badStart = True;
@@ -601,11 +601,11 @@ pairwise off-target score lower than the given threshold with respect to the
 original gRNA.
 """
 
-def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), targetRegionOverride=False, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], codonSampling=False, offScoreThreshold=10, minGCEnd=0.375, gRNATableString="", target3Prime=True, haTag=False):
+def chooseRecodeRegion(geneGB, gene, offTargetMethod="cfd", pamType="NGG", orgCodonTable=codonUsage(), targetRegionOverride=False, flankingSeqsRec=['',''], filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI], codonSampling=False, offScoreThreshold=10, minGCEnd=0.375, gRNATableString="", target3Prime=True, haTag=False):
     out = {}; # will contain method output
     if target3Prime: # if targeting 3'
-        out = chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod, pamType=pamType, orgCodonTable=orgCodonTable,codonSampling=codonSampling, gRNATableString=gRNATableString, targetRegionOverride=targetRegionOverride, filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
+        out = chooseRecodeRegion3Prime(geneGB, gene, offTargetMethod, pamType=pamType, orgCodonTable=orgCodonTable,codonSampling=codonSampling, gRNATableString=gRNATableString, targetRegionOverride=targetRegionOverride, flankingSeqsRec=flankingSeqsRec, filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
     else: # if using pSN150,
-        out = chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod, pamType=pamType, orgCodonTable=orgCodonTable,codonSampling=codonSampling, gRNATableString=gRNATableString, haTag=haTag, targetRegionOverride=targetRegionOverride, filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
+        out = chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod, pamType=pamType, orgCodonTable=orgCodonTable,codonSampling=codonSampling, gRNATableString=gRNATableString, haTag=haTag, targetRegionOverride=targetRegionOverride, flankingSeqsRec=flankingSeqsRec, filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
 
     return out;
