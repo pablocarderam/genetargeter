@@ -335,20 +335,21 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
     if len(plasmidArmed.findAnnsLabel(gene.label + " Recoded")) > 0 and ( len(recoded.seq) + gibsonHomRange[1]*2 >= minGBlockSize or gBlockDefault ): # if there is a recoded region and length of recoded region plus homology regions necessary for Gibson Assembly is greater or equal to minimum gBlock size, or gBlocks are default
         gRNATable = gRNATableString.split('\n'); # split string into lines
         gRNATable = [g.split(',') for g in gRNATable]; # split each line into values
-        for g in gRNATable: # find this gRNA in table
-            gStart = findFirst(plasmidArmed.origin, g[16]) if g[5]=='+' else findFirst(plasmidArmed.origin, revComp(g[16]))
-            gEnd = gStart+len(g[16])
-            gRNALength = 20
-            if len(g[16]) < gRNALength:
-                if g[5]=='-':
-                    gEnd = gStart + gRNALength
-                else:
-                    gStart -= gRNALength - len(g[16])
+        if gRNATable[0][0] != 'gRNAs not evaluated if they are user-defined.':
+            for g in gRNATable: # find this gRNA in table
+                gStart = findFirst(plasmidArmed.origin, g[16]) if g[5]=='+' else findFirst(plasmidArmed.origin, revComp(g[16]))
+                gEnd = gStart+len(g[16])
+                gRNALength = 20
+                if len(g[16]) < gRNALength:
+                    if g[5]=='-':
+                        gEnd = gStart + gRNALength
+                    else:
+                        gStart -= gRNALength - len(g[16])
 
-            if gStart > -1 and len(g[16]) > 0:
-                gID = g[1][g[1].find('gRNA') + 5:]
-                recodedGRNA = GenBankAnn("Recoded gRNA "+gID, "misc_feature", plasmidArmed.origin[gStart:gEnd], g[5]=='-', [gStart,gEnd], annColors['gRNAColor']); # annotation object
-                plasmidArmed.features.append(recodedGRNA)
+                if gStart > -1 and len(g[16]) > 0:
+                    gID = g[1][g[1].find('gRNA') + 5:]
+                    recodedGRNA = GenBankAnn("Recoded gRNA "+gID, "misc_feature", plasmidArmed.origin[gStart:gEnd], g[5]=='-', [gStart,gEnd], annColors['gRNAColor']); # annotation object
+                    plasmidArmed.features.append(recodedGRNA)
 
         recodedGBlock = recodedOnPlasmid # by default take gBlock as recoded region
         if len(recoded.seq) + gibsonHomRange[1]*2 < minGBlockSize: # if min gBlock size not achieved and gBlocks are default,

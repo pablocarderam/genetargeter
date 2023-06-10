@@ -132,6 +132,10 @@ class GenBank(object):
                 w = d[i].split(); # splits line into words
                 while w[0] != "ORIGIN" and i < len(d): # iterates until ORIGIN found or end of document reached, assuming ORIGIN comes after features...
                     if d[i].lstrip()[0] != "/" and len(w) == 2: # if the line does not start with "/" and contains two strings separated by spaces, it means it might be a new annotation. lstrip() removes left whitespace.
+                        if len(newAnn.label)*len(newAnn.type)*len(newAnn.seq)*len(newAnn.index) != 0: # if all properties in newAnn have been filled in,
+                            self.features.append(newAnn); # adds the new annotation
+                            newAnn = GenBankAnn("","","",False,[]); # resets newAnn variable
+
                         posRawString = w[1].split("("); # splits second word in w by "(" to see if on complementary strand
                         posString = posRawString[0]; # assigns posString to the indexes string in the case that the annotation is on the positive strand
                         if len(posRawString) > 1: # if split into more than one piece, it means it's on the complementary strand
@@ -149,11 +153,12 @@ class GenBank(object):
                                 newAnn.index.append(newAnn.index[0]); # duplicate the index
 
                             newAnn.index[0] = newAnn.index[0] - 1; # changes to Python indexing. Upper limit does not have to be changed since Python does not include it in indexing, while GenBank does.
+                            newAnn.label = ''
 
                     elif d[i].find('=') > 0: # if line contains = character, it means it's a new property
                         p = d[i].lstrip().split("="); # splits line into a property's name and value
                         if p[0] == "/gene" or p[0] == "/label" or p[0] == "/ID": # if the property is a gene or label...
-                            newAnn.label = p[1].strip('"').strip("'").strip(); # assigns the label (extracting the label from string p)
+                            newAnn.label = (newAnn.label + p[1].strip('"').strip("'")).strip(); # assigns the label (extracting the label from string p)
                             if newAnn.comp: # if on complementary strand,
                                 newAnn.seq = revComp(self.origin[(newAnn.index[0]):newAnn.index[1]]); # assigns the sequence of the annotated region to the complement. To find the sequence of the annotated region, indexes in the full sequence according to the position previously extracted.
                             else: # if on positive strand,
@@ -166,12 +171,12 @@ class GenBank(object):
                     else: # if line does not contain = character, it's a continuation of the previous line.
                         pass; # do nothing since we're not loading descriptions anyway. Keep your labels short. Sorry.
 
-                    if len(newAnn.label)*len(newAnn.type)*len(newAnn.seq)*len(newAnn.index) != 0: # if all properties in newAnn have been filled in,
-                        self.features.append(newAnn); # adds the new annotation
-                        newAnn = GenBankAnn("","","",False,[]); # resets newAnn variable
-
                     i = i+1; # advance counter
                     w = d[i].split(); # splits line into words
+
+                if len(newAnn.label)*len(newAnn.type)*len(newAnn.seq)*len(newAnn.index) != 0: # if all properties in newAnn have been filled in,
+                    self.features.append(newAnn); # adds the new annotation
+                    newAnn = GenBankAnn("","","",False,[]); # resets newAnn variable
 
 
     """
