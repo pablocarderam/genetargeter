@@ -397,17 +397,17 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
         # Adjust frame if not recoding from the start codon
         if targetRegionOverride:
-            restSeq = geneGB.origin[startRecode:gene.index[1]]
+            restSeq = geneGB.origin[gene.index[0]:startRecode]
             if len(intronIndices) > 0 and intronIndices[0][0] < endRecode: # if there are introns inside the target region,
-                restSeq = geneGB.origin[startRecode:intronIndices[0][0]]; # get recode sequence until first intron
+                restSeq = geneGB.origin[gene.index[0]:intronIndices[0][0]]; # get recode sequence until first intron
                 for i in range(len(intronIndices)-1): # for every intron except last one,
                     restSeq = restSeq + geneGB.origin[intronIndices[i][1]:intronIndices[i+1][0]]; # add next exon to recode seq
 
-                restSeq = restSeq + geneGB.origin[intronIndices[len(intronIndices)-1][1]:gene.index[1]]; # get rest of recode sequence until endRecode
+                restSeq = restSeq + geneGB.origin[intronIndices[len(intronIndices)-1][1]:startRecode]; # get rest of recode sequence until startRecode
 
-            frame2 = len(recodeSeq) % 3; # stores reading frame, index from start of sequence to be recoded
-            frame = 3-((len(restSeq)-len(recodeSeq)) % 3) # stores reading frame, index from start of sequence to be recoded
-            frame = frame if frame != 3 else 0
+            frame2 = 3-(len(restSeq) % 3); #3-((len(restSeq)-len(recodeSeq)) % 3) # stores reading frame, index from start of sequence to be recoded
+            frame2 = frame2 if frame2 != 3 else 0
+            frame = (len(recodeSeq)-frame2) % 3; # stores reading frame, index from start of sequence to be recoded
             startRecode += frame2; # modify recode start site according to reading frame
             nonRecodedStart = recodeSeq[0:frame2] if frame2!=0 else ''; # stores 0, 1 or 2 nucleotides not recoded due to reading frame
             recodeSeq = recodeSeq[frame2:]; # adjust recode region
