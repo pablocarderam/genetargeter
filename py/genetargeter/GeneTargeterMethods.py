@@ -274,7 +274,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                     elif plasmidType=="custom":
                         flankingSeqsRec = ['','']
 
-                    recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, targetRegionOverride=(plasmidType=='custom'), flankingSeqsRec=flankingSeqsRec, filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
+                    recoded = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, haTag=haTag, targetRegionOverride=(plasmidType=='custom'), flankingSeqsRec=flankingSeqsRec, filterCutSites=filterCutSites); # defines region to be recoded, returns recoded sequence
                     recodedHA = {}; # will contain recoded region with HA tag
                     if haTag: # if using HA tags,
                         recodedHA = chooseRecodeRegion(geneGB, gene, offTargetMethod, pamType=PAM, orgCodonTable=codonUsageTables[codonOptimize],codonSampling=codonSampling, gRNATableString=outputDic["gRNATable"], target3Prime=target3Prime, haTag=True, targetRegionOverride=(plasmidType=='custom'), flankingSeqsRec=flankingSeqsRec, filterCutSites=filterCutSites); # defines region to be recoded with HA tag, returns recoded sequence
