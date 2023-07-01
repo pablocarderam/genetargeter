@@ -641,9 +641,9 @@ function downloadOutput() {
         for (var j = 0; j < currentOutput.length; j++) {
             if (j%(fileTypes.length+1) > 0 && currentOutput[j].length > 1) {
                 var geneName = currentOutput[Math.floor(j/(fileTypes.length+1))*(fileTypes.length+1)] + nonCoding;
-                zip.folder(geneName).file(fileTypes[j%(fileTypes.length+1)-1]+geneName+"_"+plasmid+"_"+enzyme+haTagged+fileExt[j%(fileTypes.length+1)-1], currentOutput[j]);
+                zip.folder(geneName+haTagged).file(fileTypes[j%(fileTypes.length+1)-1]+geneName+"_"+plasmid+"_"+enzyme+haTagged+fileExt[j%(fileTypes.length+1)-1], currentOutput[j]);
                 if (j==currentOutput.length-1) {
-                    downloadNamedZip(zip,geneName);
+                    downloadNamedZip(zip,geneName,haTagged);
                 }
             }
         }
@@ -722,7 +722,7 @@ function downloadOutput() {
                 }
                 zip.folder('GeneTargeter_bulk').file(prefix+"_"+fileTypes[j]+plasmid+"_"+enzyme+haTagged+fileExt[j], bulkFileArray[j]);
                 if (j==bulkFileArray.length-1) {
-                    downloadNamedZip(zip,'GeneTargeter_bulk');
+                    downloadNamedZip(zip,'GeneTargeter_bulk',haTagged);
                 }
             }
 
@@ -732,9 +732,9 @@ function downloadOutput() {
 
 }
 
-function downloadNamedZip(mainZip,fName) {
+function downloadNamedZip(mainZip,fName,haTagged_arg) {
     mainZip.generateAsync({type: 'blob'}).then(content => {
-        saveAs(content, fName+'_output.zip');
+        saveAs(content, fName+haTagged_arg+'_output.zip');
     });
 }
 

@@ -97,8 +97,10 @@ def insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, R
         plas.insertSeq(recodedRegion.upper(), inRecode); # inserts recoded region sequence
         annRecoded = GenBankAnn(geneName+" Recoded Region", "misc_feature", recodedRegion, False, [inRecode,inRecode+len(recodedRegion)], annColors['recodedRegionColor']); # annotation object
         if haTag: # if recoded region contains HA tag,
-            annHATag = GenBankAnn("HA tag (recoded)", "misc_feature", recodedRegion[3:len(ha_tag)+3], False, [inRecode+3,inRecode+len(ha_tag)+3], annColors['otherAnnColor']); # annotation object for HA tag
-            plas.features.append(annHATag); # adds annotation
+            annHATag1 = GenBankAnn("HA tag (recoded)", "misc_feature", recodedRegion[9:len(ha_tag)+9], False, [inRecode+9,inRecode+len(ha_tag)+9], annColors['otherAnnColor']); # annotation object for HA tag
+            annHATag2 = GenBankAnn("HA tag (recoded)", "misc_feature", recodedRegion[15+len(ha_tag):len(ha_tag)*2+15], False, [inRecode+15+len(ha_tag),inRecode+len(ha_tag)*2+15], annColors['otherAnnColor']); # annotation object for HA tag
+            plas.features.append(annHATag1); # adds annotation
+            plas.features.append(annHATag2); # adds annotation
 
         plas.features.append(annRecoded); # adds annotation
         startRHR = inRecode + len(recodedRegion); # shift RHR start site downstream of recoded region

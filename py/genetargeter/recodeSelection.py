@@ -420,7 +420,7 @@ def chooseRecodeRegion5Prime(geneGB, gene, offTargetMethod="cfd", pamType="NGG",
 
         recodeSeq = recodeSeq[0:len(recodeSeq)-frame]; # adjust recode region
         if haTag: # if adding an HA tag,
-            recodeSeq = 'ATG' + ha_tag + recodeSeq[3:]; # add HA tag to start of recoded region
+            recodeSeq = 'ATGggttct' + ha_tag + 'ggatca' + ha_tag + 'ggatcgGGAAGCgga' + recodeSeq[0:]; # add HA tag to start of recoded region
 
         cutSeqs = filterCutSites + [g.seq for g in gRNAs]; # list of all cut seqs. all gRNAs in gene are to be included as cut sequences
         cutCheck = True; # variable used to check if cut sequences are present. Initially false since all gRNAs are present.
