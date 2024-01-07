@@ -347,7 +347,7 @@ def chooseGRNA(geneGB, gene, searchRange=[-700,125], searchRangeNonCoding=550, P
 Finds gRNA already annotated on gene. Filters for given restriction enzyme cut
 sites. If no gRNA found on gene, nothing will happen (logs this).
 """
-def findGRNA(geneGB, gene, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
+def findGRNA(geneGB, gene, target3Prime=True, filterCutSites=[cut_FseI,cut_AsiSI,cut_IPpoI,cut_ISceI,cut_AflII,cut_AhdI,cut_BsiWI,cut_NheI]):
     log = ""; # init log
     gRNAs = geneGB.findAnnsLabel("gRNA 1", True); # List of all gRNAs
     gRNAExtreme = GenBankAnn(); # init var to hold gRNA

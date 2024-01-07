@@ -169,7 +169,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
         # Find gRNA
         gRNA = { 'out':GenBankAnn() }
         if HRannotated: # if using manual annotations
-            gRNA = findGRNA(geneGB, gene); # finds gRNA most upstream annotated manually.
+            gRNA = findGRNA(geneGB, gene, target3Prime=target3Prime); # finds gRNA most upstream annotated manually.
             if len(gRNA["out"].label) == 0: # if no manual annotation found,
                 gRNA = chooseGRNA(geneGB, gene, searchRange=[-maxDist1,maxDist2], PAM=PAM, minGCContent=minGRNAGCContent, minOnTargetScore=minOnTargetScore, onTargetMethod=onTargetMethod, minOffTargetScore=minOffTargetScore, offTargetMethod=offTargetMethod, maxOffTargetHitScore=maxOffTargetHitScore, gBlockOverlapSize=gibsonHomRange[1], codingGene=codingGene, enzyme=enzyme, closestGene=closestGene, target3Prime=target3Prime, targetRegionOverride=(plasmidType=="custom"), filterCutSites=filterCutSites); # chooses gRNA.
 
