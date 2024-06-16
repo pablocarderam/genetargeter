@@ -2,7 +2,7 @@
 
 GeneTargeter creates custom gene-editing constructs designed for knock-out or conditional knock-down in [_Plasmodium falciparum_](http://www.who.int/mediacentre/factsheets/fs094/en/). It is developed by the [Niles Lab at MIT](http://web.mit.edu/nileslab/) and [described in detail in this article](https://www.liebertpub.com/doi/epdf/10.1089/crispr.2021.0069).
 
-At the Niles Lab, GeneTargeter is used to deliver 3' or 5' UTR post-transcriptional regulatory element payload to a specific given gene ([Ganesan et al., 2016](https://dx.doi.org/10.1038%2Fncomms10727), [Nasamu et al., 2021](https://doi.org/10.1038/s41598-020-77644-4)). However, user-defined custom plasmids can be used as well.
+At the Niles Lab, GeneTargeter is used to deliver 3' or 5' UTR post-transcriptional regulatory element payload to a specific given gene ([Ganesan et al., 2016](https://dx.doi.org/10.1038%2Fncomms10727), [Nasamu et al., 2021](https://doi.org/10.1038/s41598-020-77644-4)). It can also deliver 5' synthetic transcriptional regulatory payloads (preprint forthcoming). User-defined custom plasmids can be used as well.
 
 Most applications can be served well through the web application running at [genetargeter.mit.edu](genetargeter.mit.edu) .
 

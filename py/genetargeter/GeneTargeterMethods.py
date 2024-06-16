@@ -124,7 +124,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
 
 
 
-        elif plasmidType == "pSN150" or plasmidType == "pSN150-KO" or plasmidType == "pSN150-Ter" or plasmidType == "pSN150-KO-Ter": # if using 5' plasmid
+        elif plasmidType == "pSN150" or plasmidType == "pSN150-KO" or plasmidType == "pSN150-Ter" or plasmidType == "pSN150-KO-Ter" or plasmidType == "pPC101": # if using 5' plasmid
             if plasmidType == "pSN150" or plasmidType == "pSN150-KO": # if using the normal ones,
                 if enzyme == "Cas9": # if Cas9,
                     plasmid = pSN150_Cas9; # set plasmid
@@ -137,6 +137,9 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                     plasmid = pSN150_Cas9_Ter; # set plasmid
                 elif enzyme == "Cas12": # if Cas12,
                     plasmid = pSN150_Cas12_Ter; # set plasmid
+
+            elif plasmidType == "pPC101": # if using old version
+                plasmid = pPC101; # set plasmid
 
 
             closestGene = 0; # by default, assume next gene downstream is before start of file
@@ -207,6 +210,9 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
             elif plasmidType=="pSN150-KO":
                 flankingSeqsLHR = ['ggcc','ggcc']
                 flankingSeqsRHR = ['cgcc','cccg']
+            elif plasmidType=="pPC101":
+                flankingSeqsLHR = ['ggcc','ggcc']
+                flankingSeqsRHR = ['','cgta']
             elif plasmidType=="custom":
                 flankingSeqsLHR = ['','']
                 flankingSeqsRHR = ['','']
@@ -219,7 +225,7 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                 LHR = chooseHR(geneGB, gene, doingHR='LHR', targetExtreme='start', lengthHR=lengthLHR, minTmEnds=endTempLHR, endsLength=endSizeLHR, targetRegionOverride=(plasmidType=="custom" or plasmidType=="pSN150-KO"), flankingSeqs=flankingSeqsLHR, filterCutSites=filterCutSites); # chooses LHR
                 if plasmidType == "pSN150-KO" or (plasmidType=="custom" and locationType=="center"): # if knocking gene out,
                     RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='end', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, targetRegionOverride=(plasmidType=="custom" or plasmidType=="pSN150-KO"), flankingSeqs=flankingSeqsRHR, filterCutSites=filterCutSites); # chooses an RHR at end of gene!
-                elif plasmidType == "pSN150" or (plasmidType=="custom" and locationType=="5prime"): # otherwise if KD construct
+                elif plasmidType == "pSN150" or plasmidType == "pPC101" or (plasmidType=="custom" and locationType=="5prime"): # otherwise if KD construct
                     RHR = chooseHR(geneGB, gene, doingHR='RHR', targetExtreme='start', lengthHR=lengthRHR, minTmEnds=endTempRHR, endsLength=endSizeRHR, gBlockDefault=gBlockDefault, minGBlockSize=minGBlockSize, codingGene=codingGene, targetRegionOverride=(plasmidType=="custom" or plasmidType=="pSN150-KO"), flankingSeqs=flankingSeqsRHR, filterCutSites=filterCutSites); # chooses an RHR at beginning
 
             if LHR["out"] is None or RHR["out"] is None and not HRannotated: # if searches fail and HR's not provided,
@@ -271,6 +277,8 @@ def targetGene(geneName, geneGB, codonOptimize="T. gondii", HRannotated=False, l
                     flankingSeqsRec = [LHR.seq[-4:],'gcga'] # 054
                     if plasmidType=="pSN150":
                         flankingSeqsRec = ['tagc',RHR.seq[0:4]]
+                    if plasmidType=="pPC101":
+                        flankingSeqsRec = ['gATG',RHR.seq[0:4]]
                     elif plasmidType=="custom":
                         flankingSeqsRec = ['','']
 
@@ -356,7 +364,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
             extIndex = ( minGBlockSize - gibsonHomRange[1]*2 ) # extension length of gBlock such that it satisfies minimum gBlock length
             if plasmidType=="pSN054": # extend in different directions depending on plasmid
                 recodedGBlock = GenBankAnn(gene.label + " extension", "misc_feature", plasmidArmed.origin[recodedOnPlasmid.index[0]:recodedOnPlasmid.index[0]+extIndex], False, [recodedOnPlasmid.index[0],recodedOnPlasmid.index[0]+extIndex]) # make extended recoded region gBlock annotation
-            elif plasmidType=="pSN150":
+            elif plasmidType=="pSN150" or plasmidType=="pPC101":
                 recodedGBlock = GenBankAnn(gene.label + " extension", "misc_feature", plasmidArmed.origin[recodedOnPlasmid.index[1]-extIndex:recodedOnPlasmid.index[1]], False, [recodedOnPlasmid.index[1]-extIndex,recodedOnPlasmid.index[1]]) # make extended recoded region gBlock annotation
             elif plasmidType=="custom":
                 recodedGBlock = GenBankAnn(gene.label + " extension", "misc_feature", plasmidArmed.origin[recodedOnPlasmid.index[0]:recodedOnPlasmid.index[0]+extIndex], False, [recodedOnPlasmid.index[0],recodedOnPlasmid.index[0]+extIndex]) # make extended recoded region gBlock annotation
@@ -413,7 +421,7 @@ def postProcessPlasmid(geneName, geneGB, gene, plasmidArmed, recoded, outputDic,
         if plasmidType == "pSN054": # if using pSN150 instead of pSN054,
             gRNACassetteStart = plasmidArmed.findAnnsLabel("Lox")[0].index[0] + 4; # gBlock starts at first Lox +4 bp to avoid error due to repeated lox sequence
             gRNACassetteEnd = plasmidArmed.findAnnsLabel("RHR_vector overlap_left")[0].index[1]; # gBlock ends at RHR_vector overlap_left
-        if plasmidType == "pSN150": # if using pSN150 instead of pSN054,
+        if plasmidType == "pSN150" or plasmidType=="pPC101": # if using pSN150 instead of pSN054,
             gRNACassetteStart = plasmidArmed.findAnnsLabel(geneName + " RHR")[0].index[1]; # gBlock starts at end of RHR
             gRNACassetteEnd = max(gRNACassetteStart + minGBlockSize,findFirst(plasmidArmed.origin, cut_AsiSI)+len(cut_AsiSI)+gibsonHomRange[1]); # gBlock ends after AsiSI
         elif plasmidType == "pSN150-KO": # if using pSN150-KO instead of pSN054,

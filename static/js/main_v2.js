@@ -820,6 +820,9 @@ function changeUTRTarget() {
     else if (document.getElementById('plasmidType').value === 'pSN150') {
         document.getElementById('locationType').value = '5prime';
     }
+    else if (document.getElementById('plasmidType').value === 'pPC101') {
+        document.getElementById('locationType').value = '5prime';
+    }
     else if (document.getElementById('plasmidType').value === 'pSN150-KO') {
         document.getElementById('locationType').value = 'center';
     }

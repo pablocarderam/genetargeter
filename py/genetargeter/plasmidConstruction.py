@@ -54,7 +54,6 @@ def insertTargetingElementsPSN054(plasmid, geneName, gRNA, LHR, recodedRegion, R
     return plas; # returns modified plasmid
 
 
-
 """
 Inserts targeting elements given as arguments into pSN150 at predetermined
 sites. Elements given as arguments must be strings, not GenBankAnn objects.
@@ -114,6 +113,46 @@ def insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, R
     plas.removeSeq([startGRNA, endGRNA]); # removes sequence that gRNA will replace
     plas.insertSeq("gg" + gRNA.upper(), startGRNA); # inserts gRNA sequence with gg sequence used by T7 polymerase
     annGRNA = GenBankAnn(geneName+" gRNA", "misc_feature", gRNA, False, [startGRNA+2,startGRNA+2+len(gRNA)], annColors['gRNAColor']); # annotation object. Note that gRNA starts after "gg" added for T7 polymerase
+    plas.features.append(annGRNA); # adds annotation
+
+    return plas; # returns modified plasmid
+
+def insertTargetingElementsPPC101(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag=True):
+    plas = copy.deepcopy(plasmid); # makes a copy of the plasmid object to modify without altering the original
+
+    inLHR = findFirst(plas.origin, cut_FseI) + len(cut_FseI); # index of LHR start site (at end of FseI cut sequence)
+    plas.insertSeq(LHR.upper() + cut_FseI, inLHR); # inserts LHR sequence
+    annLHR = GenBankAnn(geneName+" LHR", "misc_feature", LHR, False, [inLHR,inLHR+len(LHR)], annColors['LHRColor']); # annotation object
+    plas.features.append(annLHR); # adds annotation
+
+    endRHR = findFirst(plas.origin, cut_BsiWI); # index of RHR end site is middle of AhdI cut sequence, conserves frame
+    startRHR = findFirst(plas.origin, cut_AsiSI) + 3; # assume keeping HA tag
+    plas.removeSeq([startRHR, startRHR+2]); # removes sequence that RHR will replace
+
+    if len(recodedRegion) > 0: # if there is a recoded region,
+        inRecode = startRHR; # index of recoded region start site (middle of AhdI cut sequence)
+        plas.insertSeq(recodedRegion.upper(), inRecode); # inserts recoded region sequence
+
+        annRecoded = GenBankAnn(geneName+" Recoded Region", "misc_feature", recodedRegion, False, [inRecode,inRecode+len(recodedRegion)], annColors['recodedRegionColor']); # annotation object
+        plas.features.append(annRecoded); # adds annotation
+        startRHR = inRecode + len(recodedRegion); # shift RHR start site downstream of recoded region
+        if haTag: # if recoded region contains HA tag,
+            annHATag1 = GenBankAnn("HA tag (recoded)", "misc_feature", recodedRegion[9:len(ha_tag)+9], False, [inRecode+9,inRecode+len(ha_tag)+9], annColors['otherAnnColor']); # annotation object for HA tag
+            annHATag2 = GenBankAnn("HA tag (recoded)", "misc_feature", recodedRegion[15+len(ha_tag):len(ha_tag)*2+15], False, [inRecode+15+len(ha_tag),inRecode+len(ha_tag)*2+15], annColors['otherAnnColor']); # annotation object for HA tag
+            plas.features.append(annHATag1); # adds annotation
+            plas.features.append(annHATag2); # adds annotation
+            # plas.insertSeq('ATG', inRecode); # inserts recoded region sequence
+            # startRHR = startRHR + 3; # shift RHR start site downstream of recoded region
+
+    plas.insertSeq(RHR.upper(), startRHR); # inserts RHR sequence
+    annRHR = GenBankAnn(geneName+" RHR", "misc_feature", RHR, False, [startRHR,startRHR+len(RHR)], annColors['RHRColor']); # annotation object
+    plas.features.append(annRHR); # adds annotation
+
+    startGRNA = findFirst(plas.origin, 'AGGGTATACAGGGATATCGA'); # index of gRNA start site (at start of I-PpoI cut sequence)
+    endGRNA = startGRNA + len('AGGGTATACAGGGATATCGA'); # index of gRNA end site (at end of I-PpoI cut sequence)
+    plas.removeSeq([startGRNA, endGRNA]); # removes sequence that gRNA will replace
+    plas.insertSeq(gRNA.upper(), startGRNA); # inserts gRNA sequence with gg sequence used by T7 polymerase
+    annGRNA = GenBankAnn(geneName+" gRNA", "misc_feature", gRNA, False, [startGRNA,startGRNA+len(gRNA)], annColors['gRNAColor']); # annotation object. Note that gRNA starts after "gg" added for T7 polymerase
     plas.features.append(annGRNA); # adds annotation
 
     return plas; # returns modified plasmid
@@ -223,6 +262,8 @@ def insertTargetingElements(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, pl
         out = insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag); # use other method
     elif plasmidType == 'pSN150-KO': # if using pSN150-KO,
         out = insertTargetingElementsPSN150(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag, KO=True); # use other method
+    elif plasmidType == 'pPC101':
+        out = insertTargetingElementsPPC101(plasmid, geneName, gRNA, LHR, recodedRegion, RHR, haTag); # use other method
     elif plasmidType == 'custom':
         out = insertTargetingElementsCustom(plasmid, geneName, gRNA, LHR, recodedRegion, RHR); # use other method
 
